@@ -374,49 +374,7 @@ body:not(.using-keyboard) *:focus {
     outline: none;
 }
 
-/* Loading Screen */
-.loading-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10001;
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.5s ease, visibility 0.5s ease;
-}
-
-.loading-screen.hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-.loading-spinner {
-    text-align: center;
-    color: white;
-}
-
-.loading-spinner i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    animation: loadingSpin 2s linear infinite;
-}
-
-.loading-spinner p {
-    font-size: 1.2rem;
-    font-weight: 500;
-}
-
-@keyframes loadingSpin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+/* Loading overlay removed */
 
 .container {
     max-width: 1200px;
@@ -3487,8 +3445,7 @@ html {
 
     .navbar,
     .sidebar,
-    .modal,
-    .loading-screen {
+    .modal {
         display: none !important;
     }
 

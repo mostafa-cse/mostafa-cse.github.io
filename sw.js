@@ -1,8 +1,9 @@
 // CP Journey Tracker - Service Worker
-const CACHE_NAME = 'cp-journey-v1.1.0';
+// Bump cache to invalidate any stale HTML previously cached
+const CACHE_NAME = 'cp-journey-v1.2.0';
+// Do NOT precache index.html to avoid serving stale markup (e.g., old loading overlay)
 const urlsToCache = [
     '/',
-    '/index.html',
     '/styles.css',
     '/script.js',
     '/manifest.json'
@@ -46,6 +47,24 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
+
+    // Network-first for navigations (HTML documents)
+    if (request.mode === 'navigate' || request.destination === 'document') {
+        event.respondWith((async () => {
+            try {
+                const networkResponse = await fetch(request);
+                // Cache the latest HTML for offline use
+                const cache = await caches.open(CACHE_NAME);
+                cache.put(request, networkResponse.clone());
+                return networkResponse;
+            } catch (err) {
+                // Fallback to cached document if offline
+                const cached = await caches.match(request);
+                return cached || caches.match('/index.html');
+            }
+        })());
+        return;
+    }
 
     // Handle cross-origin fonts/icons with runtime caching (stale-while-revalidate)
     const isFontOrIcon = (
@@ -126,10 +145,7 @@ self.addEventListener('fetch', (event) => {
                         return response;
                     })
                     .catch(() => {
-                        // Return offline page for navigation requests
-                        if (request.destination === 'document') {
-                            return caches.match('/index.html');
-                        }
+                        // Non-navigation request failed; no special fallback
                     });
             })
     );

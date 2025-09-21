@@ -6,7 +6,7 @@ class CPJourney {
         this.isOnline = navigator.onLine;
         this.currentUser = null;
         this.authToken = localStorage.getItem('authToken');
-        this.loadingStartTime = performance.now(); // Use performance.now() for better precision
+    // Removed loading overlay timing
 
         // Performance optimizations
         this.cache = new Map(); // Add caching system
@@ -44,7 +44,11 @@ class CPJourney {
             await Promise.all(uiPromises);
 
             // Initialize event listeners (non-blocking)
-            this.initializeEventListeners();
+            try {
+                this.initializeEventListeners();
+            } catch (e) {
+                console.warn('Some UI listeners failed to initialize:', e);
+            }
 
             // Load data in parallel
             await Promise.all(dataPromises);
@@ -77,26 +81,7 @@ class CPJourney {
         }
     }
 
-    showLoadingScreen() {
-        const loadingScreen = document.getElementById('loading-screen');
-        if (loadingScreen) {
-            loadingScreen.classList.remove('hidden');
-        }
-    }
-
-    async hideLoadingScreen() {
-        // Remove artificial delay for better performance
-        const loadingScreen = document.getElementById('loading-screen');
-        if (loadingScreen) {
-            // Calculate actual loading time
-            const loadTime = performance.now() - this.loadingStartTime;
-            console.log(`⚡ App loaded in ${loadTime.toFixed(2)}ms`);
-
-            // Small delay to prevent flash
-            await new Promise(resolve => setTimeout(resolve, 50));
-            loadingScreen.classList.add('hidden');
-        }
-    }
+    // Loading overlay removed; no-op methods deleted
 
     initializeEnhancedFeatures() {
         // Initialize hero stats
@@ -1305,19 +1290,13 @@ class CPJourney {
         this.initAuthEventListeners();
 
         // Time Machine
-        document.getElementById('start-journey').addEventListener('click', () => this.startJourney());
-        document.getElementById('reset-journey').addEventListener('click', () => this.resetJourney());
+        document.getElementById('start-journey')?.addEventListener('click', () => this.startJourney());
+        document.getElementById('reset-journey')?.addEventListener('click', () => this.resetJourney());
 
         // Database Operations
-        if (document.getElementById('export-data')) {
-            document.getElementById('export-data').addEventListener('click', () => this.exportData());
-        }
-        if (document.getElementById('import-data')) {
-            document.getElementById('import-data').addEventListener('click', () => this.importData());
-        }
-        if (document.getElementById('create-backup')) {
-            document.getElementById('create-backup').addEventListener('click', () => this.createBackup());
-        }
+        document.getElementById('export-data')?.addEventListener('click', () => this.exportData());
+        document.getElementById('import-data')?.addEventListener('click', () => this.importData());
+        document.getElementById('create-backup')?.addEventListener('click', () => this.createBackup());
 
         // Platform Sync Operations
         if (document.getElementById('sync-cses')) {
@@ -1354,8 +1333,10 @@ class CPJourney {
         });
 
         // Mobile menu
-        document.querySelector('.hamburger').addEventListener('click', () => {
-            document.querySelector('.nav-menu').classList.toggle('active');
+        const hamburger = document.querySelector('.hamburger');
+        const navMenu = document.querySelector('.nav-menu');
+        hamburger?.addEventListener('click', () => {
+            navMenu?.classList.toggle('active');
         });
 
         // CSES Problem buttons
@@ -2122,48 +2103,48 @@ class CPJourney {
     // Authentication Methods
     initAuthEventListeners() {
         // Login button
-        document.getElementById('loginBtn').addEventListener('click', () => {
+        document.getElementById('loginBtn')?.addEventListener('click', () => {
             this.showAuthModal('login');
         });
 
         // Register button
-        document.getElementById('registerBtn').addEventListener('click', () => {
+        document.getElementById('registerBtn')?.addEventListener('click', () => {
             this.showAuthModal('register');
         });
 
         // Logout button
-        document.getElementById('logoutBtn').addEventListener('click', () => {
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
             this.logout();
         });
 
         // Modal close button
-        document.querySelector('.close').addEventListener('click', () => {
+        document.querySelector('.close')?.addEventListener('click', () => {
             this.hideAuthModal();
         });
 
         // Modal background click
-        document.getElementById('authModal').addEventListener('click', (e) => {
+        document.getElementById('authModal')?.addEventListener('click', (e) => {
             if (e.target === document.getElementById('authModal')) {
                 this.hideAuthModal();
             }
         });
 
         // Tab switching
-        document.getElementById('loginTab').addEventListener('click', () => {
+        document.getElementById('loginTab')?.addEventListener('click', () => {
             this.switchAuthTab('login');
         });
 
-        document.getElementById('registerTab').addEventListener('click', () => {
+        document.getElementById('registerTab')?.addEventListener('click', () => {
             this.switchAuthTab('register');
         });
 
         // Form submissions
-        document.getElementById('loginFormElement').addEventListener('submit', (e) => {
+        document.getElementById('loginFormElement')?.addEventListener('submit', (e) => {
             e.preventDefault();
             this.handleLogin();
         });
 
-        document.getElementById('registerFormElement').addEventListener('submit', (e) => {
+        document.getElementById('registerFormElement')?.addEventListener('submit', (e) => {
             e.preventDefault();
             this.handleRegister();
         });
@@ -2413,10 +2394,15 @@ class CPJourney {
     }
 }
 
-// Initialize the application once DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    new CPJourney();
-});
+// Initialize the application regardless of when the script loads
+(function initCPJourney() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => new CPJourney());
+    } else {
+        // DOM is already parsed (interactive/complete)
+        new CPJourney();
+    }
+})();
 
 // Add keyboard shortcuts
 document.addEventListener('keydown', (e) => {
@@ -3050,10 +3036,12 @@ class CSESManager {
     }
 }
 
-// Initialize enhanced CSES manager when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    // Wait a bit for other initializations
-    setTimeout(() => {
-        window.csesManager = new CSESManager();
-    }, 1000);
-});
+// Initialize enhanced CSES manager when DOM is ready (works even if DOMContentLoaded already fired)
+(function initCSESManager() {
+    const start = () => setTimeout(() => { window.csesManager = new CSESManager(); }, 1000);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+    } else {
+        start();
+    }
+})();
