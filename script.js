@@ -1,4 +1,4 @@
-// CP Journey Progress Tracker with Database Integration
+// CP Journey Progress Tracker - Professional Edition
 class CPJourney {
     constructor() {
         this.API_BASE = 'http://localhost:3001/api';
@@ -6,21 +6,456 @@ class CPJourney {
         this.isOnline = navigator.onLine;
         this.currentUser = null;
         this.authToken = localStorage.getItem('authToken');
+        this.loadingStartTime = Date.now();
+        
+        // Performance optimizations
+        this.cache = new Map(); // Add caching system
+        this.apiRetryCount = 3; // API retry configuration
+        this.apiRetryDelay = 1000; // 1 second initial delay
+        this.throttleTimeouts = new Map(); // Throttling system
+        this.lazyLoadObserver = null; // Lazy loading observer
+        
         this.initializeApp();
     }
 
     async initializeApp() {
-        // Initialize authentication first
-        await this.initAuth();
+        try {
+            // Show loading screen
+            this.showLoadingScreen();
+            
+            // Initialize security measures
+            this.setupSecurityHeaders();
+            
+            // Initialize performance optimizations
+            this.setupCaching();
+            this.setupLazyLoading();
+            
+            // Initialize authentication first
+            await this.initAuth();
 
-        await this.loadData();
-        this.initializeEventListeners();
-        this.updateUI();
-        this.startPeriodicUpdates();
-        this.setupNetworkListeners();
+            // Load user data
+            await this.loadData();
+            
+            // Set up event listeners
+            this.initializeEventListeners();
+            
+            // Update all UI components
+            this.updateUI();
+            
+            // Start background processes
+            this.startPeriodicUpdates();
+            this.setupNetworkListeners();
+            
+            // Initialize enhanced features
+            this.initializeEnhancedFeatures();
+            
+            // Hide loading screen after minimum display time
+            await this.hideLoadingScreen();
+            
+        } catch (error) {
+            console.error('App initialization failed:', error);
+            this.showNotification('Failed to initialize application. Please refresh the page.', 'error');
+        }
+    }
 
-        // Load CSES topics
-        this.loadCSESTopics();
+    showLoadingScreen() {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.classList.remove('hidden');
+        }
+    }
+
+    async hideLoadingScreen() {
+        const minLoadingTime = 1500; // Minimum 1.5 seconds for professional feel
+        const elapsed = Date.now() - this.loadingStartTime;
+        const remainingTime = Math.max(0, minLoadingTime - elapsed);
+        
+        if (remainingTime > 0) {
+            await new Promise(resolve => setTimeout(resolve, remainingTime));
+        }
+        
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+        }
+    }
+
+    initializeEnhancedFeatures() {
+        // Initialize hero stats
+        this.updateHeroStats();
+        
+        // Set up intersection observers for animations
+        this.setupScrollAnimations();
+        
+        // Initialize keyboard shortcuts
+        this.setupKeyboardShortcuts();
+        
+        // Set up mobile optimizations
+        this.optimizeForMobile();
+    }
+
+    updateHeroStats() {
+        const totalProblems = this.getTotalProblemsolved();
+        const currentStreak = this.data.currentStreak || 0;
+        const journeyProgress = this.data.journeyStarted ?
+            Math.min((this.getDaysElapsed() / 315) * 100, 100) : 0; // Total journey is 315 days across all phases
+        
+        // Animate numbers
+        this.animateNumber('hero-problems', totalProblems);
+        this.animateNumber('hero-streak', currentStreak);
+        this.animateNumber('hero-progress', Math.round(journeyProgress), '%');
+    }
+
+    animateNumber(elementId, target, suffix = '') {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        const duration = 2000;
+        const start = parseInt(element.textContent) || 0;
+        const range = target - start;
+        const startTime = Date.now();
+        
+        const animation = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easing = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+            const current = Math.round(start + (range * easing));
+            
+            element.textContent = current + suffix;
+            
+            if (progress < 1) {
+                requestAnimationFrame(animation);
+            }
+        };
+        
+        requestAnimationFrame(animation);
+    }
+
+    setupScrollAnimations() {
+        // Add intersection observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in-visible');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.add('fade-in');
+            observer.observe(section);
+        });
+    }
+
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + K for quick search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                // Focus on search if available
+                const searchInput = document.querySelector('.search-input');
+                if (searchInput) searchInput.focus();
+            }
+        });
+    }
+
+    optimizeForMobile() {
+        // Add touch optimizations
+        document.body.style.webkitTouchCallout = 'none';
+        document.body.style.webkitUserSelect = 'none';
+        
+        // Handle mobile viewport
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+        }
+    }
+
+    // Performance optimization methods
+    setupCaching() {
+        // Set cache expiry times (in milliseconds)
+        this.cacheExpiry = {
+            'cses-topics': 30 * 60 * 1000, // 30 minutes
+            'user-data': 5 * 60 * 1000, // 5 minutes
+            'platform-stats': 15 * 60 * 1000 // 15 minutes
+        };
+    }
+
+    getCachedData(key) {
+        const cached = this.cache.get(key);
+        if (cached && Date.now() - cached.timestamp < (this.cacheExpiry[key] || 10 * 60 * 1000)) {
+            return cached.data;
+        }
+        this.cache.delete(key);
+        return null;
+    }
+
+    setCachedData(key, data) {
+        this.cache.set(key, {
+            data,
+            timestamp: Date.now()
+        });
+    }
+
+    async fetchWithRetry(url, options = {}, retries = this.apiRetryCount) {
+        try {
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(this.authToken && { 'Authorization': `Bearer ${this.authToken}` }),
+                    ...options.headers
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return response;
+        } catch (error) {
+            if (retries > 0 && (error.name === 'NetworkError' || error.name === 'TypeError')) {
+                await new Promise(resolve => setTimeout(resolve, this.apiRetryDelay));
+                return this.fetchWithRetry(url, options, retries - 1);
+            }
+            throw error;
+        }
+    }
+
+    throttle(func, delay, key) {
+        if (this.throttleTimeouts.has(key)) {
+            clearTimeout(this.throttleTimeouts.get(key));
+        }
+        
+        const timeout = setTimeout(() => {
+            func();
+            this.throttleTimeouts.delete(key);
+        }, delay);
+        
+        this.throttleTimeouts.set(key, timeout);
+    }
+
+    setupLazyLoading() {
+        if ('IntersectionObserver' in window) {
+            this.lazyLoadObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const target = entry.target;
+                        
+                        // Lazy load images
+                        if (target.dataset.src) {
+                            target.src = target.dataset.src;
+                            target.removeAttribute('data-src');
+                        }
+                        
+                        // Lazy load content sections
+                        if (target.classList.contains('lazy-content')) {
+                            target.classList.add('loaded');
+                            this.loadSectionContent(target);
+                        }
+                        
+                        this.lazyLoadObserver.unobserve(target);
+                    }
+                });
+            }, {
+                rootMargin: '50px'
+            });
+
+            // Observe lazy load targets
+            document.querySelectorAll('[data-src], .lazy-content').forEach(element => {
+                this.lazyLoadObserver.observe(element);
+            });
+        }
+    }
+
+    async loadSectionContent(section) {
+        const contentType = section.dataset.contentType;
+        if (contentType) {
+            try {
+                // Check cache first
+                const cachedContent = this.getCachedData(`section-${contentType}`);
+                if (cachedContent) {
+                    section.innerHTML = cachedContent;
+                    return;
+                }
+
+                // Load content dynamically
+                const content = await this.loadDynamicContent(contentType);
+                section.innerHTML = content;
+                this.setCachedData(`section-${contentType}`, content);
+            } catch (error) {
+                console.error(`Error loading section content: ${contentType}`, error);
+                section.innerHTML = '<p>Error loading content. Please refresh the page.</p>';
+            }
+        }
+    }
+
+    async loadDynamicContent(type) {
+        switch (type) {
+            case 'statistics':
+                return await this.generateStatisticsHTML();
+            case 'leaderboard':
+                return await this.generateLeaderboardHTML();
+            case 'achievements':
+                return await this.generateAchievementsHTML();
+            default:
+                return '<p>Content not found</p>';
+        }
+    }
+
+    // Security enhancement methods
+    sanitizeInput(input) {
+        if (typeof input !== 'string') return input;
+        
+        // Remove potentially dangerous characters and scripts
+        return input
+            .replace(/[<>]/g, '') // Remove < and > to prevent HTML injection
+            .replace(/javascript:/gi, '') // Remove javascript: protocols
+            .replace(/on\w+\s*=/gi, '') // Remove event handlers
+            .trim();
+    }
+
+    validateUsername(username) {
+        if (!username || typeof username !== 'string') {
+            throw new Error('Username is required and must be a string');
+        }
+        
+        const sanitized = this.sanitizeInput(username);
+        if (sanitized.length < 3 || sanitized.length > 20) {
+            throw new Error('Username must be between 3 and 20 characters');
+        }
+        
+        if (!/^[a-zA-Z0-9_-]+$/.test(sanitized)) {
+            throw new Error('Username can only contain letters, numbers, underscores, and hyphens');
+        }
+        
+        return sanitized;
+    }
+
+    validateEmail(email) {
+        if (!email || typeof email !== 'string') {
+            throw new Error('Email is required and must be a string');
+        }
+        
+        const sanitized = this.sanitizeInput(email);
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (!emailRegex.test(sanitized)) {
+            throw new Error('Please enter a valid email address');
+        }
+        
+        return sanitized;
+    }
+
+    validatePassword(password) {
+        if (!password || typeof password !== 'string') {
+            throw new Error('Password is required');
+        }
+        
+        if (password.length < 8) {
+            throw new Error('Password must be at least 8 characters long');
+        }
+        
+        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+            throw new Error('Password must contain at least one uppercase letter, one lowercase letter, and one number');
+        }
+        
+        return password; // Don't sanitize passwords
+    }
+
+    handleSecureError(error, context = '') {
+        // Log full error for debugging (server-side only in production)
+        console.error(`Error in ${context}:`, error);
+        
+        // Return sanitized error message to user
+        let userMessage = 'An unexpected error occurred. Please try again.';
+        
+        if (error.message && typeof error.message === 'string') {
+            // Only show safe error messages
+            const safeErrors = [
+                'Username is required',
+                'Email is required',
+                'Password is required',
+                'Username must be between',
+                'Username can only contain',
+                'Please enter a valid email',
+                'Password must be at least',
+                'Password must contain',
+                'Network error',
+                'Authentication failed',
+                'User not found'
+            ];
+            
+            const isSafeError = safeErrors.some(safe => error.message.includes(safe));
+            if (isSafeError) {
+                userMessage = this.sanitizeInput(error.message);
+            }
+        }
+        
+        return userMessage;
+    }
+
+    setupSecurityHeaders() {
+        // Add Content Security Policy meta tag if not exists
+        if (!document.querySelector('meta[http-equiv="Content-Security-Policy"]')) {
+            const csp = document.createElement('meta');
+            csp.httpEquiv = 'Content-Security-Policy';
+            csp.content = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://localhost:3001";
+            document.head.appendChild(csp);
+        }
+
+        // Add X-Content-Type-Options
+        const contentType = document.createElement('meta');
+        contentType.httpEquiv = 'X-Content-Type-Options';
+        contentType.content = 'nosniff';
+        document.head.appendChild(contentType);
+
+        // Add Referrer Policy
+        const referrer = document.createElement('meta');
+        referrer.name = 'referrer';
+        referrer.content = 'strict-origin-when-cross-origin';
+        document.head.appendChild(referrer);
+    }
+
+    // Rate limiting for API calls
+    checkRateLimit(endpoint) {
+        const now = Date.now();
+        const key = `rate_limit_${endpoint}`;
+        const lastCall = localStorage.getItem(key);
+        
+        if (lastCall && now - parseInt(lastCall) < 1000) { // 1 second rate limit
+            throw new Error('Too many requests. Please wait a moment and try again.');
+        }
+        
+        localStorage.setItem(key, now.toString());
+        return true;
+    }
+
+    // Load CSES topics
+    async loadCSESTopics() {
+        try {
+            // Check cache first
+            const cachedTopics = this.getCachedData('cses-topics');
+            if (cachedTopics) {
+                return cachedTopics;
+            }
+
+            const response = await this.fetchWithRetry(`${this.API_BASE}/cses/topics`);
+            const topics = await response.json();
+            
+            // Cache the result
+            this.setCachedData('cses-topics', topics);
+            return topics;
+        } catch (error) {
+            console.error('Error loading CSES topics:', error);
+            return [];
+        }
     }
 
     async initAuth() {
@@ -292,12 +727,19 @@ class CPJourney {
         return this.authToken && this.currentUser;
     }
 
+    // Guide new users through account creation
+    guideNewUser() {
+        this.showNotification('👋 Welcome! Let\'s create your account to start tracking your competitive programming journey!', 'info');
+        setTimeout(() => {
+            this.showAuthModal('register');
+        }, 1500);
+    }
+
     // Journey Management with Database Integration
     startJourney() {
         // Check if user is authenticated
         if (!this.isAuthenticated()) {
-            this.showNotification('🔐 Please login to start your CP journey!', 'error');
-            this.showAuthModal();
+            this.guideNewUser();
             return;
         }
 
@@ -313,20 +755,20 @@ class CPJourney {
         this.data.startedBy = this.currentUser.username; // Track who started it
         this.saveData();
         this.updateUI();
-        this.showNotification(`🚀 ${this.currentUser.username}'s CP journey has begun! Data saved to database!`, 'success');
+        this.showNotification(`🚀 Welcome ${this.currentUser.username}! Your CP journey has begun! Data saved to database!`, 'success');
     }
 
     resetJourney() {
         // Check if user is authenticated
         if (!this.isAuthenticated()) {
-            this.showNotification('🔐 Please login to reset the journey!', 'error');
-            this.showAuthModal();
+            this.showNotification('🔐 You need an account to manage the journey! Please register or login first.', 'error');
+            this.showAuthModal('login');
             return;
         }
 
         // Check if user is the one who started the journey
         if (this.data.startedBy && this.data.startedBy !== this.currentUser.username) {
-            this.showNotification(`⛔ Only ${this.data.startedBy} can reset this journey!`, 'error');
+            this.showNotification(`⛔ Only ${this.data.startedBy} can reset this journey! Each user manages their own journey.`, 'error');
             return;
         }
 
@@ -789,8 +1231,15 @@ class CPJourney {
             } else {
                 startButton.style.display = 'inline-block';
                 startButton.disabled = false;
-                startButton.textContent = '🔐 Login to Start Journey';
-                journeyStatus.textContent = 'Please login to start your competitive programming journey!';
+                startButton.textContent = '� Create Account to Start';
+                journeyStatus.innerHTML = `
+                    <div class="account-required">
+                        <p><strong>🔐 Account Required to Start Journey</strong></p>
+                        <p>You need to create a free account to start your competitive programming journey!</p>
+                        <p><small>✨ Track progress • Save data • Sync across devices • Access all features</small></p>
+                        <p><small>🚀 Join thousands of programmers improving their skills!</small></p>
+                    </div>
+                `;
             }
         }
     }

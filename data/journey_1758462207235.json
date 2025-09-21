@@ -1,7 +1,6 @@
 {
   "journeyStarted": false,
   "startDate": null,
-  "startedBy": null,
   "currentStreak": 0,
   "bestStreak": 0,
   "lastActiveDate": null,
@@ -38,20 +37,11 @@
     "platinum": 0
   },
   "codeforces": {
-    "rating": "Unrated",
-    "problemsSolved": 0,
+    "rating": 0,
+    "maxRating": 0,
+    "problems": 0,
     "contests": 0
   },
-  "revision": {
-    "problems": 0
-  },
-  "iupc": {
-    "contests": 0,
-    "problemsSolved": 0
-  },
-  "icpc": {
-    "gymProblems": 0,
-    "contests": 0
-  },
-  "lastUpdated": "2025-09-21T14:06:34.884Z"
+  "totalProblems": 0,
+  "platforms": {}
 }
