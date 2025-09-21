@@ -20,7 +20,7 @@
                     <li><a href="#usaco" class="nav-link">USACO</a></li>
                     <li><a href="#codeforces" class="nav-link">Codeforces</a></li>
                     <li><a href="#stats" class="nav-link">Statistics</a></li>
-                    <li><a href="#database" class="nav-link">Database</a></li>
+                        <!-- Removed Database nav link for professional vibe -->
                 </ul>
                 <div class="auth-section" id="authSection">
                     <div class="auth-buttons" id="authButtons">
@@ -312,119 +312,34 @@
         </section>
 
         <!-- Database Management Section -->
-        <section id="database" class="section">
-            <div class="container">
-                <h2><i class="fas fa-database"></i> Data Management</h2>
-                
-                <!-- Platform Sync Section -->
-                <div class="sync-section">
-                    <h3><i class="fas fa-sync-alt"></i> Platform Integration</h3>
-                    <p>Automatically fetch your progress from competitive programming platforms</p>
-                    
-                    <div class="platform-sync-controls">
-                        <div class="sync-platform-card">
-                            <h4><i class="fas fa-code"></i> CSES</h4>
-                            <div class="sync-status" id="cses-sync-status">Not configured</div>
-                            <input type="text" id="cses-username" placeholder="CSES Username" class="sync-input">
-                            <button id="sync-cses" class="sync-btn cses-btn">
-                                <i class="fas fa-sync"></i> Sync CSES
-                            </button>
-                        </div>
 
-                        <div class="sync-platform-card">
-                            <h4><i class="fas fa-crown"></i> Codeforces</h4>
-                            <div class="sync-status" id="cf-sync-status">Not configured</div>
-                            <input type="text" id="cf-username" placeholder="Codeforces Handle" class="sync-input">
-                            <button id="sync-codeforces" class="sync-btn cf-btn">
-                                <i class="fas fa-sync"></i> Sync Codeforces
-                            </button>
-                        </div>
 
-                        <div class="sync-platform-card">
-                            <h4><i class="fas fa-trophy"></i> VJudge</h4>
-                            <div class="sync-status" id="vjudge-sync-status">Not configured</div>
-                            <input type="text" id="vjudge-username" placeholder="VJudge Username" class="sync-input">
-                            <button id="sync-vjudge" class="sync-btn vjudge-btn">
-                                <i class="fas fa-sync"></i> Sync VJudge
-                            </button>
-                        </div>
-                    </div>
 
-                    <div class="sync-all-section">
-                        <button id="sync-all-platforms" class="sync-btn sync-all-btn">
-                            <i class="fas fa-sync-alt"></i> Sync All Platforms
-                        </button>
-                        <div class="auto-sync-toggle">
-                            <label>
-                                <input type="checkbox" id="auto-sync-enabled">
-                                <span>Enable Daily Auto-Sync</span>
-                            </label>
-                        </div>
-                    </div>
 
-                    <div class="sync-log" id="sync-log" style="display: none;">
-                        <h4><i class="fas fa-list"></i> Sync Log</h4>
-                        <div class="log-content" id="log-content"></div>
+
+
+
+
+
+
+            <!-- IUPC & ICPC Online Practice Section -->
+            <section id="contest-practice" class="section">
+                <div class="container">
+                    <h2><i class="fas fa-globe"></i> Online Contest Practice</h2>
+                    <div class="contest-cards">
+                        <div class="contest-card iupc-card">
+                            <h3><i class="fas fa-university"></i> IUPC Practice</h3>
+                            <p>Prepare for Inter University Programming Contest (IUPC) with online practice sets and virtual contests.</p>
+                            <button class="contest-btn" id="iupc-practice-btn">Start IUPC Practice</button>
+                        </div>
+                        <div class="contest-card icpc-card">
+                            <h3><i class="fas fa-medal"></i> ICPC Practice</h3>
+                            <p>Attempt ICPC-style problems and participate in online mock contests to boost your skills.</p>
+                            <button class="contest-btn" id="icpc-practice-btn">Start ICPC Practice</button>
+                        </div>
                     </div>
                 </div>
-
-                <div class="database-controls">
-                    <div class="db-card">
-                        <h3><i class="fas fa-cloud"></i> Database Status</h3>
-                        <div class="status-indicator">
-                            <span id="db-status" class="status-badge">Checking...</span>
-                        </div>
-                        <p>Your progress is automatically saved to both local storage and remote database.</p>
-                    </div>
-
-                    <div class="db-card">
-                        <h3><i class="fas fa-download"></i> Export Data</h3>
-                        <p>Download your complete progress data as a JSON file for backup.</p>
-                        <button id="export-data" class="db-btn export-btn">
-                            <i class="fas fa-file-export"></i> Export Data
-                        </button>
-                    </div>
-
-                    <div class="db-card">
-                        <h3><i class="fas fa-upload"></i> Import Data</h3>
-                        <p>Restore your progress from a previously exported JSON file.</p>
-                        <button id="import-data" class="db-btn import-btn">
-                            <i class="fas fa-file-import"></i> Import Data
-                        </button>
-                    </div>
-
-                    <div class="db-card">
-                        <h3><i class="fas fa-archive"></i> Create Backup</h3>
-                        <p>Manually create a backup of your current progress.</p>
-                        <button id="create-backup" class="db-btn backup-btn">
-                            <i class="fas fa-save"></i> Create Backup
-                        </button>
-                    </div>
-
-                    <div class="db-card sync-card">
-                        <h3><i class="fas fa-sync"></i> Auto-Sync Features</h3>
-                        <ul class="feature-list">
-                            <li><i class="fas fa-check"></i> Automatic platform syncing</li>
-                            <li><i class="fas fa-check"></i> Daily progress updates</li>
-                            <li><i class="fas fa-check"></i> Real-time problem counting</li>
-                            <li><i class="fas fa-check"></i> Streak tracking</li>
-                            <li><i class="fas fa-check"></i> Multi-platform support</li>
-                        </ul>
-                    </div>
-
-                    <div class="db-card warning-card">
-                        <h3><i class="fas fa-exclamation-triangle"></i> Important Notes</h3>
-                        <ul class="warning-list">
-                            <li>Ensure your profiles are public on all platforms</li>
-                            <li>CSES sync requires a public profile</li>
-                            <li>Codeforces uses official API</li>
-                            <li>VJudge requires public activity visibility</li>
-                            <li>Sync may take 30-60 seconds per platform</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
+            </section>
     </main>
 
     <!-- Authentication Modal -->
