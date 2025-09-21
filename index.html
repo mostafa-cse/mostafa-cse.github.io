@@ -1,28 +1,506 @@
-<html>
-  <head>
-    <title>Mostafa Free info Website</title>
-  </head>
-  <body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mostafa's CP Journey - Progress Tracker</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
     <header>
-      <nav>
-        <ul>
-          <h1>M0stafa</h1>
-          <li>Home</li>
-          <li>Education</li>
-          <li>Project</li>
-          <li>Achivement</li>
-          <li>Contact</li>
-          <li>Hire</li>
-        </ul>
-      </nav>
+        <nav class="navbar">
+            <div class="nav-brand">
+                <h1><i class="fas fa-code"></i> M0stafa's CP Journey</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#dashboard" class="nav-link active">Dashboard</a></li>
+                <li><a href="#cses" class="nav-link">CSES</a></li>
+                <li><a href="#usaco" class="nav-link">USACO</a></li>
+                <li><a href="#codeforces" class="nav-link">Codeforces</a></li>
+                <li><a href="#stats" class="nav-link">Statistics</a></li>
+                <li><a href="#database" class="nav-link">Database</a></li>
+            </ul>
+            <div class="auth-section" id="authSection">
+                <div class="auth-buttons" id="authButtons">
+                    <button id="loginBtn" class="auth-btn">Login</button>
+                    <button id="registerBtn" class="auth-btn">Register</button>
+                </div>
+                <div class="user-info" id="userInfo" style="display: none;">
+                    <span id="welcomeText">Welcome, <span id="username"></span>!</span>
+                    <button id="logoutBtn" class="auth-btn">Logout</button>
+                </div>
+            </div>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
     </header>
+
     <main>
-      <hr>
-      <p>Hi, I'm Mostafa Kamal.</p>
-      <img src="" alt="">
+        <!-- Time Machine Section -->
+        <section id="time-machine" class="time-machine-section">
+            <div class="container">
+                <div class="time-machine-card">
+                    <h2><i class="fas fa-rocket"></i> Time Machine</h2>
+                    <p id="journey-status">Ready to start your competitive programming journey?</p>
+                    <div id="journey-timer" class="journey-timer" style="display: none;">
+                        <div class="timer-item">
+                            <span id="days-elapsed">0</span>
+                            <label>Days</label>
+                        </div>
+                        <div class="timer-item">
+                            <span id="current-phase">Not Started</span>
+                            <label>Current Phase</label>
+                        </div>
+                    </div>
+                    <button id="start-journey" class="time-machine-btn">
+                        <i class="fas fa-play"></i> Start Journey
+                    </button>
+                    <button id="reset-journey" class="reset-btn" style="display: none;">
+                        <i class="fas fa-redo"></i> Reset Journey
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section">
+            <div class="container">
+                <h2><i class="fas fa-chart-line"></i> Dashboard Overview</h2>
+                <div class="progress-overview">
+                    <div class="phase-card">
+                        <h3>Phase 1: CSES Problems</h3>
+                        <div class="phase-info">
+                            <span class="duration">Duration: 2 months (60 days)</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="cses-progress" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text" id="cses-progress-text">0/60 days</span>
+                        </div>
+                        <div class="problems-count">
+                            <i class="fas fa-trophy"></i>
+                            <span id="cses-solved">0</span> problems solved
+                        </div>
+                    </div>
+
+                    <div class="phase-card">
+                        <h3>Phase 2: Revision</h3>
+                        <div class="phase-info">
+                            <span class="duration">Duration: 1 month (30 days)</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="revision-progress" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text" id="revision-progress-text">0/30 days</span>
+                        </div>
+                        <div class="problems-count">
+                            <i class="fas fa-book-open"></i>
+                            <span id="revision-problems">0</span> problems revised
+                        </div>
+                    </div>
+
+                    <div class="phase-card">
+                        <h3>Phase 3: USACO Problems</h3>
+                        <div class="phase-info">
+                            <span class="duration">Duration: 2-3 months (60-90 days)</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="usaco-progress" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text" id="usaco-progress-text">0/75 days</span>
+                        </div>
+                        <div class="problems-count">
+                            <i class="fas fa-star"></i>
+                            <span id="usaco-solved">0</span> problems solved
+                        </div>
+                    </div>
+
+                    <div class="phase-card">
+                        <h3>Phase 4: Codeforces Victory</h3>
+                        <div class="phase-info">
+                            <span class="duration">Ongoing preparation</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="cf-progress" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text" id="cf-progress-text">Ready for victory!</span>
+                        </div>
+                        <div class="problems-count">
+                            <i class="fas fa-crown"></i>
+                            <span id="cf-rating">Unrated</span> current rating
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CSES Section -->
+        <section id="cses" class="section">
+            <div class="container">
+                <h2><i class="fas fa-code"></i> CSES Problem Set</h2>
+                <div class="cses-categories">
+                    <div class="category-card">
+                        <h3>Introductory Problems</h3>
+                        <div class="category-progress">
+                            <span id="intro-solved">0</span>/19 solved
+                            <div class="mini-progress-bar">
+                                <div class="mini-progress-fill" id="intro-progress"></div>
+                            </div>
+                        </div>
+                        <button class="add-problem" data-category="intro">+1 Problem</button>
+                    </div>
+
+                    <div class="category-card">
+                        <h3>Sorting and Searching</h3>
+                        <div class="category-progress">
+                            <span id="sort-solved">0</span>/35 solved
+                            <div class="mini-progress-bar">
+                                <div class="mini-progress-fill" id="sort-progress"></div>
+                            </div>
+                        </div>
+                        <button class="add-problem" data-category="sort">+1 Problem</button>
+                    </div>
+
+                    <div class="category-card">
+                        <h3>Dynamic Programming</h3>
+                        <div class="category-progress">
+                            <span id="dp-solved">0</span>/19 solved
+                            <div class="mini-progress-bar">
+                                <div class="mini-progress-fill" id="dp-progress"></div>
+                            </div>
+                        </div>
+                        <button class="add-problem" data-category="dp">+1 Problem</button>
+                    </div>
+
+                    <div class="category-card">
+                        <h3>Graph Algorithms</h3>
+                        <div class="category-progress">
+                            <span id="graph-solved">0</span>/36 solved
+                            <div class="mini-progress-bar">
+                                <div class="mini-progress-fill" id="graph-progress"></div>
+                            </div>
+                        </div>
+                        <button class="add-problem" data-category="graph">+1 Problem</button>
+                    </div>
+
+                    <div class="category-card">
+                        <h3>Range Queries</h3>
+                        <div class="category-progress">
+                            <span id="range-solved">0</span>/19 solved
+                            <div class="mini-progress-bar">
+                                <div class="mini-progress-fill" id="range-progress"></div>
+                            </div>
+                        </div>
+                        <button class="add-problem" data-category="range">+1 Problem</button>
+                    </div>
+
+                    <div class="category-card">
+                        <h3>Tree Algorithms</h3>
+                        <div class="category-progress">
+                            <span id="tree-solved">0</span>/16 solved
+                            <div class="mini-progress-bar">
+                                <div class="mini-progress-fill" id="tree-progress"></div>
+                            </div>
+                        </div>
+                        <button class="add-problem" data-category="tree">+1 Problem</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- USACO Section -->
+        <section id="usaco" class="section">
+            <div class="container">
+                <h2><i class="fas fa-trophy"></i> USACO Problems</h2>
+                <div class="usaco-levels">
+                    <div class="level-card">
+                        <h3>Bronze Level</h3>
+                        <div class="level-stats">
+                            <span id="bronze-solved">0</span> problems solved
+                            <button class="add-problem" data-level="bronze">+1 Problem</button>
+                        </div>
+                    </div>
+
+                    <div class="level-card">
+                        <h3>Silver Level</h3>
+                        <div class="level-stats">
+                            <span id="silver-solved">0</span> problems solved
+                            <button class="add-problem" data-level="silver">+1 Problem</button>
+                        </div>
+                    </div>
+
+                    <div class="level-card">
+                        <h3>Gold Level</h3>
+                        <div class="level-stats">
+                            <span id="gold-solved">0</span> problems solved
+                            <button class="add-problem" data-level="gold">+1 Problem</button>
+                        </div>
+                    </div>
+
+                    <div class="level-card">
+                        <h3>Platinum Level</h3>
+                        <div class="level-stats">
+                            <span id="platinum-solved">0</span> problems solved
+                            <button class="add-problem" data-level="platinum">+1 Problem</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Codeforces Section -->
+        <section id="codeforces" class="section">
+            <div class="container">
+                <h2><i class="fas fa-crown"></i> Codeforces Preparation</h2>
+                <div class="cf-stats">
+                    <div class="cf-card">
+                        <h3>Current Rating</h3>
+                        <div class="rating-display" id="cf-current-rating">Unrated</div>
+                        <button id="update-rating">Update Rating</button>
+                    </div>
+
+                    <div class="cf-card">
+                        <h3>Problems Solved</h3>
+                        <div class="problems-display" id="cf-problems-solved">0</div>
+                        <button class="add-problem" data-source="codeforces">+1 Problem</button>
+                    </div>
+
+                    <div class="cf-card">
+                        <h3>Contests Participated</h3>
+                        <div class="contests-display" id="cf-contests">0</div>
+                        <button id="add-contest">+1 Contest</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Statistics Section -->
+        <section id="stats" class="section">
+            <div class="container">
+                <h2><i class="fas fa-chart-bar"></i> Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Problems Solved</h3>
+                        <div class="stat-number" id="total-problems">0</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Current Streak</h3>
+                        <div class="stat-number" id="current-streak">0 days</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Best Streak</h3>
+                        <div class="stat-number" id="best-streak">0 days</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <h3>Journey Progress</h3>
+                        <div class="stat-number" id="journey-progress">0%</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Database Management Section -->
+        <section id="database" class="section">
+            <div class="container">
+                <h2><i class="fas fa-database"></i> Data Management</h2>
+                
+                <!-- Platform Sync Section -->
+                <div class="sync-section">
+                    <h3><i class="fas fa-sync-alt"></i> Platform Integration</h3>
+                    <p>Automatically fetch your progress from competitive programming platforms</p>
+                    
+                    <div class="platform-sync-controls">
+                        <div class="sync-platform-card">
+                            <h4><i class="fas fa-code"></i> CSES</h4>
+                            <div class="sync-status" id="cses-sync-status">Not configured</div>
+                            <input type="text" id="cses-username" placeholder="CSES Username" class="sync-input">
+                            <button id="sync-cses" class="sync-btn cses-btn">
+                                <i class="fas fa-sync"></i> Sync CSES
+                            </button>
+                        </div>
+
+                        <div class="sync-platform-card">
+                            <h4><i class="fas fa-crown"></i> Codeforces</h4>
+                            <div class="sync-status" id="cf-sync-status">Not configured</div>
+                            <input type="text" id="cf-username" placeholder="Codeforces Handle" class="sync-input">
+                            <button id="sync-codeforces" class="sync-btn cf-btn">
+                                <i class="fas fa-sync"></i> Sync Codeforces
+                            </button>
+                        </div>
+
+                        <div class="sync-platform-card">
+                            <h4><i class="fas fa-trophy"></i> VJudge</h4>
+                            <div class="sync-status" id="vjudge-sync-status">Not configured</div>
+                            <input type="text" id="vjudge-username" placeholder="VJudge Username" class="sync-input">
+                            <button id="sync-vjudge" class="sync-btn vjudge-btn">
+                                <i class="fas fa-sync"></i> Sync VJudge
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="sync-all-section">
+                        <button id="sync-all-platforms" class="sync-btn sync-all-btn">
+                            <i class="fas fa-sync-alt"></i> Sync All Platforms
+                        </button>
+                        <div class="auto-sync-toggle">
+                            <label>
+                                <input type="checkbox" id="auto-sync-enabled">
+                                <span>Enable Daily Auto-Sync</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="sync-log" id="sync-log" style="display: none;">
+                        <h4><i class="fas fa-list"></i> Sync Log</h4>
+                        <div class="log-content" id="log-content"></div>
+                    </div>
+                </div>
+
+                <div class="database-controls">
+                    <div class="db-card">
+                        <h3><i class="fas fa-cloud"></i> Database Status</h3>
+                        <div class="status-indicator">
+                            <span id="db-status" class="status-badge">Checking...</span>
+                        </div>
+                        <p>Your progress is automatically saved to both local storage and remote database.</p>
+                    </div>
+
+                    <div class="db-card">
+                        <h3><i class="fas fa-download"></i> Export Data</h3>
+                        <p>Download your complete progress data as a JSON file for backup.</p>
+                        <button id="export-data" class="db-btn export-btn">
+                            <i class="fas fa-file-export"></i> Export Data
+                        </button>
+                    </div>
+
+                    <div class="db-card">
+                        <h3><i class="fas fa-upload"></i> Import Data</h3>
+                        <p>Restore your progress from a previously exported JSON file.</p>
+                        <button id="import-data" class="db-btn import-btn">
+                            <i class="fas fa-file-import"></i> Import Data
+                        </button>
+                    </div>
+
+                    <div class="db-card">
+                        <h3><i class="fas fa-archive"></i> Create Backup</h3>
+                        <p>Manually create a backup of your current progress.</p>
+                        <button id="create-backup" class="db-btn backup-btn">
+                            <i class="fas fa-save"></i> Create Backup
+                        </button>
+                    </div>
+
+                    <div class="db-card sync-card">
+                        <h3><i class="fas fa-sync"></i> Auto-Sync Features</h3>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-check"></i> Automatic platform syncing</li>
+                            <li><i class="fas fa-check"></i> Daily progress updates</li>
+                            <li><i class="fas fa-check"></i> Real-time problem counting</li>
+                            <li><i class="fas fa-check"></i> Streak tracking</li>
+                            <li><i class="fas fa-check"></i> Multi-platform support</li>
+                        </ul>
+                    </div>
+
+                    <div class="db-card warning-card">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Important Notes</h3>
+                        <ul class="warning-list">
+                            <li>Ensure your profiles are public on all platforms</li>
+                            <li>CSES sync requires a public profile</li>
+                            <li>Codeforces uses official API</li>
+                            <li>VJudge requires public activity visibility</li>
+                            <li>Sync may take 30-60 seconds per platform</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
+
+    <!-- Authentication Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="auth-tabs">
+                <button class="tab-btn active" id="loginTab">Login</button>
+                <button class="tab-btn" id="registerTab">Register</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form">
+                <h2>Login to Your Account</h2>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <label for="loginUsername">Username:</label>
+                        <input type="text" id="loginUsername" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password:</label>
+                        <input type="password" id="loginPassword" name="password" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Login</button>
+                </form>
+            </div>
+            
+            <!-- Registration Form -->
+            <div id="registerForm" class="auth-form" style="display: none;">
+                <h2>Create New Account</h2>
+                <form id="registerFormElement">
+                    <div class="form-group">
+                        <label for="regUsername">Username:</label>
+                        <input type="text" id="regUsername" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regEmail">Email:</label>
+                        <input type="email" id="regEmail" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Password:</label>
+                        <input type="password" id="regPassword" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regConfirmPassword">Confirm Password:</label>
+                        <input type="password" id="regConfirmPassword" name="confirmPassword" required>
+                    </div>
+                    
+                    <h3>Platform Credentials (Optional)</h3>
+                    <p class="form-note">Store your platform usernames to enable automatic progress sync</p>
+                    
+                    <div class="form-group">
+                        <label for="regCsesUsername">CSES Username:</label>
+                        <input type="text" id="regCsesUsername" name="csesUsername" placeholder="Your CSES username">
+                    </div>
+                    <div class="form-group">
+                        <label for="regCodeforcesHandle">Codeforces Handle:</label>
+                        <input type="text" id="regCodeforcesHandle" name="codeforcesHandle" placeholder="Your Codeforces handle">
+                    </div>
+                    <div class="form-group">
+                        <label for="regVjudgeUsername">VJudge Username:</label>
+                        <input type="text" id="regVjudgeUsername" name="vjudgeUsername" placeholder="Your VJudge username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="autoSync" name="autoSync" checked>
+                            Enable automatic sync on login
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">Register</button>
+                </form>
+            </div>
+            
+            <div id="authMessage" class="auth-message"></div>
+        </div>
+    </div>
+
     <footer>
-      <hr>
+        <div class="container">
+            <p>&copy; 2025 Mostafa Kamal - Competitive Programming Journey</p>
+        </div>
     </footer>
-  </body>
+
+    <script src="script.js"></script>
+</body>
 </html>
