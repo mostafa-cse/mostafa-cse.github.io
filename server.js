@@ -339,6 +339,16 @@ app.get('/api/journey', async (req, res) => {
     }
 });
 
+// CSES Topics route
+app.get('/api/cses/topics', async (req, res) => {
+    try {
+        const topics = await platformAPI.fetchCSESTopics();
+        res.json(topics);
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
 // Update journey data
 app.post('/api/journey', async (req, res) => {
     try {

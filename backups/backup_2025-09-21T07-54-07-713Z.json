@@ -1,0 +1,49 @@
+{
+  "journeyStarted": false,
+  "startDate": null,
+  "currentStreak": 0,
+  "bestStreak": 0,
+  "lastActiveDate": null,
+  "cses": {
+    "intro": {
+      "solved": 0,
+      "total": 19
+    },
+    "sort": {
+      "solved": 0,
+      "total": 35
+    },
+    "dp": {
+      "solved": 0,
+      "total": 19
+    },
+    "graph": {
+      "solved": 0,
+      "total": 36
+    },
+    "range": {
+      "solved": 0,
+      "total": 19
+    },
+    "tree": {
+      "solved": 0,
+      "total": 16
+    }
+  },
+  "usaco": {
+    "bronze": 0,
+    "silver": 0,
+    "gold": 0,
+    "platinum": 0
+  },
+  "codeforces": {
+    "rating": "Unrated",
+    "problemsSolved": 0,
+    "contests": 0
+  },
+  "revision": {
+    "problems": 0
+  },
+  "lastUpdated": "2025-09-21T07:00:50.549Z",
+  "version": "1.0.0"
+}

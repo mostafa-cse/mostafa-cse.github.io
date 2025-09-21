@@ -18,6 +18,9 @@ class CPJourney {
         this.updateUI();
         this.startPeriodicUpdates();
         this.setupNetworkListeners();
+
+        // Load CSES topics
+        this.loadCSESTopics();
     }
 
     async initAuth() {
@@ -35,6 +38,7 @@ class CPJourney {
                     if (result.success) {
                         this.currentUser = result.user;
                         this.updateAuthUI(true);
+                        this.prefillPlatformInputs();
                         console.log('✅ User already logged in:', this.currentUser.username);
                         return;
                     }
@@ -51,6 +55,34 @@ class CPJourney {
         this.updateAuthUI(false);
     }
 
+    async loadCSESTopics() {
+        const statusEl = document.getElementById('cses-topics-status');
+        const grid = document.getElementById('cses-topics-grid');
+        if (!statusEl || !grid) return;
+        try {
+            statusEl.textContent = 'Loading topics...';
+            const resp = await fetch(`${this.API_BASE}/cses/topics`);
+            const data = await resp.json();
+            if (!data.success) throw new Error(data.error || 'Failed to fetch topics');
+            grid.innerHTML = '';
+            data.topics.forEach(t => {
+                const card = document.createElement('div');
+                card.className = 'topic-card';
+                const countText = t.count ? `${t.count} problems` : 'Browse problems';
+                card.innerHTML = `
+                    <div class="topic-title">${t.title}</div>
+                    <div class="topic-meta">${countText}</div>
+                    <a class="topic-link" href="${t.url}" target="_blank" rel="noopener">Open on CSES →</a>
+                `;
+                grid.appendChild(card);
+            });
+            statusEl.textContent = `Loaded ${data.topics.length} topics`;
+        } catch (e) {
+            console.error('CSES topics load error:', e);
+            statusEl.textContent = 'Unable to load topics (showing defaults)';
+        }
+    }
+
     updateAuthUI(isLoggedIn) {
         const authButtons = document.getElementById('authButtons');
         const userInfo = document.getElementById('userInfo');
@@ -63,6 +95,17 @@ class CPJourney {
             authButtons.style.display = 'flex';
             userInfo.style.display = 'none';
         }
+    }
+
+    prefillPlatformInputs() {
+        if (!this.currentUser || !this.currentUser.platformCredentials) return;
+        const creds = this.currentUser.platformCredentials;
+        const csesInput = document.getElementById('cses-username');
+        const cfInput = document.getElementById('cf-username');
+        const vjInput = document.getElementById('vjudge-username');
+        if (csesInput && creds.cses) csesInput.value = creds.cses;
+        if (cfInput && creds.codeforces) cfInput.value = creds.codeforces;
+        if (vjInput && creds.vjudge) vjInput.value = creds.vjudge;
     }
 
     // Enhanced Data Management with Database Integration
@@ -733,7 +776,12 @@ class CPJourney {
 
     // Platform Sync Methods
     async syncCSES() {
-        const username = document.getElementById('cses-username').value.trim();
+        let username = '';
+        if (this.currentUser && this.currentUser.platformCredentials && this.currentUser.platformCredentials.cses) {
+            username = this.currentUser.platformCredentials.cses.trim();
+        } else {
+            username = document.getElementById('cses-username').value.trim();
+        }
         if (!username) {
             this.showNotification('❌ Please enter your CSES username', 'error');
             return;
@@ -780,7 +828,12 @@ class CPJourney {
     }
 
     async syncCodeforces() {
-        const username = document.getElementById('cf-username').value.trim();
+        let username = '';
+        if (this.currentUser && this.currentUser.platformCredentials && this.currentUser.platformCredentials.codeforces) {
+            username = this.currentUser.platformCredentials.codeforces.trim();
+        } else {
+            username = document.getElementById('cf-username').value.trim();
+        }
         if (!username) {
             this.showNotification('❌ Please enter your Codeforces handle', 'error');
             return;
@@ -827,7 +880,12 @@ class CPJourney {
     }
 
     async syncVJudge() {
-        const username = document.getElementById('vjudge-username').value.trim();
+        let username = '';
+        if (this.currentUser && this.currentUser.platformCredentials && this.currentUser.platformCredentials.vjudge) {
+            username = this.currentUser.platformCredentials.vjudge.trim();
+        } else {
+            username = document.getElementById('vjudge-username').value.trim();
+        }
         if (!username) {
             this.showNotification('❌ Please enter your VJudge username', 'error');
             return;
@@ -877,12 +935,20 @@ class CPJourney {
     }
 
     async syncAllPlatforms() {
-        const usernames = {
-            cses: document.getElementById('cses-username').value.trim(),
-            codeforces: document.getElementById('cf-username').value.trim(),
-            vjudge: document.getElementById('vjudge-username').value.trim()
-        };
-
+        let usernames = { cses: '', codeforces: '', vjudge: '' };
+        if (this.currentUser && this.currentUser.platformCredentials) {
+            usernames = {
+                cses: this.currentUser.platformCredentials.cses.trim(),
+                codeforces: this.currentUser.platformCredentials.codeforces.trim(),
+                vjudge: this.currentUser.platformCredentials.vjudge.trim()
+            };
+        } else {
+            usernames = {
+                cses: document.getElementById('cses-username').value.trim(),
+                codeforces: document.getElementById('cf-username').value.trim(),
+                vjudge: document.getElementById('vjudge-username').value.trim()
+            };
+        }
         // Check if at least one username is provided
         if (!usernames.cses && !usernames.codeforces && !usernames.vjudge) {
             this.showNotification('❌ Please enter at least one platform username', 'error');
@@ -1202,6 +1268,8 @@ class CPJourney {
                     if (result.platformCredentials) {
                         this.autoSyncOnLogin(result.platformCredentials);
                     }
+                    // Prefill any platform inputs in UI
+                    this.prefillPlatformInputs();
                     // Reload journey data
                     this.loadData();
                 }, 1500);

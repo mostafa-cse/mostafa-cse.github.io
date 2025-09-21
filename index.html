@@ -10,31 +10,33 @@
 <body>
     <header>
         <nav class="navbar">
-            <div class="nav-brand">
-                <h1><i class="fas fa-code"></i> M0stafa's CP Journey</h1>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="#dashboard" class="nav-link active">Dashboard</a></li>
-                <li><a href="#cses" class="nav-link">CSES</a></li>
-                <li><a href="#usaco" class="nav-link">USACO</a></li>
-                <li><a href="#codeforces" class="nav-link">Codeforces</a></li>
-                <li><a href="#stats" class="nav-link">Statistics</a></li>
-                <li><a href="#database" class="nav-link">Database</a></li>
-            </ul>
-            <div class="auth-section" id="authSection">
-                <div class="auth-buttons" id="authButtons">
-                    <button id="loginBtn" class="auth-btn">Login</button>
-                    <button id="registerBtn" class="auth-btn">Register</button>
+            <div class="container nav-container">
+                <div class="nav-brand">
+                    <h1><i class="fas fa-code"></i> M0stafa's CP Journey</h1>
                 </div>
-                <div class="user-info" id="userInfo" style="display: none;">
-                    <span id="welcomeText">Welcome, <span id="username"></span>!</span>
-                    <button id="logoutBtn" class="auth-btn">Logout</button>
+                <ul class="nav-menu">
+                    <li><a href="#dashboard" class="nav-link active">Dashboard</a></li>
+                    <li><a href="#cses" class="nav-link">CSES</a></li>
+                    <li><a href="#usaco" class="nav-link">USACO</a></li>
+                    <li><a href="#codeforces" class="nav-link">Codeforces</a></li>
+                    <li><a href="#stats" class="nav-link">Statistics</a></li>
+                    <li><a href="#database" class="nav-link">Database</a></li>
+                </ul>
+                <div class="auth-section" id="authSection">
+                    <div class="auth-buttons" id="authButtons">
+                        <button id="loginBtn" class="auth-btn">Login</button>
+                        <button id="registerBtn" class="auth-btn">Register</button>
+                    </div>
+                    <div class="user-info" id="userInfo" style="display: none;">
+                        <span id="welcomeText">Welcome, <span id="username"></span>!</span>
+                        <button id="logoutBtn" class="auth-btn">Logout</button>
+                    </div>
                 </div>
-            </div>
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
             </div>
         </nav>
     </header>
@@ -138,6 +140,13 @@
         <section id="cses" class="section">
             <div class="container">
                 <h2><i class="fas fa-code"></i> CSES Problem Set</h2>
+                <div id="cses-topics" class="cses-topics">
+                    <div class="topics-header">
+                        <h3>Explore Topics</h3>
+                        <span id="cses-topics-status" class="topics-status">Loading topics...</span>
+                    </div>
+                    <div id="cses-topics-grid" class="topics-grid"></div>
+                </div>
                 <div class="cses-categories">
                     <div class="category-card">
                         <h3>Introductory Problems</h3>
