@@ -1205,3 +1205,38 @@ html {
         text-align: center;
     }
 }
+
+/* Notification Styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    z-index: 1001;
+    transform: translateX(400px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification.success {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.notification.error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.notification.warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.notification.info {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}

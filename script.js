@@ -99,12 +99,20 @@ class CPJourney {
 
         try {
             // Try to load from database first
-            const response = await fetch(`${this.API_BASE}/journey`);
+            const headers = {};
+            if (this.authToken) {
+                headers['Authorization'] = `Bearer ${this.authToken}`;
+            }
+            
+            const response = await fetch(`${this.API_BASE}/journey`, { headers });
             if (response.ok) {
                 const result = await response.json();
                 if (result.success) {
                     this.data = { ...defaultData, ...result.data };
-                    this.showNotification('📊 Data loaded from database', 'success');
+                    const message = this.currentUser ? 
+                        `📊 ${this.currentUser.username}'s data loaded` : 
+                        '📊 Data loaded from database';
+                    this.showNotification(message, 'success');
                     return;
                 }
             }
@@ -1059,6 +1067,297 @@ class CPJourney {
             clearInterval(this.autoSyncInterval);
             this.autoSyncInterval = null;
         }
+    }
+
+    // Authentication Methods
+    initAuthEventListeners() {
+        // Login button
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            this.showAuthModal('login');
+        });
+
+        // Register button
+        document.getElementById('registerBtn').addEventListener('click', () => {
+            this.showAuthModal('register');
+        });
+
+        // Logout button
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            this.logout();
+        });
+
+        // Modal close button
+        document.querySelector('.close').addEventListener('click', () => {
+            this.hideAuthModal();
+        });
+
+        // Modal background click
+        document.getElementById('authModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('authModal')) {
+                this.hideAuthModal();
+            }
+        });
+
+        // Tab switching
+        document.getElementById('loginTab').addEventListener('click', () => {
+            this.switchAuthTab('login');
+        });
+
+        document.getElementById('registerTab').addEventListener('click', () => {
+            this.switchAuthTab('register');
+        });
+
+        // Form submissions
+        document.getElementById('loginFormElement').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleLogin();
+        });
+
+        document.getElementById('registerFormElement').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleRegister();
+        });
+    }
+
+    showAuthModal(tab = 'login') {
+        const modal = document.getElementById('authModal');
+        modal.style.display = 'block';
+        this.switchAuthTab(tab);
+        this.hideAuthMessage();
+    }
+
+    hideAuthModal() {
+        const modal = document.getElementById('authModal');
+        modal.style.display = 'none';
+        this.clearAuthForms();
+        this.hideAuthMessage();
+    }
+
+    switchAuthTab(tab) {
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+
+        if (tab === 'login') {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            loginForm.style.display = 'block';
+            registerForm.style.display = 'none';
+        } else {
+            registerTab.classList.add('active');
+            loginTab.classList.remove('active');
+            registerForm.style.display = 'block';
+            loginForm.style.display = 'none';
+        }
+        this.hideAuthMessage();
+    }
+
+    clearAuthForms() {
+        document.getElementById('loginFormElement').reset();
+        document.getElementById('registerFormElement').reset();
+    }
+
+    showAuthMessage(message, type = 'success') {
+        const messageDiv = document.getElementById('authMessage');
+        messageDiv.textContent = message;
+        messageDiv.className = `auth-message ${type}`;
+        messageDiv.style.display = 'block';
+    }
+
+    hideAuthMessage() {
+        const messageDiv = document.getElementById('authMessage');
+        messageDiv.style.display = 'none';
+    }
+
+    async handleLogin() {
+        const formData = new FormData(document.getElementById('loginFormElement'));
+        const loginData = {
+            username: formData.get('username'),
+            password: formData.get('password')
+        };
+
+        try {
+            const response = await fetch(`${this.API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(loginData)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                this.authToken = result.token;
+                this.currentUser = result.user;
+                localStorage.setItem('authToken', this.authToken);
+                
+                this.showAuthMessage('Login successful! Welcome back!', 'success');
+                this.updateAuthUI(true);
+                
+                setTimeout(() => {
+                    this.hideAuthModal();
+                    // Auto-sync platform data if credentials are available
+                    if (result.platformCredentials) {
+                        this.autoSyncOnLogin(result.platformCredentials);
+                    }
+                    // Reload journey data
+                    this.loadData();
+                }, 1500);
+            } else {
+                this.showAuthMessage(result.error || 'Login failed', 'error');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            this.showAuthMessage('Login failed. Please try again.', 'error');
+        }
+    }
+
+    async handleRegister() {
+        const formData = new FormData(document.getElementById('registerFormElement'));
+        
+        const password = formData.get('password');
+        const confirmPassword = formData.get('confirmPassword');
+        
+        if (password !== confirmPassword) {
+            this.showAuthMessage('Passwords do not match', 'error');
+            return;
+        }
+
+        const registerData = {
+            username: formData.get('username'),
+            email: formData.get('email'),
+            password: password,
+            platformCredentials: {
+                cses: formData.get('csesUsername') || '',
+                codeforces: formData.get('codeforcesHandle') || '',
+                vjudge: formData.get('vjudgeUsername') || ''
+            },
+            preferences: {
+                autoSync: formData.get('autoSync') === 'on'
+            }
+        };
+
+        try {
+            const response = await fetch(`${this.API_BASE}/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(registerData)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showAuthMessage('Registration successful! You can now login.', 'success');
+                setTimeout(() => {
+                    this.switchAuthTab('login');
+                    document.getElementById('loginUsername').value = registerData.username;
+                }, 1500);
+            } else {
+                this.showAuthMessage(result.error || 'Registration failed', 'error');
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            this.showAuthMessage('Registration failed. Please try again.', 'error');
+        }
+    }
+
+    async logout() {
+        try {
+            await fetch(`${this.API_BASE}/auth/logout`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.authToken}`
+                }
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+
+        // Clear local auth data
+        this.authToken = null;
+        this.currentUser = null;
+        localStorage.removeItem('authToken');
+        
+        // Update UI
+        this.updateAuthUI(false);
+        
+        // Reload with default data
+        this.loadData();
+        
+        console.log('✅ Logged out successfully');
+    }
+
+    async autoSyncOnLogin(platformCredentials) {
+        if (!platformCredentials || !this.currentUser?.preferences?.autoSync) {
+            return;
+        }
+
+        console.log('🔄 Starting auto-sync on login...');
+        
+        // Show sync notification
+        this.showNotification('Auto-syncing platform data...', 'info');
+        
+        // Trigger platform sync in background
+        setTimeout(() => {
+            this.syncAllPlatformsWithCredentials(platformCredentials);
+        }, 2000);
+    }
+
+    async syncAllPlatformsWithCredentials(credentials) {
+        try {
+            const usernames = {
+                cses: credentials.cses,
+                codeforces: credentials.codeforces,
+                vjudge: credentials.vjudge
+            };
+
+            const response = await fetch(`${this.API_BASE}/sync/all`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.authToken}`
+                },
+                body: JSON.stringify({ usernames })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                this.showNotification('Auto-sync completed successfully!', 'success');
+                // Reload data to reflect sync results
+                setTimeout(() => {
+                    this.loadData();
+                }, 1000);
+            } else {
+                this.showNotification('Auto-sync completed with some errors', 'warning');
+            }
+        } catch (error) {
+            console.error('Auto-sync error:', error);
+            this.showNotification('Auto-sync failed', 'error');
+        }
+    }
+
+    showNotification(message, type = 'info') {
+        // Create notification element if it doesn't exist
+        let notification = document.getElementById('notification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'notification';
+            notification.className = 'notification';
+            document.body.appendChild(notification);
+        }
+
+        notification.textContent = message;
+        notification.className = `notification ${type} show`;
+        
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
     }
 }
 

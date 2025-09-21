@@ -125,6 +125,39 @@ const createBackup = async () => {
     return null;
 };
 
+// Helper function to get default journey data
+async function getDefaultJourneyData() {
+    return {
+        journeyStarted: false,
+        startDate: null,
+        currentStreak: 0,
+        bestStreak: 0,
+        lastActiveDate: null,
+        cses: {
+            intro: { solved: 0, total: 19 },
+            sort: { solved: 0, total: 35 },
+            dp: { solved: 0, total: 19 },
+            graph: { solved: 0, total: 36 },
+            range: { solved: 0, total: 19 },
+            tree: { solved: 0, total: 16 }
+        },
+        usaco: {
+            bronze: 0,
+            silver: 0,
+            gold: 0,
+            platinum: 0
+        },
+        codeforces: {
+            rating: 0,
+            maxRating: 0,
+            problems: 0,
+            contests: 0
+        },
+        totalProblems: 0,
+        platforms: {}
+    };
+}
+
 // API Routes
 
 // Authentication Endpoints
