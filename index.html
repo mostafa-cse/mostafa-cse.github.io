@@ -7,32 +7,39 @@
     <meta name="keywords" content="competitive programming, CSES, USACO, Codeforces, ICPC, IUPC, progress tracker, algorithm practice">
     <meta name="author" content="Mostafa's CP Journey">
     <meta name="robots" content="index, follow">
-    
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="CP Journey">
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="CP Journey Tracker - Professional Competitive Programming Progress">
     <meta property="og:description" content="Track your competitive programming journey across multiple platforms with advanced analytics and progress insights.">
     <meta property="og:url" content="https://mostafa-cse.github.io">
     <meta property="og:image" content="https://mostafa-cse.github.io/assets/og-image.png">
-    
+
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:title" content="CP Journey Tracker">
     <meta property="twitter:description" content="Professional competitive programming progress tracker">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    
+
     <title>CP Journey Tracker - Professional Competitive Programming Progress</title>
-    
+
     <!-- External Resources -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    
+
     <!-- Schema.org markup -->
     <script type="application/ld+json">
     {
@@ -76,20 +83,20 @@
                     <li role="none"><a href="#stats" class="nav-link" role="menuitem">Statistics</a></li>
                     <li role="none"><a href="#contest-practice" class="nav-link" role="menuitem">Contests</a></li>
                 </ul>
-                
+
                 <!-- Professional Controls -->
                 <div class="nav-controls">
                     <!-- Theme Toggle -->
                     <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark/light theme" title="Switch theme">
                         <i class="fas fa-moon" id="themeIcon"></i>
                     </button>
-                    
+
                     <!-- Notification Bell -->
                     <button id="notificationBtn" class="notification-btn" aria-label="View notifications" title="Notifications">
                         <i class="fas fa-bell"></i>
                         <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
                     </button>
-                    
+
                     <!-- Settings Dropdown -->
                     <div class="dropdown" id="settingsDropdown">
                         <button class="dropdown-toggle" aria-haspopup="true" aria-expanded="false" title="Settings">
@@ -109,7 +116,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="auth-section" id="authSection">
                     <div class="auth-buttons" id="authButtons">
                         <button id="loginBtn" class="auth-btn" aria-label="Login to your account">Login</button>
@@ -137,7 +144,7 @@
                 </button>
             </div>
         </nav>
-        
+
         <!-- Breadcrumb Navigation -->
         <nav class="breadcrumb-nav" aria-label="Breadcrumb" id="breadcrumbNav" style="display: none;">
             <div class="container">

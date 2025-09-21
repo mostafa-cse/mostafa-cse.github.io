@@ -1,0 +1,227 @@
+// CP Journey Tracker - Service Worker
+const CACHE_NAME = 'cp-journey-v1.0.0';
+const urlsToCache = [
+    '/',
+    '/index.html',
+    '/styles.css',
+    '/script.js',
+    '/manifest.json',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
+];
+
+// Install event
+self.addEventListener('install', (event) => {
+    console.log('Service Worker: Installing...');
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then((cache) => {
+                console.log('Service Worker: Caching files');
+                return cache.addAll(urlsToCache);
+            })
+            .catch((error) => {
+                console.error('Service Worker: Caching failed', error);
+            })
+    );
+});
+
+// Activate event
+self.addEventListener('activate', (event) => {
+    console.log('Service Worker: Activating...');
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('Service Worker: Deleting old cache', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
+    );
+});
+
+// Fetch event with network-first strategy for API calls and cache-first for static assets
+self.addEventListener('fetch', (event) => {
+    const { request } = event;
+    const url = new URL(request.url);
+
+    // Skip cross-origin requests
+    if (url.origin !== location.origin && !url.origin.includes('localhost')) {
+        return;
+    }
+
+    // Network-first strategy for API calls
+    if (request.url.includes('/api/') || request.url.includes('localhost:3001')) {
+        event.respondWith(
+            fetch(request)
+                .then((response) => {
+                    // Clone the response before caching
+                    const responseClone = response.clone();
+
+                    // Only cache successful responses
+                    if (response.status === 200) {
+                        caches.open(CACHE_NAME)
+                            .then((cache) => {
+                                cache.put(request, responseClone);
+                            });
+                    }
+
+                    return response;
+                })
+                .catch(() => {
+                    // Return cached response if network fails
+                    return caches.match(request);
+                })
+        );
+        return;
+    }
+
+    // Cache-first strategy for static assets
+    event.respondWith(
+        caches.match(request)
+            .then((response) => {
+                // Return cached version if available
+                if (response) {
+                    return response;
+                }
+
+                // Fetch from network
+                return fetch(request)
+                    .then((response) => {
+                        // Don't cache if not a valid response
+                        if (!response || response.status !== 200 || response.type !== 'basic') {
+                            return response;
+                        }
+
+                        // Clone the response
+                        const responseToCache = response.clone();
+
+                        caches.open(CACHE_NAME)
+                            .then((cache) => {
+                                cache.put(request, responseToCache);
+                            });
+
+                        return response;
+                    })
+                    .catch(() => {
+                        // Return offline page for navigation requests
+                        if (request.destination === 'document') {
+                            return caches.match('/index.html');
+                        }
+                    });
+            })
+    );
+});
+
+// Background sync for offline data
+self.addEventListener('sync', (event) => {
+    console.log('Service Worker: Background sync', event.tag);
+
+    if (event.tag === 'background-sync') {
+        event.waitUntil(
+            // Handle background sync logic
+            syncData()
+        );
+    }
+});
+
+async function syncData() {
+    try {
+        // Sync any pending data when back online
+        const pendingData = await getStoredPendingData();
+
+        if (pendingData && pendingData.length > 0) {
+            for (const data of pendingData) {
+                await syncSingleItem(data);
+            }
+
+            // Clear pending data after successful sync
+            await clearPendingData();
+        }
+    } catch (error) {
+        console.error('Service Worker: Sync failed', error);
+    }
+}
+
+async function getStoredPendingData() {
+    // Get data from IndexedDB or localStorage
+    return new Promise((resolve) => {
+        const stored = localStorage.getItem('pendingSync');
+        resolve(stored ? JSON.parse(stored) : []);
+    });
+}
+
+async function syncSingleItem(data) {
+    // Sync individual items
+    try {
+        const response = await fetch(data.url, {
+            method: data.method || 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...data.headers
+            },
+            body: JSON.stringify(data.payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Sync failed: ${response.status}`);
+        }
+
+        console.log('Service Worker: Item synced successfully', data.id);
+        return response;
+    } catch (error) {
+        console.error('Service Worker: Item sync failed', data.id, error);
+        throw error;
+    }
+}
+
+async function clearPendingData() {
+    localStorage.removeItem('pendingSync');
+}
+
+// Push notifications
+self.addEventListener('push', (event) => {
+    console.log('Service Worker: Push received', event);
+
+    const options = {
+        body: 'You have new updates in your CP Journey!',
+        icon: '/icon-192.png',
+        badge: '/badge-72.png',
+        vibrate: [100, 50, 100],
+        data: {
+            dateOfArrival: Date.now(),
+            primaryKey: 1
+        },
+        actions: [
+            {
+                action: 'explore',
+                title: 'View Progress',
+                icon: '/icon-explore.png'
+            },
+            {
+                action: 'close',
+                title: 'Close',
+                icon: '/icon-close.png'
+            }
+        ]
+    };
+
+    event.waitUntil(
+        self.registration.showNotification('CP Journey Tracker', options)
+    );
+});
+
+// Notification click
+self.addEventListener('notificationclick', (event) => {
+    console.log('Service Worker: Notification click received');
+
+    event.notification.close();
+
+    if (event.action === 'explore') {
+        event.waitUntil(
+            clients.openWindow('/')
+        );
+    }
+});

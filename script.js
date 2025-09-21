@@ -7,14 +7,14 @@ class CPJourney {
         this.currentUser = null;
         this.authToken = localStorage.getItem('authToken');
         this.loadingStartTime = Date.now();
-        
+
         // Performance optimizations
         this.cache = new Map(); // Add caching system
         this.apiRetryCount = 3; // API retry configuration
         this.apiRetryDelay = 1000; // 1 second initial delay
         this.throttleTimeouts = new Map(); // Throttling system
         this.lazyLoadObserver = null; // Lazy loading observer
-        
+
         this.initializeApp();
     }
 
@@ -22,36 +22,43 @@ class CPJourney {
         try {
             // Show loading screen
             this.showLoadingScreen();
-            
+
             // Initialize security measures
             this.setupSecurityHeaders();
-            
+
             // Initialize performance optimizations
             this.setupCaching();
             this.setupLazyLoading();
-            
-            // Initialize authentication first
-            await this.initAuth();
 
-            // Load user data
-            await this.loadData();
+            // Initialize professional UI features
+            this.setupThemeToggle();
+            this.setupDropdowns();
+            this.setupBreadcrumbs();
+            this.setupNotifications();
             
+            // Initialize professional interactions
+            this.setupProfessionalInteractions();
+
+            // Initialize authentication first
+            await this.initAuth();            // Load user data
+            await this.loadData();
+
             // Set up event listeners
             this.initializeEventListeners();
-            
+
             // Update all UI components
             this.updateUI();
-            
+
             // Start background processes
             this.startPeriodicUpdates();
             this.setupNetworkListeners();
-            
+
             // Initialize enhanced features
             this.initializeEnhancedFeatures();
-            
+
             // Hide loading screen after minimum display time
             await this.hideLoadingScreen();
-            
+
         } catch (error) {
             console.error('App initialization failed:', error);
             this.showNotification('Failed to initialize application. Please refresh the page.', 'error');
@@ -69,11 +76,11 @@ class CPJourney {
         const minLoadingTime = 1500; // Minimum 1.5 seconds for professional feel
         const elapsed = Date.now() - this.loadingStartTime;
         const remainingTime = Math.max(0, minLoadingTime - elapsed);
-        
+
         if (remainingTime > 0) {
             await new Promise(resolve => setTimeout(resolve, remainingTime));
         }
-        
+
         const loadingScreen = document.getElementById('loading-screen');
         if (loadingScreen) {
             loadingScreen.classList.add('hidden');
@@ -83,15 +90,18 @@ class CPJourney {
     initializeEnhancedFeatures() {
         // Initialize hero stats
         this.updateHeroStats();
-        
+
         // Set up intersection observers for animations
         this.setupScrollAnimations();
-        
+
         // Initialize keyboard shortcuts
         this.setupKeyboardShortcuts();
-        
+
         // Set up mobile optimizations
         this.optimizeForMobile();
+
+        // Register service worker for PWA
+        this.registerServiceWorker();
     }
 
     updateHeroStats() {
@@ -99,7 +109,7 @@ class CPJourney {
         const currentStreak = this.data.currentStreak || 0;
         const journeyProgress = this.data.journeyStarted ?
             Math.min((this.getDaysElapsed() / 315) * 100, 100) : 0; // Total journey is 315 days across all phases
-        
+
         // Animate numbers
         this.animateNumber('hero-problems', totalProblems);
         this.animateNumber('hero-streak', currentStreak);
@@ -109,25 +119,25 @@ class CPJourney {
     animateNumber(elementId, target, suffix = '') {
         const element = document.getElementById(elementId);
         if (!element) return;
-        
+
         const duration = 2000;
         const start = parseInt(element.textContent) || 0;
         const range = target - start;
         const startTime = Date.now();
-        
+
         const animation = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
             const easing = 1 - Math.pow(1 - progress, 3); // Ease out cubic
             const current = Math.round(start + (range * easing));
-            
+
             element.textContent = current + suffix;
-            
+
             if (progress < 1) {
                 requestAnimationFrame(animation);
             }
         };
-        
+
         requestAnimationFrame(animation);
     }
 
@@ -169,7 +179,7 @@ class CPJourney {
         // Add touch optimizations
         document.body.style.webkitTouchCallout = 'none';
         document.body.style.webkitUserSelect = 'none';
-        
+
         // Handle mobile viewport
         const viewport = document.querySelector('meta[name="viewport"]');
         if (viewport) {
@@ -232,12 +242,12 @@ class CPJourney {
         if (this.throttleTimeouts.has(key)) {
             clearTimeout(this.throttleTimeouts.get(key));
         }
-        
+
         const timeout = setTimeout(() => {
             func();
             this.throttleTimeouts.delete(key);
         }, delay);
-        
+
         this.throttleTimeouts.set(key, timeout);
     }
 
@@ -247,19 +257,19 @@ class CPJourney {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         const target = entry.target;
-                        
+
                         // Lazy load images
                         if (target.dataset.src) {
                             target.src = target.dataset.src;
                             target.removeAttribute('data-src');
                         }
-                        
+
                         // Lazy load content sections
                         if (target.classList.contains('lazy-content')) {
                             target.classList.add('loaded');
                             this.loadSectionContent(target);
                         }
-                        
+
                         this.lazyLoadObserver.unobserve(target);
                     }
                 });
@@ -312,7 +322,7 @@ class CPJourney {
     // Security enhancement methods
     sanitizeInput(input) {
         if (typeof input !== 'string') return input;
-        
+
         // Remove potentially dangerous characters and scripts
         return input
             .replace(/[<>]/g, '') // Remove < and > to prevent HTML injection
@@ -325,16 +335,16 @@ class CPJourney {
         if (!username || typeof username !== 'string') {
             throw new Error('Username is required and must be a string');
         }
-        
+
         const sanitized = this.sanitizeInput(username);
         if (sanitized.length < 3 || sanitized.length > 20) {
             throw new Error('Username must be between 3 and 20 characters');
         }
-        
+
         if (!/^[a-zA-Z0-9_-]+$/.test(sanitized)) {
             throw new Error('Username can only contain letters, numbers, underscores, and hyphens');
         }
-        
+
         return sanitized;
     }
 
@@ -342,14 +352,14 @@ class CPJourney {
         if (!email || typeof email !== 'string') {
             throw new Error('Email is required and must be a string');
         }
-        
+
         const sanitized = this.sanitizeInput(email);
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        
+
         if (!emailRegex.test(sanitized)) {
             throw new Error('Please enter a valid email address');
         }
-        
+
         return sanitized;
     }
 
@@ -357,25 +367,25 @@ class CPJourney {
         if (!password || typeof password !== 'string') {
             throw new Error('Password is required');
         }
-        
+
         if (password.length < 8) {
             throw new Error('Password must be at least 8 characters long');
         }
-        
+
         if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
             throw new Error('Password must contain at least one uppercase letter, one lowercase letter, and one number');
         }
-        
+
         return password; // Don't sanitize passwords
     }
 
     handleSecureError(error, context = '') {
         // Log full error for debugging (server-side only in production)
         console.error(`Error in ${context}:`, error);
-        
+
         // Return sanitized error message to user
         let userMessage = 'An unexpected error occurred. Please try again.';
-        
+
         if (error.message && typeof error.message === 'string') {
             // Only show safe error messages
             const safeErrors = [
@@ -391,13 +401,13 @@ class CPJourney {
                 'Authentication failed',
                 'User not found'
             ];
-            
+
             const isSafeError = safeErrors.some(safe => error.message.includes(safe));
             if (isSafeError) {
                 userMessage = this.sanitizeInput(error.message);
             }
         }
-        
+
         return userMessage;
     }
 
@@ -428,13 +438,299 @@ class CPJourney {
         const now = Date.now();
         const key = `rate_limit_${endpoint}`;
         const lastCall = localStorage.getItem(key);
-        
+
         if (lastCall && now - parseInt(lastCall) < 1000) { // 1 second rate limit
             throw new Error('Too many requests. Please wait a moment and try again.');
         }
-        
+
         localStorage.setItem(key, now.toString());
         return true;
+    }
+
+    registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/sw.js', {
+                        scope: '/'
+                    });
+
+                    console.log('Service Worker registered successfully:', registration.scope);
+
+                    // Handle updates
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker?.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // New content is available, show update notification
+                                this.addNotification('info', 'Update Available',
+                                    'A new version is available. Refresh to update.',
+                                    () => window.location.reload());
+                            }
+                        });
+                    });
+
+                } catch (error) {
+                    console.log('Service Worker registration failed:', error);
+                }
+            });
+        }
+    }
+
+    // Professional UI features
+    setupThemeToggle() {
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const savedTheme = localStorage.getItem('cp-journey-theme') || 'light';
+
+        // Apply saved theme
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+
+        themeToggle?.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            document.documentElement.setAttribute('data-theme', newTheme);
+            themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('cp-journey-theme', newTheme);
+        });
+    }
+
+    setupDropdowns() {
+        // Settings dropdown
+        const settingsDropdown = document.getElementById('settingsDropdown');
+        const settingsToggle = settingsDropdown?.querySelector('.dropdown-toggle');
+
+        settingsToggle?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsDropdown.classList.toggle('open');
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.dropdown').forEach(dropdown => {
+                dropdown.classList.remove('open');
+            });
+        });
+
+        // Handle dropdown items
+        document.getElementById('exportDataBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.exportData('manual');
+        });
+
+        document.getElementById('importDataBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.importData();
+        });
+
+        document.getElementById('preferencesBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.showPreferences();
+        });
+    }
+
+    setupBreadcrumbs() {
+        this.breadcrumbNav = document.getElementById('breadcrumbNav');
+        this.breadcrumb = document.getElementById('breadcrumb') || document.querySelector('.breadcrumb');
+
+        // Show breadcrumbs when user is logged in
+        if (this.authToken && this.breadcrumbNav) {
+            this.breadcrumbNav.style.display = 'block';
+        }
+    }
+
+    updateBreadcrumb(items) {
+        if (!this.breadcrumb) return;
+
+        this.breadcrumb.innerHTML = items.map((item, index) => {
+            const isLast = index === items.length - 1;
+            return `
+                <li class="breadcrumb-item">
+                    ${isLast ?
+                        `<span class="breadcrumb-link">
+                            ${item.icon ? `<i class="${item.icon}" aria-hidden="true"></i>` : ''}
+                            <span>${item.text}</span>
+                        </span>` :
+                        `<a href="${item.href || '#'}" class="breadcrumb-link">
+                            ${item.icon ? `<i class="${item.icon}" aria-hidden="true"></i>` : ''}
+                            <span>${item.text}</span>
+                        </a>`
+                    }
+                </li>
+            `;
+        }).join('');
+    }
+
+    setupNotifications() {
+        this.notifications = [];
+        const notificationBtn = document.getElementById('notificationBtn');
+        const notificationBadge = document.getElementById('notificationBadge');
+
+        notificationBtn?.addEventListener('click', () => {
+            this.showNotifications();
+        });
+
+        // Check for updates and achievements
+        this.checkForNotifications();
+    }
+
+    addNotification(type, title, message, action = null) {
+        const notification = {
+            id: Date.now(),
+            type, // 'success', 'warning', 'error', 'info'
+            title,
+            message,
+            action,
+            timestamp: new Date().toISOString(),
+            read: false
+        };
+
+        this.notifications.unshift(notification);
+        this.updateNotificationBadge();
+
+        // Show toast notification
+        this.showToast(notification);
+
+        return notification.id;
+    }
+
+    updateNotificationBadge() {
+        const badge = document.getElementById('notificationBadge');
+        const unreadCount = this.notifications.filter(n => !n.read).length;
+
+        if (badge) {
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    }
+
+    showToast(notification) {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${notification.type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <div class="toast-title">${notification.title}</div>
+                <div class="toast-message">${notification.message}</div>
+            </div>
+            <button class="toast-close" aria-label="Close notification">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+
+        // Add toast styles if not exists
+        this.ensureToastStyles();
+
+        document.body.appendChild(toast);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            toast.classList.add('toast-fade-out');
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+
+        // Close button
+        toast.querySelector('.toast-close')?.addEventListener('click', () => {
+            toast.classList.add('toast-fade-out');
+            setTimeout(() => toast.remove(), 300);
+        });
+    }
+
+    ensureToastStyles() {
+        if (document.getElementById('toast-styles')) return;
+
+        const styles = document.createElement('style');
+        styles.id = 'toast-styles';
+        styles.textContent = `
+            .toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--bg-card);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 1rem;
+                box-shadow: var(--shadow-lg);
+                z-index: 10000;
+                max-width: 350px;
+                display: flex;
+                align-items: flex-start;
+                gap: 1rem;
+                animation: toastSlideIn 0.3s ease;
+            }
+
+            .toast-success { border-left: 4px solid var(--success-color); }
+            .toast-warning { border-left: 4px solid var(--warning-color); }
+            .toast-error { border-left: 4px solid var(--danger-color); }
+            .toast-info { border-left: 4px solid var(--primary-color); }
+
+            .toast-content { flex: 1; }
+            .toast-title { font-weight: 600; margin-bottom: 0.25rem; }
+            .toast-message { font-size: 0.875rem; color: var(--text-secondary); }
+
+            .toast-close {
+                background: none;
+                border: none;
+                color: var(--text-secondary);
+                cursor: pointer;
+                padding: 0.25rem;
+                border-radius: 4px;
+                transition: all 0.2s ease;
+            }
+
+            .toast-close:hover {
+                background-color: var(--bg-secondary);
+                color: var(--text-primary);
+            }
+
+            .toast-fade-out {
+                animation: toastSlideOut 0.3s ease forwards;
+            }
+
+            @keyframes toastSlideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+
+            @keyframes toastSlideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(styles);
+    }
+
+    checkForNotifications() {
+        // Check for achievements, milestones, etc.
+        this.throttle(() => {
+            this.checkAchievements();
+            this.checkMilestones();
+        }, 30000, 'notification-check'); // Check every 30 seconds
+    }
+
+    checkAchievements() {
+        // Implementation for checking achievements
+        // This would check user progress and trigger notifications
+    }
+
+    checkMilestones() {
+        // Implementation for checking milestones
+        // This would check for progress milestones
+    }
+
+    showPreferences() {
+        // Implementation for preferences modal
+        this.addNotification('info', 'Preferences', 'Preferences panel coming soon!');
+    }
+
+    showNotifications() {
+        // Implementation for notifications panel
+        this.addNotification('info', 'Notifications', `You have ${this.notifications.length} notifications.`);
     }
 
     // Load CSES topics
@@ -448,7 +744,7 @@ class CPJourney {
 
             const response = await this.fetchWithRetry(`${this.API_BASE}/cses/topics`);
             const topics = await response.json();
-            
+
             // Cache the result
             this.setCachedData('cses-topics', topics);
             return topics;
@@ -2477,6 +2773,310 @@ class CSESManager {
                 }
             }, 300);
         }, 3000);
+    }
+
+    // ====== PROFESSIONAL USER EXPERIENCE ENHANCEMENTS ======
+
+    setupProfessionalInteractions() {
+        // Enhanced form validation with real-time feedback
+        this.setupFormValidation();
+        
+        // Professional loading states for all buttons
+        this.setupButtonStates();
+        
+        // Smart error handling with user-friendly messages
+        this.setupErrorHandling();
+        
+        // Performance monitoring and user feedback
+        this.setupPerformanceMonitoring();
+        
+        // Enhanced keyboard navigation
+        this.setupKeyboardNavigation();
+    }
+
+    setupFormValidation() {
+        document.querySelectorAll('input, textarea, select').forEach(field => {
+            // Real-time validation on blur
+            field.addEventListener('blur', (e) => {
+                this.validateField(e.target);
+            });
+
+            // Clear errors on focus
+            field.addEventListener('focus', (e) => {
+                this.clearFieldError(e.target);
+            });
+        });
+    }
+
+    validateField(field) {
+        const value = field.value.trim();
+        const type = field.type;
+        let isValid = true;
+        let message = '';
+
+        // Field-specific validation
+        switch (type) {
+            case 'email':
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (value && !emailRegex.test(value)) {
+                    isValid = false;
+                    message = 'Please enter a valid email address';
+                }
+                break;
+            case 'password':
+                if (value && value.length < 8) {
+                    isValid = false;
+                    message = 'Password must be at least 8 characters long';
+                }
+                break;
+            case 'url':
+                try {
+                    if (value) new URL(value);
+                } catch {
+                    isValid = false;
+                    message = 'Please enter a valid URL';
+                }
+                break;
+        }
+
+        // Required field validation
+        if (field.required && !value) {
+            isValid = false;
+            message = `${field.getAttribute('data-label') || 'This field'} is required`;
+        }
+
+        // Show validation result
+        if (!isValid) {
+            this.showFieldError(field, message);
+        } else {
+            this.clearFieldError(field);
+        }
+
+        return isValid;
+    }
+
+    showFieldError(field, message) {
+        field.classList.add('field-error');
+        
+        // Remove existing error message
+        const existingError = field.parentNode.querySelector('.field-error-message');
+        if (existingError) existingError.remove();
+
+        // Add new error message
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'field-error-message text-sm text-danger-color';
+        errorDiv.textContent = message;
+        errorDiv.style.marginTop = '0.25rem';
+        field.parentNode.appendChild(errorDiv);
+    }
+
+    clearFieldError(field) {
+        field.classList.remove('field-error');
+        const errorMessage = field.parentNode.querySelector('.field-error-message');
+        if (errorMessage) errorMessage.remove();
+    }
+
+    setupButtonStates() {
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('button, .btn, input[type="submit"]')) {
+                const button = e.target;
+                
+                // Add loading state for async operations
+                if (button.hasAttribute('data-async')) {
+                    this.setButtonLoading(button, true);
+                    
+                    // Auto-clear loading state after 10 seconds (fallback)
+                    setTimeout(() => {
+                        this.setButtonLoading(button, false);
+                    }, 10000);
+                }
+            }
+        });
+    }
+
+    setButtonLoading(button, loading) {
+        if (loading) {
+            button.classList.add('btn-loading');
+            button.disabled = true;
+            button.setAttribute('data-original-text', button.textContent);
+            
+            // Add spinner if not exists
+            if (!button.querySelector('.loading-spinner')) {
+                const spinner = document.createElement('span');
+                spinner.className = 'loading-spinner';
+                button.appendChild(spinner);
+            }
+        } else {
+            button.classList.remove('btn-loading');
+            button.disabled = false;
+            
+            // Restore original text
+            const originalText = button.getAttribute('data-original-text');
+            if (originalText) {
+                button.textContent = originalText;
+                button.removeAttribute('data-original-text');
+            }
+            
+            // Remove spinner
+            const spinner = button.querySelector('.loading-spinner');
+            if (spinner) spinner.remove();
+        }
+    }
+
+    setupErrorHandling() {
+        // Global error handler
+        window.addEventListener('error', (e) => {
+            console.error('Global error:', e.error);
+            this.showUserFriendlyError('Something went wrong. Please refresh the page and try again.');
+        });
+
+        // Promise rejection handler
+        window.addEventListener('unhandledrejection', (e) => {
+            console.error('Unhandled promise rejection:', e.reason);
+            this.showUserFriendlyError('A network error occurred. Please check your connection and try again.');
+        });
+    }
+
+    showUserFriendlyError(message) {
+        // Show user-friendly error notification
+        if (this.addNotification) {
+            this.addNotification('error', 'Error', message);
+        } else {
+            // Fallback notification
+            this.showSimpleNotification(message, 'error');
+        }
+    }
+
+    showSimpleNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--${type === 'error' ? 'danger' : 'primary'}-color);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            z-index: 10000;
+            max-width: 350px;
+        `;
+        notification.textContent = message;
+
+        document.body.appendChild(notification);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+    }
+
+    setupPerformanceMonitoring() {
+        // Monitor page load performance
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const perfData = performance.getEntriesByType('navigation')[0];
+                if (perfData) {
+                    const loadTime = perfData.loadEventEnd - perfData.loadEventStart;
+                    console.log(`Page load time: ${loadTime}ms`);
+                    
+                    // Warn if load time is too long
+                    if (loadTime > 3000) {
+                        console.warn('Slow page load detected');
+                    }
+                }
+            }, 0);
+        });
+
+        // Monitor API response times
+        this.monitorApiPerformance();
+    }
+
+    monitorApiPerformance() {
+        const originalFetch = window.fetch;
+        window.fetch = async (...args) => {
+            const start = performance.now();
+            try {
+                const response = await originalFetch(...args);
+                const end = performance.now();
+                const duration = end - start;
+                
+                console.log(`API call to ${args[0]} took ${duration.toFixed(2)}ms`);
+                
+                // Show warning for slow API calls
+                if (duration > 5000) {
+                    this.showUserFriendlyError('The server is responding slowly. Please be patient.');
+                }
+                
+                return response;
+            } catch (error) {
+                const end = performance.now();
+                console.error(`API call to ${args[0]} failed after ${(end - start).toFixed(2)}ms:`, error);
+                throw error;
+            }
+        };
+    }
+
+    setupKeyboardNavigation() {
+        // Enhanced keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Escape key to close modals
+            if (e.key === 'Escape') {
+                const openModal = document.querySelector('.modal.show');
+                if (openModal) {
+                    this.closeModal(openModal);
+                }
+            }
+
+            // Ctrl/Cmd + S to save (prevent default browser save)
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                if (this.saveData) {
+                    this.saveData();
+                    this.showSimpleNotification('Data saved successfully!', 'success');
+                }
+            }
+
+            // Alt + T to toggle theme
+            if (e.altKey && e.key === 't') {
+                e.preventDefault();
+                const themeToggle = document.getElementById('themeToggle');
+                if (themeToggle) themeToggle.click();
+            }
+        });
+
+        // Improve tab navigation
+        this.improveTabNavigation();
+    }
+
+    improveTabNavigation() {
+        // Add visible focus indicators
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                document.body.classList.add('using-keyboard');
+            }
+        });
+
+        document.addEventListener('mousedown', () => {
+            document.body.classList.remove('using-keyboard');
+        });
+    }
+
+    closeModal(modal) {
+        if (modal) {
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+            
+            // Return focus to trigger element if available
+            const trigger = modal.getAttribute('data-trigger');
+            if (trigger) {
+                const triggerElement = document.getElementById(trigger);
+                if (triggerElement) triggerElement.focus();
+            }
+        }
     }
 }
 
