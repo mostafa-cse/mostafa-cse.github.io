@@ -6,7 +6,7 @@ class CPJourney {
         this.isOnline = navigator.onLine;
         this.currentUser = null;
         this.authToken = localStorage.getItem('authToken');
-        this.loadingStartTime = Date.now();
+        this.loadingStartTime = performance.now(); // Use performance.now() for better precision
 
         // Performance optimizations
         this.cache = new Map(); // Add caching system
@@ -20,43 +20,49 @@ class CPJourney {
 
     async initializeApp() {
         try {
-            // Show loading screen
+            // Show loading screen immediately
             this.showLoadingScreen();
 
-            // Initialize security measures
+            // Initialize critical features first (synchronously)
             this.setupSecurityHeaders();
-
-            // Initialize performance optimizations
             this.setupCaching();
-            this.setupLazyLoading();
 
-            // Initialize professional UI features
-            this.setupThemeToggle();
-            this.setupDropdowns();
-            this.setupBreadcrumbs();
-            this.setupNotifications();
+            // Initialize UI features in parallel
+            const uiPromises = [
+                Promise.resolve(this.setupThemeToggle()),
+                Promise.resolve(this.setupDropdowns()),
+                Promise.resolve(this.setupBreadcrumbs()),
+                Promise.resolve(this.setupNotifications()),
+                Promise.resolve(this.setupProfessionalInteractions())
+            ];
 
-            // Initialize professional interactions
-            this.setupProfessionalInteractions();
+            // Initialize auth and data loading in parallel
+            const dataPromises = [
+                this.initAuth(),
+                this.loadData()
+            ];
 
-            // Initialize authentication first
-            await this.initAuth();            // Load user data
-            await this.loadData();
+            // Wait for critical UI features
+            await Promise.all(uiPromises);
 
-            // Set up event listeners
+            // Initialize event listeners (non-blocking)
             this.initializeEventListeners();
 
-            // Update all UI components
+            // Load data in parallel
+            await Promise.all(dataPromises);
+
+            // Update UI after data loads
             this.updateUI();
 
-            // Start background processes
-            this.startPeriodicUpdates();
-            this.setupNetworkListeners();
+            // Start background processes (non-blocking)
+            setTimeout(() => {
+                this.setupLazyLoading();
+                this.startPeriodicUpdates();
+                this.setupNetworkListeners();
+                this.initializeEnhancedFeatures();
+            }, 10);
 
-            // Initialize enhanced features
-            this.initializeEnhancedFeatures();
-
-            // Hide loading screen after minimum display time
+            // Hide loading screen as soon as critical content is ready
             await this.hideLoadingScreen();
 
         } catch (error) {
@@ -73,16 +79,15 @@ class CPJourney {
     }
 
     async hideLoadingScreen() {
-        const minLoadingTime = 1500; // Minimum 1.5 seconds for professional feel
-        const elapsed = Date.now() - this.loadingStartTime;
-        const remainingTime = Math.max(0, minLoadingTime - elapsed);
-
-        if (remainingTime > 0) {
-            await new Promise(resolve => setTimeout(resolve, remainingTime));
-        }
-
+        // Remove artificial delay for better performance
         const loadingScreen = document.getElementById('loading-screen');
         if (loadingScreen) {
+            // Calculate actual loading time
+            const loadTime = performance.now() - this.loadingStartTime;
+            console.log(`⚡ App loaded in ${loadTime.toFixed(2)}ms`);
+
+            // Small delay to prevent flash
+            await new Promise(resolve => setTimeout(resolve, 50));
             loadingScreen.classList.add('hidden');
         }
     }

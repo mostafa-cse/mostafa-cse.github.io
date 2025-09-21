@@ -3,6 +3,7 @@ const cors = require('cors');
 const fs = require('fs-extra');
 const path = require('path');
 const session = require('express-session');
+const compression = require('compression');
 const PlatformAPI = require('./platformAPI');
 const AuthManager = require('./authManager');
 
@@ -15,13 +16,40 @@ const BACKUP_DIR = path.join(__dirname, 'backups');
 const platformAPI = new PlatformAPI();
 const authManager = new AuthManager(DATA_DIR);
 
+// Performance optimizations - compression first
+app.use(compression({
+    level: 6,
+    threshold: 1024,
+    filter: (req, res) => {
+        if (req.headers['x-no-compression']) return false;
+        return compression.filter(req, res);
+    }
+}));
+
+// Cache control for static assets
+app.use('/styles.css', (req, res, next) => {
+    res.set('Cache-Control', 'public, max-age=86400'); // 24 hours
+    next();
+});
+app.use('/script.js', (req, res, next) => {
+    res.set('Cache-Control', 'public, max-age=86400'); // 24 hours
+    next();
+});
+
 // Middleware
 app.use(cors({
     origin: true,
     credentials: true
 }));
 app.use(express.json());
-app.use(express.static('.'));
+app.use(express.static('.', {
+    maxAge: '1d', // Cache static files for 1 day
+    setHeaders: (res, path) => {
+        if (path.endsWith('.css') || path.endsWith('.js')) {
+            res.set('Cache-Control', 'public, max-age=86400');
+        }
+    }
+}));
 app.use(session({
     secret: 'cp-journey-session-secret',
     resave: false,
