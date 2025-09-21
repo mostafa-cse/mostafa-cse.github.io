@@ -54,13 +54,22 @@ class CPJourney {
             // Update UI after data loads
             this.updateUI();
 
-            // Start background processes (non-blocking)
-            setTimeout(() => {
-                this.setupLazyLoading();
-                this.startPeriodicUpdates();
-                this.setupNetworkListeners();
-                this.initializeEnhancedFeatures();
-            }, 10);
+            // Start background processes during idle time (non-blocking)
+            const runBackground = () => {
+                try {
+                    this.setupLazyLoading();
+                    this.startPeriodicUpdates();
+                    this.setupNetworkListeners();
+                    this.initializeEnhancedFeatures();
+                } catch (e) {
+                    console.warn('Background init error', e);
+                }
+            };
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(runBackground, { timeout: 1000 });
+            } else {
+                setTimeout(runBackground, 50);
+            }
 
             // Hide loading screen as soon as critical content is ready
             await this.hideLoadingScreen();
@@ -2407,50 +2416,9 @@ class CPJourney {
     }
 }
 
-// Initialize the application
+// Initialize the application once DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     new CPJourney();
-});
-
-// Add some additional interactive features
-document.addEventListener('DOMContentLoaded', () => {
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
-
-    // Add loading animation
-    window.addEventListener('load', () => {
-        document.body.classList.add('loaded');
-    });
-
-    // Add intersection observer for animations
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in');
-            }
-        });
-    }, observerOptions);
-
-    // Observe all sections
-    document.querySelectorAll('.section').forEach(section => {
-        observer.observe(section);
-    });
 });
 
 // Add keyboard shortcuts

@@ -1,13 +1,11 @@
 // CP Journey Tracker - Service Worker
-const CACHE_NAME = 'cp-journey-v1.0.0';
+const CACHE_NAME = 'cp-journey-v1.1.0';
 const urlsToCache = [
     '/',
     '/index.html',
     '/styles.css',
     '/script.js',
-    '/manifest.json',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
-    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
+    '/manifest.json'
 ];
 
 // Install event
@@ -23,6 +21,7 @@ self.addEventListener('install', (event) => {
                 console.error('Service Worker: Caching failed', error);
             })
     );
+    self.skipWaiting();
 });
 
 // Activate event
@@ -40,6 +39,7 @@ self.addEventListener('activate', (event) => {
             );
         })
     );
+    self.clients.claim();
 });
 
 // Fetch event with network-first strategy for API calls and cache-first for static assets
@@ -47,13 +47,33 @@ self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // Skip cross-origin requests
-    if (url.origin !== location.origin && !url.origin.includes('localhost')) {
+    // Handle cross-origin fonts/icons with runtime caching (stale-while-revalidate)
+    const isFontOrIcon = (
+        url.hostname.includes('fonts.googleapis.com') ||
+        url.hostname.includes('fonts.gstatic.com') ||
+        url.hostname.includes('cdnjs.cloudflare.com')
+    );
+
+    if (isFontOrIcon) {
+        event.respondWith(
+            caches.open('runtime-fonts-v1').then(async (cache) => {
+                const cached = await cache.match(request);
+                const networkFetch = fetch(request)
+                    .then((response) => {
+                        if (response && response.status === 200) {
+                            cache.put(request, response.clone());
+                        }
+                        return response;
+                    })
+                    .catch(() => cached);
+                return cached || networkFetch;
+            })
+        );
         return;
     }
 
     // Network-first strategy for API calls
-    if (request.url.includes('/api/') || request.url.includes('localhost:3001')) {
+    if (request.url.includes('/api/')) {
         event.respondWith(
             fetch(request)
                 .then((response) => {

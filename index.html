@@ -158,6 +158,8 @@
     <!-- Preload and defer external resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"></noscript>
 
@@ -1151,6 +1153,30 @@
 
     <!-- Load JavaScript asynchronously -->
     <script>
+        // Basic RUM metrics
+        (function collectPerfMetrics(){
+            if ('performance' in window) {
+                window.addEventListener('load', function(){
+                    try {
+                        const nav = performance.getEntriesByType('navigation')[0];
+                        if (nav) {
+                            console.log(`⏱️ RUM Navigation: TTFB ${(nav.responseStart - nav.requestStart).toFixed(0)}ms, DOMContentLoaded ${nav.domContentLoadedEventEnd.toFixed(0)}ms, Load ${nav.loadEventEnd.toFixed(0)}ms`);
+                        }
+                    } catch(e) {}
+                });
+
+                try {
+                    new PerformanceObserver((entryList) => {
+                        for (const entry of entryList.getEntries()) {
+                            if (entry.name === 'first-contentful-paint') {
+                                console.log(`🎨 FCP ${(entry.startTime).toFixed(0)}ms`);
+                            }
+                        }
+                    }).observe({ type: 'paint', buffered: true });
+                } catch(e) {}
+            }
+        })();
+
         // Load main script asynchronously
         function loadScript(src) {
             const script = document.createElement('script');
@@ -1187,6 +1213,13 @@
                 document.body.removeChild(testEl);
             }, 100);
         });
+
+        // Preload and load main script
+        var preload = document.createElement('link');
+        preload.rel = 'preload';
+        preload.as = 'script';
+        preload.href = 'script.js';
+        document.head.appendChild(preload);
 
         // Load main script
         loadScript('script.js');
