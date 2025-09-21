@@ -59,27 +59,88 @@ class CPJourney {
         const statusEl = document.getElementById('cses-topics-status');
         const grid = document.getElementById('cses-topics-grid');
         if (!statusEl || !grid) return;
+        
         try {
             statusEl.textContent = 'Loading topics...';
+            statusEl.className = 'topics-status loading';
+            grid.innerHTML = '<div class="loading-spinner">🔄 Fetching CSES topics...</div>';
+            
             const resp = await fetch(`${this.API_BASE}/cses/topics`);
             const data = await resp.json();
+            
             if (!data.success) throw new Error(data.error || 'Failed to fetch topics');
+            
             grid.innerHTML = '';
-            data.topics.forEach(t => {
+            
+            data.topics.forEach((topic, index) => {
                 const card = document.createElement('div');
                 card.className = 'topic-card';
-                const countText = t.count ? `${t.count} problems` : 'Browse problems';
+                
+                // Add animation delay for stagger effect
+                card.style.animationDelay = `${index * 0.1}s`;
+                
+                const countText = topic.count ? `${topic.count} problems` : 'Browse problems';
+                const description = topic.description || 'Programming problems and algorithms';
+                
                 card.innerHTML = `
-                    <div class="topic-title">${t.title}</div>
-                    <div class="topic-meta">${countText}</div>
-                    <a class="topic-link" href="${t.url}" target="_blank" rel="noopener">Open on CSES →</a>
+                    <div class="topic-header">
+                        <div class="topic-title">${topic.title}</div>
+                        <div class="topic-count">${countText}</div>
+                    </div>
+                    <div class="topic-description">${description}</div>
+                    <div class="topic-actions">
+                        <a class="topic-link primary" href="${topic.url}" target="_blank" rel="noopener">
+                            <i class="fas fa-external-link-alt"></i> Open on CSES
+                        </a>
+                        ${topic.problems && topic.problems.length > 0 ? 
+                            `<button class="topic-link secondary" onclick="this.toggleProblems(this)">
+                                <i class="fas fa-list"></i> Preview Problems
+                            </button>` : ''
+                        }
+                    </div>
+                    ${topic.problems && topic.problems.length > 0 ? 
+                        `<div class="topic-problems" style="display: none;">
+                            ${topic.problems.slice(0, 5).map(p => 
+                                `<a href="${p.url}" target="_blank" class="problem-link">${p.title}</a>`
+                            ).join('')}
+                            ${topic.problems.length > 5 ? `<span class="more-problems">...and ${topic.problems.length - 5} more</span>` : ''}
+                        </div>` : ''
+                    }
                 `;
+                
                 grid.appendChild(card);
             });
-            statusEl.textContent = `Loaded ${data.topics.length} topics`;
+            
+            // Add toggle functionality for problem previews
+            window.toggleProblems = function(btn) {
+                const card = btn.closest('.topic-card');
+                const problemsDiv = card.querySelector('.topic-problems');
+                if (problemsDiv) {
+                    const isVisible = problemsDiv.style.display !== 'none';
+                    problemsDiv.style.display = isVisible ? 'none' : 'block';
+                    btn.innerHTML = isVisible ? 
+                        '<i class="fas fa-list"></i> Preview Problems' : 
+                        '<i class="fas fa-chevron-up"></i> Hide Problems';
+                }
+            };
+            
+            const statusText = data.fromCache ? 
+                `Loaded ${data.topics.length} topics (cached)` : 
+                `Loaded ${data.topics.length} topics from CSES`;
+            
+            statusEl.textContent = statusText;
+            statusEl.className = 'topics-status success';
+            
+            if (data.error) {
+                statusEl.textContent += ` (${data.error})`;
+                statusEl.className = 'topics-status warning';
+            }
+            
         } catch (e) {
             console.error('CSES topics load error:', e);
             statusEl.textContent = 'Unable to load topics (showing defaults)';
+            statusEl.className = 'topics-status error';
+            grid.innerHTML = '<div class="error-message">Failed to load CSES topics. Please try refreshing the page.</div>';
         }
     }
 

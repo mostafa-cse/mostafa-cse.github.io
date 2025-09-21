@@ -1,0 +1,12 @@
+nohup: ignoring input
+✅ Database and authentication initialized successfully!
+🚀 CP Journey Database Server running on http://localhost:3001
+📊 Dashboard available at http://localhost:3001
+💾 Database files stored in: /workspaces/mostafa-cse.github.io/data
+📦 Backups stored in: /workspaces/mostafa-cse.github.io/backups
+🔄 Auto-backup every 30 minutes
+🌐 Platform sync APIs enabled
+⏰ Auto-sync scheduled for 9/22/2025, 6:00:00 AM
+Fetching CSES topics from: https://cses.fi/problemset/
+Parsing CSES page structure...
+Found 18 CSES topics

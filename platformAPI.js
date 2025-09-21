@@ -12,88 +12,177 @@ class PlatformAPI {
     async fetchCSESTopics() {
         const url = `${this.csesBaseUrl}/problemset/`;
         try {
+            console.log('Fetching CSES topics from:', url);
             const resp = await axios.get(url, {
                 headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.5',
+                    'Accept-Encoding': 'gzip, deflate',
+                    'Connection': 'keep-alive',
+                    'Upgrade-Insecure-Requests': '1'
                 },
-                timeout: 15000
+                timeout: 20000
             });
 
             const $ = cheerio.load(resp.data);
             const topics = [];
 
-            // Heuristic parsing: categories often marked by h2, followed by a table of problems
+            console.log('Parsing CSES page structure...');
+
+            // Method 1: Look for problem sections with h2 headers
             $('h2').each((i, el) => {
                 const title = $(el).text().trim();
-                if (!title) return;
+                if (!title || title.length > 50) return;
 
-                // Count problems under the next table or list until next h2
+                // Count problems in the following table
                 let count = 0;
-                let $cursor = $(el).next();
-                while ($cursor.length && $cursor[0].tagName !== 'h2') {
-                    // Count table rows or list items that look like problems
-                    count += $cursor.find('tr').length;
-                    count += $cursor.find('li').length;
-                    // Fallback: look for links with task path
-                    count += $cursor.find('a[href*="/task/"]').length;
-                    $cursor = $cursor.next();
+                let problemLinks = [];
+                
+                // Look for the next table or list after this h2
+                let $next = $(el).next();
+                while ($next.length && !$next.is('h2')) {
+                    // Count table rows with task links
+                    const taskLinks = $next.find('a[href*="/task/"]');
+                    count += taskLinks.length;
+                    
+                    taskLinks.each((j, link) => {
+                        const href = $(link).attr('href');
+                        const problemTitle = $(link).text().trim();
+                        if (href && problemTitle) {
+                            problemLinks.push({
+                                title: problemTitle,
+                                url: `${this.csesBaseUrl}${href}`
+                            });
+                        }
+                    });
+                    
+                    $next = $next.next();
+                    if ($next.is('h2')) break;
                 }
 
-                const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                topics.push({
-                    title,
-                    slug,
-                    count: count || null,
-                    url: `${url}#${slug}`
-                });
+                if (count > 0) {
+                    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                    topics.push({
+                        title,
+                        slug,
+                        count,
+                        problems: problemLinks.slice(0, 10), // Keep first 10 for preview
+                        url: `${url}#${slug}`
+                    });
+                }
             });
 
-            // Filter out non-topic headers if any (keep those with reasonable titles)
-            const filtered = topics.filter(t => /[a-z]/i.test(t.title) && t.title.length < 60);
+            // Method 2: If h2 method didn't work, try looking for sections or divs with class patterns
+            if (topics.length === 0) {
+                console.log('Trying alternative parsing method...');
+                
+                // Look for any element containing "Problems" in text
+                $('*:contains("Problems")').each((i, el) => {
+                    const $el = $(el);
+                    const text = $el.text();
+                    
+                    // Skip if it's just a single word or too long
+                    if (!text || text.split(' ').length < 2 || text.length > 60) return;
+                    
+                    // Look for task links nearby
+                    const taskLinks = $el.parent().find('a[href*="/task/"]');
+                    if (taskLinks.length > 0) {
+                        const title = text.trim();
+                        const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                        
+                        topics.push({
+                            title,
+                            slug,
+                            count: taskLinks.length,
+                            url: `${url}#${slug}`
+                        });
+                    }
+                });
+            }
 
-            // If parsing failed or empty, provide a sensible fallback list
+            // Remove duplicates and filter
+            const seen = new Set();
+            const filtered = topics.filter(t => {
+                if (seen.has(t.title.toLowerCase()) || t.count === 0) return false;
+                seen.add(t.title.toLowerCase());
+                return /[a-z]/i.test(t.title) && t.title.length < 60;
+            });
+
+            console.log(`Found ${filtered.length} CSES topics`);
+
+            // If parsing still failed, provide comprehensive fallback
+
+            // If parsing still failed, provide comprehensive fallback
             if (!filtered.length) {
+                console.log('Using fallback CSES topics list');
                 return {
                     success: true,
                     fromCache: true,
                     topics: [
-                        { title: 'Introductory Problems', slug: 'introductory-problems', count: 19, url },
-                        { title: 'Sorting and Searching', slug: 'sorting-and-searching', count: 35, url },
-                        { title: 'Dynamic Programming', slug: 'dynamic-programming', count: 19, url },
-                        { title: 'Graph Algorithms', slug: 'graph-algorithms', count: 36, url },
-                        { title: 'Range Queries', slug: 'range-queries', count: 19, url },
-                        { title: 'Tree Algorithms', slug: 'tree-algorithms', count: 16, url },
-                        { title: 'Mathematics', slug: 'mathematics', count: null, url },
-                        { title: 'String Algorithms', slug: 'string-algorithms', count: null, url },
-                        { title: 'Geometry', slug: 'geometry', count: null, url },
-                        { title: 'Advanced Techniques', slug: 'advanced-techniques', count: null, url },
-                        { title: 'Additional Problems', slug: 'additional-problems', count: null, url }
+                        { title: 'Introductory Problems', slug: 'introductory-problems', count: 19, url, description: 'Basic programming problems to get started' },
+                        { title: 'Sorting and Searching', slug: 'sorting-and-searching', count: 35, url, description: 'Fundamental algorithms for sorting and searching' },
+                        { title: 'Dynamic Programming', slug: 'dynamic-programming', count: 19, url, description: 'Optimization problems using DP techniques' },
+                        { title: 'Graph Algorithms', slug: 'graph-algorithms', count: 36, url, description: 'Tree and graph traversal algorithms' },
+                        { title: 'Range Queries', slug: 'range-queries', count: 19, url, description: 'Efficient range query data structures' },
+                        { title: 'Tree Algorithms', slug: 'tree-algorithms', count: 16, url, description: 'Advanced tree manipulation algorithms' },
+                        { title: 'Mathematics', slug: 'mathematics', count: 31, url, description: 'Number theory and mathematical problems' },
+                        { title: 'String Algorithms', slug: 'string-algorithms', count: 17, url, description: 'String processing and pattern matching' },
+                        { title: 'Geometry', slug: 'geometry', count: 7, url, description: 'Computational geometry problems' },
+                        { title: 'Advanced Techniques', slug: 'advanced-techniques', count: 24, url, description: 'Complex algorithmic techniques' },
+                        { title: 'Additional Problems', slug: 'additional-problems', count: 77, url, description: 'Extra challenging problems' }
                     ]
                 };
             }
 
-            return { success: true, topics: filtered };
+            return { 
+                success: true, 
+                topics: filtered.map(t => ({
+                    ...t,
+                    description: this.getTopicDescription(t.title)
+                }))
+            };
+
         } catch (error) {
             console.error('CSES topics fetch error:', error.message);
-            // Return fallback on error
+            // Return comprehensive fallback on error
             return {
                 success: true,
                 fromCache: true,
+                error: error.message,
                 topics: [
-                    { title: 'Introductory Problems', slug: 'introductory-problems', count: 19, url },
-                    { title: 'Sorting and Searching', slug: 'sorting-and-searching', count: 35, url },
-                    { title: 'Dynamic Programming', slug: 'dynamic-programming', count: 19, url },
-                    { title: 'Graph Algorithms', slug: 'graph-algorithms', count: 36, url },
-                    { title: 'Range Queries', slug: 'range-queries', count: 19, url },
-                    { title: 'Tree Algorithms', slug: 'tree-algorithms', count: 16, url },
-                    { title: 'Mathematics', slug: 'mathematics', count: null, url },
-                    { title: 'String Algorithms', slug: 'string-algorithms', count: null, url },
-                    { title: 'Geometry', slug: 'geometry', count: null, url },
-                    { title: 'Advanced Techniques', slug: 'advanced-techniques', count: null, url },
-                    { title: 'Additional Problems', slug: 'additional-problems', count: null, url }
+                    { title: 'Introductory Problems', slug: 'introductory-problems', count: 19, url, description: 'Basic programming problems to get started' },
+                    { title: 'Sorting and Searching', slug: 'sorting-and-searching', count: 35, url, description: 'Fundamental algorithms for sorting and searching' },
+                    { title: 'Dynamic Programming', slug: 'dynamic-programming', count: 19, url, description: 'Optimization problems using DP techniques' },
+                    { title: 'Graph Algorithms', slug: 'graph-algorithms', count: 36, url, description: 'Tree and graph traversal algorithms' },
+                    { title: 'Range Queries', slug: 'range-queries', count: 19, url, description: 'Efficient range query data structures' },
+                    { title: 'Tree Algorithms', slug: 'tree-algorithms', count: 16, url, description: 'Advanced tree manipulation algorithms' },
+                    { title: 'Mathematics', slug: 'mathematics', count: 31, url, description: 'Number theory and mathematical problems' },
+                    { title: 'String Algorithms', slug: 'string-algorithms', count: 17, url, description: 'String processing and pattern matching' },
+                    { title: 'Geometry', slug: 'geometry', count: 7, url, description: 'Computational geometry problems' },
+                    { title: 'Advanced Techniques', slug: 'advanced-techniques', count: 24, url, description: 'Complex algorithmic techniques' },
+                    { title: 'Additional Problems', slug: 'additional-problems', count: 77, url, description: 'Extra challenging problems' }
                 ]
             };
         }
+    }
+
+    // Helper method to get topic descriptions
+    getTopicDescription(title) {
+        const descriptions = {
+            'Introductory Problems': 'Basic programming problems to get started',
+            'Sorting and Searching': 'Fundamental algorithms for sorting and searching',
+            'Dynamic Programming': 'Optimization problems using DP techniques',
+            'Graph Algorithms': 'Tree and graph traversal algorithms',
+            'Range Queries': 'Efficient range query data structures',
+            'Tree Algorithms': 'Advanced tree manipulation algorithms',
+            'Mathematics': 'Number theory and mathematical problems',
+            'String Algorithms': 'String processing and pattern matching',
+            'Geometry': 'Computational geometry problems',
+            'Advanced Techniques': 'Complex algorithmic techniques',
+            'Additional Problems': 'Extra challenging problems'
+        };
+        return descriptions[title] || 'Programming problems and algorithms';
     }
 
     // CSES Account Integration
