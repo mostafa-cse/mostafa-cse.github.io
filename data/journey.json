@@ -1,6 +1,6 @@
 {
-  "journeyStarted": false,
-  "startDate": null,
+  "journeyStarted": true,
+  "startDate": "2025-09-21T13:52:54.655Z",
   "currentStreak": 0,
   "bestStreak": 0,
   "lastActiveDate": null,
@@ -44,6 +44,6 @@
   "revision": {
     "problems": 0
   },
-  "lastUpdated": "2025-09-21T07:00:50.549Z",
+  "lastUpdated": "2025-09-21T13:52:54.679Z",
   "version": "1.0.0"
 }

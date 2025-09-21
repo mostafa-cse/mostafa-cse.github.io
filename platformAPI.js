@@ -38,14 +38,14 @@ class PlatformAPI {
                 // Count problems in the following table
                 let count = 0;
                 let problemLinks = [];
-                
+
                 // Look for the next table or list after this h2
                 let $next = $(el).next();
                 while ($next.length && !$next.is('h2')) {
                     // Count table rows with task links
                     const taskLinks = $next.find('a[href*="/task/"]');
                     count += taskLinks.length;
-                    
+
                     taskLinks.each((j, link) => {
                         const href = $(link).attr('href');
                         const problemTitle = $(link).text().trim();
@@ -56,7 +56,7 @@ class PlatformAPI {
                             });
                         }
                     });
-                    
+
                     $next = $next.next();
                     if ($next.is('h2')) break;
                 }
@@ -76,21 +76,21 @@ class PlatformAPI {
             // Method 2: If h2 method didn't work, try looking for sections or divs with class patterns
             if (topics.length === 0) {
                 console.log('Trying alternative parsing method...');
-                
+
                 // Look for any element containing "Problems" in text
                 $('*:contains("Problems")').each((i, el) => {
                     const $el = $(el);
                     const text = $el.text();
-                    
+
                     // Skip if it's just a single word or too long
                     if (!text || text.split(' ').length < 2 || text.length > 60) return;
-                    
+
                     // Look for task links nearby
                     const taskLinks = $el.parent().find('a[href*="/task/"]');
                     if (taskLinks.length > 0) {
                         const title = text.trim();
                         const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                        
+
                         topics.push({
                             title,
                             slug,
@@ -120,23 +120,23 @@ class PlatformAPI {
                     success: true,
                     fromCache: true,
                     topics: [
-                        { title: 'Introductory Problems', slug: 'introductory-problems', count: 19, url, description: 'Basic programming problems to get started' },
-                        { title: 'Sorting and Searching', slug: 'sorting-and-searching', count: 35, url, description: 'Fundamental algorithms for sorting and searching' },
-                        { title: 'Dynamic Programming', slug: 'dynamic-programming', count: 19, url, description: 'Optimization problems using DP techniques' },
-                        { title: 'Graph Algorithms', slug: 'graph-algorithms', count: 36, url, description: 'Tree and graph traversal algorithms' },
-                        { title: 'Range Queries', slug: 'range-queries', count: 19, url, description: 'Efficient range query data structures' },
-                        { title: 'Tree Algorithms', slug: 'tree-algorithms', count: 16, url, description: 'Advanced tree manipulation algorithms' },
-                        { title: 'Mathematics', slug: 'mathematics', count: 31, url, description: 'Number theory and mathematical problems' },
-                        { title: 'String Algorithms', slug: 'string-algorithms', count: 17, url, description: 'String processing and pattern matching' },
-                        { title: 'Geometry', slug: 'geometry', count: 7, url, description: 'Computational geometry problems' },
-                        { title: 'Advanced Techniques', slug: 'advanced-techniques', count: 24, url, description: 'Complex algorithmic techniques' },
-                        { title: 'Additional Problems', slug: 'additional-problems', count: 77, url, description: 'Extra challenging problems' }
+                        { title: 'Introductory Problems', slug: 'introductory-problems', count: 19, url: `${url}list/`, description: 'Basic programming problems to get started with competitive programming' },
+                        { title: 'Sorting and Searching', slug: 'sorting-and-searching', count: 35, url: `${url}list/`, description: 'Fundamental algorithms for organizing and finding data efficiently' },
+                        { title: 'Dynamic Programming', slug: 'dynamic-programming', count: 19, url: `${url}list/`, description: 'Optimization problems using memoization and tabulation techniques' },
+                        { title: 'Graph Algorithms', slug: 'graph-algorithms', count: 36, url: `${url}list/`, description: 'Traverse and analyze complex network structures and relationships' },
+                        { title: 'Range Queries', slug: 'range-queries', count: 19, url: `${url}list/`, description: 'Efficient range query data structures like segment trees' },
+                        { title: 'Tree Algorithms', slug: 'tree-algorithms', count: 16, url: `${url}list/`, description: 'Advanced tree manipulation and traversal algorithms' },
+                        { title: 'Mathematics', slug: 'mathematics', count: 31, url: `${url}list/`, description: 'Number theory, combinatorics, and mathematical algorithms' },
+                        { title: 'String Algorithms', slug: 'string-algorithms', count: 17, url: `${url}list/`, description: 'String processing, pattern matching, and text algorithms' },
+                        { title: 'Geometry', slug: 'geometry', count: 7, url: `${url}list/`, description: 'Computational geometry and spatial algorithms' },
+                        { title: 'Advanced Techniques', slug: 'advanced-techniques', count: 24, url: `${url}list/`, description: 'Complex algorithmic techniques and optimizations' },
+                        { title: 'Additional Problems', slug: 'additional-problems', count: 77, url: `${url}list/`, description: 'Extra challenging problems for advanced practice' }
                     ]
                 };
             }
 
-            return { 
-                success: true, 
+            return {
+                success: true,
                 topics: filtered.map(t => ({
                     ...t,
                     description: this.getTopicDescription(t.title)
@@ -189,7 +189,7 @@ class PlatformAPI {
     async fetchCSESProgress(username) {
         try {
             console.log(`Fetching CSES progress for ${username}...`);
-            
+
             // CSES doesn't have a public API, so we'll use web scraping
             const userUrl = `${this.csesBaseUrl}/user/${username}`;
             const response = await axios.get(userUrl, {
@@ -201,13 +201,13 @@ class PlatformAPI {
 
             const $ = cheerio.load(response.data);
             const solvedProblems = [];
-            
+
             // Parse solved problems from the user profile
             $('.task-score.full').each((index, element) => {
                 const taskElement = $(element).closest('tr');
                 const taskName = taskElement.find('.task-name a').text().trim();
                 const taskId = taskElement.find('.task-name a').attr('href');
-                
+
                 if (taskName && taskId) {
                     solvedProblems.push({
                         name: taskName,
@@ -229,7 +229,7 @@ class PlatformAPI {
 
             // Categorize solved problems (this would need a mapping of problem IDs to categories)
             const problemCategories = this.getCSESCategories();
-            
+
             solvedProblems.forEach(problem => {
                 const category = this.categorizeCSESProblem(problem.id, problemCategories);
                 if (category && categories[category]) {
@@ -263,7 +263,7 @@ class PlatformAPI {
             // Fetch user info
             const userInfoUrl = `${this.codeforcesBaseUrl}/user.info?handles=${username}`;
             const userResponse = await axios.get(userInfoUrl, { timeout: 10000 });
-            
+
             if (userResponse.data.status !== 'OK') {
                 throw new Error('User not found on Codeforces');
             }
@@ -281,7 +281,7 @@ class PlatformAPI {
             }
 
             const submissions = submissionsResponse.data.result;
-            
+
             // Count unique solved problems
             const solvedProblems = new Set();
             const dailySolves = {};
@@ -290,13 +290,13 @@ class PlatformAPI {
                 if (submission.verdict === 'OK') {
                     const problemKey = `${submission.problem.contestId}${submission.problem.index}`;
                     solvedProblems.add(problemKey);
-                    
+
                     // Track daily solves
                     const solveDate = new Date(submission.creationTimeSeconds * 1000).toDateString();
                     if (!dailySolves[solveDate]) {
                         dailySolves[solveDate] = [];
                     }
-                    
+
                     if (!dailySolves[solveDate].find(p => p.key === problemKey)) {
                         dailySolves[solveDate].push({
                             key: problemKey,
@@ -353,11 +353,11 @@ class PlatformAPI {
             });
 
             const $ = cheerio.load(response.data);
-            
+
             // Parse solve statistics
             const solvedCount = parseInt($('#solved').text().trim()) || 0;
             const submittedCount = parseInt($('#submitted').text().trim()) || 0;
-            
+
             // Parse daily activity (last 30 days)
             const dailyActivity = {};
             $('.activity-cell').each((index, element) => {
@@ -388,11 +388,11 @@ class PlatformAPI {
                     const problem = $subs(row).find('.problem-title').text().trim();
                     const timeStr = $subs(row).find('.timestamp').text().trim();
                     const date = new Date(timeStr).toDateString();
-                    
+
                     if (!recentSolves[date]) {
                         recentSolves[date] = [];
                     }
-                    
+
                     recentSolves[date].push({
                         problem: problem,
                         timestamp: timeStr
@@ -423,7 +423,7 @@ class PlatformAPI {
     // Combined sync function
     async syncAllPlatforms(usernames) {
         console.log('Starting sync for all platforms...');
-        
+
         const results = {
             cses: null,
             codeforces: null,
@@ -433,21 +433,21 @@ class PlatformAPI {
 
         // Fetch from all platforms concurrently
         const promises = [];
-        
+
         if (usernames.cses) {
             promises.push(
                 this.fetchCSESProgress(usernames.cses)
                     .then(result => results.cses = result)
             );
         }
-        
+
         if (usernames.codeforces) {
             promises.push(
                 this.fetchCodeforcesProgress(usernames.codeforces)
                     .then(result => results.codeforces = result)
             );
         }
-        
+
         if (usernames.vjudge) {
             promises.push(
                 this.fetchVJudgeProgress(usernames.vjudge)
@@ -456,7 +456,7 @@ class PlatformAPI {
         }
 
         await Promise.allSettled(promises);
-        
+
         console.log('Sync completed for all platforms');
         return results;
     }

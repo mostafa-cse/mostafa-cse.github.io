@@ -4,7 +4,26 @@
       "id": "mostafa",
       "name": "Mostafa Kamal",
       "createdAt": "2025-09-21T07:00:50.550Z"
+    },
+    {
+      "id": "1758462207235",
+      "username": "Mostafa",
+      "email": "mostafakamal.cse2022@gmail.com",
+      "password": "$2a$10$Lfer7vycLhObSl.7wO/59e7pJ4LqTvkJW2hl9wE2gap94nhX1V8se",
+      "platformCredentials": {
+        "cses": "m0stafa",
+        "codeforces": "mostafa",
+        "vjudge": "m0stafa"
+      },
+      "preferences": {
+        "autoSync": false,
+        "syncTime": "06:00",
+        "notifications": true
+      },
+      "createdAt": "2025-09-21T13:43:27.235Z",
+      "lastLogin": null,
+      "isActive": true
     }
   ],
-  "lastUpdated": "2025-09-21T07:00:50.550Z"
+  "lastUpdated": "2025-09-21T13:43:27.236Z"
 }

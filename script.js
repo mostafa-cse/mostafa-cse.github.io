@@ -12,7 +12,7 @@ class CPJourney {
     async initializeApp() {
         // Initialize authentication first
         await this.initAuth();
-        
+
         await this.loadData();
         this.initializeEventListeners();
         this.updateUI();
@@ -32,7 +32,7 @@ class CPJourney {
                         'Authorization': `Bearer ${this.authToken}`
                     }
                 });
-                
+
                 if (response.ok) {
                     const result = await response.json();
                     if (result.success) {
@@ -46,12 +46,12 @@ class CPJourney {
             } catch (error) {
                 console.log('❌ Auth check failed:', error.message);
             }
-            
+
             // Token is invalid, remove it
             localStorage.removeItem('authToken');
             this.authToken = null;
         }
-        
+
         this.updateAuthUI(false);
     }
 
@@ -59,29 +59,29 @@ class CPJourney {
         const statusEl = document.getElementById('cses-topics-status');
         const grid = document.getElementById('cses-topics-grid');
         if (!statusEl || !grid) return;
-        
+
         try {
             statusEl.textContent = 'Loading topics...';
             statusEl.className = 'topics-status loading';
             grid.innerHTML = '<div class="loading-spinner">🔄 Fetching CSES topics...</div>';
-            
+
             const resp = await fetch(`${this.API_BASE}/cses/topics`);
             const data = await resp.json();
-            
+
             if (!data.success) throw new Error(data.error || 'Failed to fetch topics');
-            
+
             grid.innerHTML = '';
-            
+
             data.topics.forEach((topic, index) => {
                 const card = document.createElement('div');
                 card.className = 'topic-card';
-                
+
                 // Add animation delay for stagger effect
                 card.style.animationDelay = `${index * 0.1}s`;
-                
+
                 const countText = topic.count ? `${topic.count} problems` : 'Browse problems';
                 const description = topic.description || 'Programming problems and algorithms';
-                
+
                 card.innerHTML = `
                     <div class="topic-header">
                         <div class="topic-title">${topic.title}</div>
@@ -92,25 +92,25 @@ class CPJourney {
                         <a class="topic-link primary" href="${topic.url}" target="_blank" rel="noopener">
                             <i class="fas fa-external-link-alt"></i> Open on CSES
                         </a>
-                        ${topic.problems && topic.problems.length > 0 ? 
+                        ${topic.problems && topic.problems.length > 0 ?
                             `<button class="topic-link secondary" onclick="this.toggleProblems(this)">
                                 <i class="fas fa-list"></i> Preview Problems
                             </button>` : ''
                         }
                     </div>
-                    ${topic.problems && topic.problems.length > 0 ? 
+                    ${topic.problems && topic.problems.length > 0 ?
                         `<div class="topic-problems" style="display: none;">
-                            ${topic.problems.slice(0, 5).map(p => 
+                            ${topic.problems.slice(0, 5).map(p =>
                                 `<a href="${p.url}" target="_blank" class="problem-link">${p.title}</a>`
                             ).join('')}
                             ${topic.problems.length > 5 ? `<span class="more-problems">...and ${topic.problems.length - 5} more</span>` : ''}
                         </div>` : ''
                     }
                 `;
-                
+
                 grid.appendChild(card);
             });
-            
+
             // Add toggle functionality for problem previews
             window.toggleProblems = function(btn) {
                 const card = btn.closest('.topic-card');
@@ -118,24 +118,24 @@ class CPJourney {
                 if (problemsDiv) {
                     const isVisible = problemsDiv.style.display !== 'none';
                     problemsDiv.style.display = isVisible ? 'none' : 'block';
-                    btn.innerHTML = isVisible ? 
-                        '<i class="fas fa-list"></i> Preview Problems' : 
+                    btn.innerHTML = isVisible ?
+                        '<i class="fas fa-list"></i> Preview Problems' :
                         '<i class="fas fa-chevron-up"></i> Hide Problems';
                 }
             };
-            
-            const statusText = data.fromCache ? 
-                `Loaded ${data.topics.length} topics (cached)` : 
+
+            const statusText = data.fromCache ?
+                `Loaded ${data.topics.length} topics (cached)` :
                 `Loaded ${data.topics.length} topics from CSES`;
-            
+
             statusEl.textContent = statusText;
             statusEl.className = 'topics-status success';
-            
+
             if (data.error) {
                 statusEl.textContent += ` (${data.error})`;
                 statusEl.className = 'topics-status warning';
             }
-            
+
         } catch (e) {
             console.error('CSES topics load error:', e);
             statusEl.textContent = 'Unable to load topics (showing defaults)';
@@ -147,7 +147,7 @@ class CPJourney {
     updateAuthUI(isLoggedIn) {
         const authButtons = document.getElementById('authButtons');
         const userInfo = document.getElementById('userInfo');
-        
+
         if (isLoggedIn && this.currentUser) {
             authButtons.style.display = 'none';
             userInfo.style.display = 'flex';
@@ -156,6 +156,9 @@ class CPJourney {
             authButtons.style.display = 'flex';
             userInfo.style.display = 'none';
         }
+
+        // Update the journey start button and status based on auth state
+        this.updateTimeachine();
     }
 
     prefillPlatformInputs() {
@@ -174,6 +177,7 @@ class CPJourney {
         const defaultData = {
             journeyStarted: false,
             startDate: null,
+            startedBy: null,
             currentStreak: 0,
             bestStreak: 0,
             lastActiveDate: null,
@@ -198,6 +202,14 @@ class CPJourney {
             },
             revision: {
                 problems: 0
+            },
+            iupc: {
+                contests: 0,
+                problemsSolved: 0
+            },
+            icpc: {
+                gymProblems: 0,
+                contests: 0
             }
         };
 
@@ -207,14 +219,14 @@ class CPJourney {
             if (this.authToken) {
                 headers['Authorization'] = `Bearer ${this.authToken}`;
             }
-            
+
             const response = await fetch(`${this.API_BASE}/journey`, { headers });
             if (response.ok) {
                 const result = await response.json();
                 if (result.success) {
                     this.data = { ...defaultData, ...result.data };
-                    const message = this.currentUser ? 
-                        `📊 ${this.currentUser.username}'s data loaded` : 
+                    const message = this.currentUser ?
+                        `📊 ${this.currentUser.username}'s data loaded` :
                         '📊 Data loaded from database';
                     this.showNotification(message, 'success');
                     return;
@@ -227,7 +239,7 @@ class CPJourney {
         // Fallback to localStorage
         const savedData = localStorage.getItem('cpJourneyData');
         this.data = savedData ? { ...defaultData, ...JSON.parse(savedData) } : defaultData;
-        
+
         if (savedData) {
             this.showNotification('💾 Data loaded from local storage', 'info');
         }
@@ -257,7 +269,7 @@ class CPJourney {
         } catch (error) {
             console.log('⚠️ Database save failed, data saved locally');
         }
-        
+
         return false;
     }
 
@@ -275,27 +287,58 @@ class CPJourney {
         });
     }
 
+    // Authentication helper method
+    isAuthenticated() {
+        return this.authToken && this.currentUser;
+    }
+
     // Journey Management with Database Integration
     startJourney() {
-        if (!this.data.journeyStarted) {
-            this.data.journeyStarted = true;
-            this.data.startDate = new Date().toISOString();
-            this.saveData();
-            this.updateUI();
-            this.showNotification('🚀 Your CP journey has begun! Data saved to database!', 'success');
+        // Check if user is authenticated
+        if (!this.isAuthenticated()) {
+            this.showNotification('🔐 Please login to start your CP journey!', 'error');
+            this.showAuthModal();
+            return;
         }
+
+        // Check if journey is already started for this user
+        if (this.data.journeyStarted) {
+            this.showNotification(`⏰ Journey already started by ${this.currentUser.username}!`, 'warning');
+            return;
+        }
+
+        // Start the journey for authenticated user
+        this.data.journeyStarted = true;
+        this.data.startDate = new Date().toISOString();
+        this.data.startedBy = this.currentUser.username; // Track who started it
+        this.saveData();
+        this.updateUI();
+        this.showNotification(`🚀 ${this.currentUser.username}'s CP journey has begun! Data saved to database!`, 'success');
     }
 
     resetJourney() {
-        if (confirm('Are you sure you want to reset your entire journey? This action cannot be undone.')) {
+        // Check if user is authenticated
+        if (!this.isAuthenticated()) {
+            this.showNotification('🔐 Please login to reset the journey!', 'error');
+            this.showAuthModal();
+            return;
+        }
+
+        // Check if user is the one who started the journey
+        if (this.data.startedBy && this.data.startedBy !== this.currentUser.username) {
+            this.showNotification(`⛔ Only ${this.data.startedBy} can reset this journey!`, 'error');
+            return;
+        }
+
+        if (confirm(`Are you sure you want to reset your entire journey? This action cannot be undone.\n\nJourney started by: ${this.data.startedBy || 'Unknown'}\nStarted on: ${this.data.startDate ? new Date(this.data.startDate).toLocaleDateString() : 'Unknown'}`)) {
             // Create backup before reset
             this.exportData('backup');
-            
+
             localStorage.removeItem('cpJourneyData');
             this.data = this.getDefaultData();
             this.saveData();
             this.updateUI();
-            this.showNotification('🔄 Journey reset successfully! Previous data backed up.', 'info');
+            this.showNotification(`🔄 Journey reset successfully by ${this.currentUser.username}! Previous data backed up.`, 'info');
         }
     }
 
@@ -303,6 +346,7 @@ class CPJourney {
         return {
             journeyStarted: false,
             startDate: null,
+            startedBy: null,
             currentStreak: 0,
             bestStreak: 0,
             lastActiveDate: null,
@@ -327,6 +371,14 @@ class CPJourney {
             },
             revision: {
                 problems: 0
+            },
+            iupc: {
+                contests: 0,
+                problemsSolved: 0
+            },
+            icpc: {
+                gymProblems: 0,
+                contests: 0
             }
         };
     }
@@ -336,17 +388,17 @@ class CPJourney {
         try {
             const timestamp = new Date().toISOString().split('T')[0];
             const filename = `cp_journey_${type}_${timestamp}.json`;
-            
+
             const dataStr = JSON.stringify(this.data, null, 2);
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            
+
             const link = document.createElement('a');
             link.href = URL.createObjectURL(dataBlob);
             link.download = filename;
             link.click();
-            
+
             this.showNotification(`📁 Data exported as ${filename}`, 'success');
-            
+
             // Also try to create server backup
             try {
                 const response = await fetch(`${this.API_BASE}/backup`, { method: 'POST' });
@@ -356,7 +408,7 @@ class CPJourney {
             } catch (error) {
                 console.log('Server backup failed, but file exported');
             }
-            
+
         } catch (error) {
             this.showNotification('❌ Export failed', 'error');
             console.error('Export error:', error);
@@ -367,25 +419,25 @@ class CPJourney {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.json';
-        
+
         input.onchange = async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            
+
             try {
                 const text = await file.text();
                 const importedData = JSON.parse(text);
-                
+
                 // Validate data structure
                 if (this.validateImportData(importedData)) {
                     // Create backup before importing
                     this.exportData('pre_import_backup');
-                    
+
                     // Import data
                     this.data = { ...this.getDefaultData(), ...importedData };
                     await this.saveData();
                     this.updateUI();
-                    
+
                     this.showNotification('✅ Data imported successfully! Previous data backed up.', 'success');
                 } else {
                     this.showNotification('❌ Invalid file format', 'error');
@@ -395,7 +447,7 @@ class CPJourney {
                 console.error('Import error:', error);
             }
         };
-        
+
         input.click();
     }
 
@@ -429,23 +481,27 @@ class CPJourney {
 
     getCurrentPhase() {
         const daysElapsed = this.getDaysElapsed();
-        
+
         if (!this.data.journeyStarted) return 'Not Started';
         if (daysElapsed <= 60) return `Phase 1: CSES Problems (Day ${daysElapsed}/60)`;
         if (daysElapsed <= 90) return `Phase 2: Revision (Day ${daysElapsed - 60}/30)`;
         if (daysElapsed <= 165) return `Phase 3: USACO Problems (Day ${daysElapsed - 90}/75)`;
-        return 'Phase 4: Codeforces Victory!';
+        if (daysElapsed <= 240) return 'Phase 4: Codeforces Victory';
+        if (daysElapsed <= 315) return 'Phase 5: IUPC Practice';
+        return 'Phase 6: ICPC GYM Practices';
     }
 
     // Progress Calculation
     getPhaseProgress() {
         const daysElapsed = this.getDaysElapsed();
-        
+
         return {
             cses: Math.min(Math.max((daysElapsed / 60) * 100, 0), 100),
             revision: Math.min(Math.max(((daysElapsed - 60) / 30) * 100, 0), 100),
             usaco: Math.min(Math.max(((daysElapsed - 90) / 75) * 100, 0), 100),
-            codeforces: daysElapsed > 165 ? 25 : 0 // Basic progress indicator
+            codeforces: Math.min(Math.max(((daysElapsed - 165) / 75) * 100, 0), 100),
+            iupc: Math.min(Math.max(((daysElapsed - 240) / 75) * 100, 0), 100),
+            icpc: daysElapsed > 315 ? 100 : 0 // Final phase - always active when reached
         };
     }
 
@@ -459,6 +515,8 @@ class CPJourney {
         });
         total += this.data.codeforces.problemsSolved;
         total += this.data.revision.problems;
+        total += this.data.iupc.problemsSolved || 0;
+        total += this.data.icpc.gymProblems || 0;
         return total;
     }
 
@@ -466,7 +524,7 @@ class CPJourney {
     updateStreak() {
         const today = new Date().toDateString();
         const lastActive = this.data.lastActiveDate;
-        
+
         if (!lastActive) {
             this.data.currentStreak = 1;
         } else {
@@ -474,7 +532,7 @@ class CPJourney {
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
             const yesterdayString = yesterday.toDateString();
-            
+
             if (lastActiveDate === today) {
                 // Already active today, don't change streak
                 return;
@@ -486,7 +544,7 @@ class CPJourney {
                 this.data.currentStreak = 1;
             }
         }
-        
+
         this.data.lastActiveDate = today;
         this.data.bestStreak = Math.max(this.data.bestStreak, this.data.currentStreak);
         this.saveData();
@@ -496,7 +554,7 @@ class CPJourney {
     initializeEventListeners() {
         // Authentication Event Listeners
         this.initAuthEventListeners();
-        
+
         // Time Machine
         document.getElementById('start-journey').addEventListener('click', () => this.startJourney());
         document.getElementById('reset-journey').addEventListener('click', () => this.resetJourney());
@@ -537,7 +595,7 @@ class CPJourney {
                 e.preventDefault();
                 document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
                 link.classList.add('active');
-                
+
                 const targetId = link.getAttribute('href').substring(1);
                 const targetElement = document.getElementById(targetId);
                 if (targetElement) {
@@ -579,6 +637,21 @@ class CPJourney {
         document.getElementById('update-rating').addEventListener('click', () => {
             this.updateRating();
         });
+
+        // IUPC and ICPC practice buttons
+        const iupcBtn = document.getElementById('iupc-practice-btn');
+        if (iupcBtn) {
+            iupcBtn.addEventListener('click', () => {
+                this.startUnlimitedPractice('IUPC');
+            });
+        }
+
+        const icpcBtn = document.getElementById('icpc-practice-btn');
+        if (icpcBtn) {
+            icpcBtn.addEventListener('click', () => {
+                this.startUnlimitedPractice('ICPC');
+            });
+        }
     }
 
     // Problem Addition Methods
@@ -630,6 +703,47 @@ class CPJourney {
         }
     }
 
+    startUnlimitedPractice(contestType) {
+        const messages = {
+            'IUPC': {
+                title: '🎓 IUPC Unlimited Practice Started!',
+                description: 'Practice IUPC problems with unlimited time. Focus on learning algorithms and problem-solving techniques without any time pressure.',
+                url: 'https://toph.co/contests'
+            },
+            'ICPC': {
+                title: '🏆 ICPC Unlimited Practice Started!',
+                description: 'Master ICPC-style problems with unlimited attempts. Build your competitive programming skills at your own pace.',
+                url: 'https://codeforces.com/contests'
+            }
+        };
+
+        const message = messages[contestType];
+
+        // Show success notification
+        this.showNotification(message.title, 'success');
+
+        // Show detailed practice info
+        setTimeout(() => {
+            alert(`${message.title}\n\n${message.description}\n\n💡 Tips for unlimited practice:\n• Take your time to understand each problem\n• Try multiple approaches\n• Don't worry about time limits\n• Focus on learning over speed\n• Review solutions after solving`);
+        }, 1000);
+
+        // Optional: Open practice platform
+        const openPlatform = confirm(`Would you like to open the ${contestType} practice platform?`);
+        if (openPlatform) {
+            window.open(message.url, '_blank');
+        }
+
+        // Track practice sessions (optional)
+        const practiceKey = `${contestType.toLowerCase()}Practice`;
+        if (!this.data[practiceKey]) {
+            this.data[practiceKey] = { sessions: 0, problemsSolved: 0 };
+        }
+        this.data[practiceKey].sessions++;
+        this.saveData();
+
+        console.log(`🚀 ${contestType} unlimited practice session started!`);
+    }
+
     // UI Update Methods
     updateUI() {
         this.updateTimeachine();
@@ -651,45 +765,98 @@ class CPJourney {
         if (this.data.journeyStarted) {
             startButton.style.display = 'none';
             resetButton.style.display = 'inline-block';
-            journeyStatus.textContent = 'Your competitive programming journey is in progress!';
+
+            // Show who started the journey and when
+            const startedBy = this.data.startedBy || 'Unknown User';
+            const startDate = new Date(this.data.startDate).toLocaleDateString();
+            journeyStatus.innerHTML = `
+                <span>🚀 Journey started by <strong>${startedBy}</strong> on ${startDate}</span>
+            `;
             journeyTimer.style.display = 'flex';
-            
+
             daysElapsed.textContent = this.getDaysElapsed();
             currentPhase.textContent = this.getCurrentPhase();
         } else {
-            startButton.style.display = 'inline-block';
             resetButton.style.display = 'none';
-            journeyStatus.textContent = 'Ready to start your competitive programming journey?';
             journeyTimer.style.display = 'none';
+
+            // Check authentication status for start button
+            if (this.isAuthenticated()) {
+                startButton.style.display = 'inline-block';
+                startButton.disabled = false;
+                startButton.textContent = '🚀 Start Your Journey';
+                journeyStatus.textContent = `Ready to start your competitive programming journey, ${this.currentUser.username}?`;
+            } else {
+                startButton.style.display = 'inline-block';
+                startButton.disabled = false;
+                startButton.textContent = '🔐 Login to Start Journey';
+                journeyStatus.textContent = 'Please login to start your competitive programming journey!';
+            }
         }
     }
 
     updateDashboard() {
         const progress = this.getPhaseProgress();
-        
+
         // Update progress bars
         document.getElementById('cses-progress').style.width = `${progress.cses}%`;
         document.getElementById('revision-progress').style.width = `${progress.revision}%`;
         document.getElementById('usaco-progress').style.width = `${progress.usaco}%`;
         document.getElementById('cf-progress').style.width = `${progress.codeforces}%`;
+        document.getElementById('iupc-progress').style.width = `${progress.iupc}%`;
+        document.getElementById('icpc-progress').style.width = `${progress.icpc}%`;
 
         // Update progress text
         const daysElapsed = this.getDaysElapsed();
-        document.getElementById('cses-progress-text').textContent = 
+        document.getElementById('cses-progress-text').textContent =
             `${Math.min(daysElapsed, 60)}/60 days`;
-        document.getElementById('revision-progress-text').textContent = 
+        document.getElementById('revision-progress-text').textContent =
             `${Math.max(Math.min(daysElapsed - 60, 30), 0)}/30 days`;
-        document.getElementById('usaco-progress-text').textContent = 
+        document.getElementById('usaco-progress-text').textContent =
             `${Math.max(Math.min(daysElapsed - 90, 75), 0)}/75 days`;
+
+        // Update Codeforces progress text for unlimited time
+        const cfProgressText = document.getElementById('cf-progress-text');
+        if (cfProgressText) {
+            if (daysElapsed > 165) {
+                cfProgressText.textContent = '∞ Unlimited practice time - Learn at your own pace!';
+            } else {
+                cfProgressText.textContent = 'Practice at your own pace!';
+            }
+        }
+
+        // Update IUPC progress text
+        const iupcProgressText = document.getElementById('iupc-progress-text');
+        if (iupcProgressText) {
+            if (daysElapsed > 240) {
+                iupcProgressText.textContent = '🏆 Master university contests - Unlimited time!';
+            } else {
+                iupcProgressText.textContent = 'Master university contests!';
+            }
+        }
+
+        // Update ICPC progress text
+        const icpcProgressText = document.getElementById('icpc-progress-text');
+        if (icpcProgressText) {
+            if (daysElapsed > 315) {
+                icpcProgressText.textContent = '🌍 Train for world finals - Unlimited practice!';
+            } else {
+                icpcProgressText.textContent = 'Train for world finals!';
+            }
+        }
 
         // Update problem counts
         const totalCSES = Object.values(this.data.cses).reduce((sum, cat) => sum + (cat.solved || 0), 0);
         document.getElementById('cses-solved').textContent = totalCSES;
         document.getElementById('revision-problems').textContent = this.data.revision.problems;
-        
+
         const totalUSACO = Object.values(this.data.usaco).reduce((sum, count) => sum + count, 0);
         document.getElementById('usaco-solved').textContent = totalUSACO;
         document.getElementById('cf-rating').textContent = this.data.codeforces.rating;
+
+        // Update IUPC and ICPC counts
+        document.getElementById('iupc-solved').textContent = this.data.iupc.contests || 0;
+        document.getElementById('icpc-solved').textContent = this.data.icpc.gymProblems || 0;
     }
 
     updateCSESSection() {
@@ -717,7 +884,7 @@ class CPJourney {
 
     updateStatistics() {
         const totalProblems = this.getTotalProblemsolved();
-        const journeyProgress = this.data.journeyStarted ? 
+        const journeyProgress = this.data.journeyStarted ?
             Math.min((this.getDaysElapsed() / 165) * 100, 100) : 0;
 
         document.getElementById('total-problems').textContent = totalProblems;
@@ -744,7 +911,7 @@ class CPJourney {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.textContent = message;
-        
+
         // Style the notification
         Object.assign(notification.style, {
             position: 'fixed',
@@ -850,10 +1017,10 @@ class CPJourney {
 
         const button = document.getElementById('sync-cses');
         const status = document.getElementById('cses-sync-status');
-        
+
         this.setSyncStatus('cses', 'syncing', 'Syncing...');
         button.disabled = true;
-        
+
         this.addLogEntry('info', `Starting CSES sync for user: ${username}`);
 
         try {
@@ -864,15 +1031,15 @@ class CPJourney {
             });
 
             const result = await response.json();
-            
+
             if (result.success) {
                 this.setSyncStatus('cses', 'success', `✅ ${result.totalSolved} problems synced`);
                 this.addLogEntry('success', `CSES: Found ${result.totalSolved} solved problems`);
                 this.showNotification(`🎉 CSES sync successful! ${result.totalSolved} problems found`, 'success');
-                
+
                 // Save username for future syncs
                 localStorage.setItem('cses-username', username);
-                
+
                 // Reload data to reflect changes
                 await this.loadData();
                 this.updateUI();
@@ -902,10 +1069,10 @@ class CPJourney {
 
         const button = document.getElementById('sync-codeforces');
         const status = document.getElementById('cf-sync-status');
-        
+
         this.setSyncStatus('codeforces', 'syncing', 'Syncing...');
         button.disabled = true;
-        
+
         this.addLogEntry('info', `Starting Codeforces sync for user: ${username}`);
 
         try {
@@ -916,15 +1083,15 @@ class CPJourney {
             });
 
             const result = await response.json();
-            
+
             if (result.success) {
                 this.setSyncStatus('codeforces', 'success', `✅ Rating: ${result.rating}, ${result.problemsSolved} problems`);
                 this.addLogEntry('success', `Codeforces: Rating ${result.rating}, ${result.problemsSolved} problems, ${result.contests} contests`);
                 this.showNotification(`🎉 Codeforces sync successful! Rating: ${result.rating}`, 'success');
-                
+
                 // Save username for future syncs
                 localStorage.setItem('cf-username', username);
-                
+
                 // Reload data to reflect changes
                 await this.loadData();
                 this.updateUI();
@@ -954,10 +1121,10 @@ class CPJourney {
 
         const button = document.getElementById('sync-vjudge');
         const status = document.getElementById('vjudge-sync-status');
-        
+
         this.setSyncStatus('vjudge', 'syncing', 'Syncing...');
         button.disabled = true;
-        
+
         this.addLogEntry('info', `Starting VJudge sync for user: ${username}`);
 
         try {
@@ -968,18 +1135,18 @@ class CPJourney {
             });
 
             const result = await response.json();
-            
+
             if (result.success) {
                 this.setSyncStatus('vjudge', 'success', `✅ ${result.totalSolved} problems synced`);
                 this.addLogEntry('success', `VJudge: ${result.totalSolved} solved problems`);
                 this.showNotification(`🎉 VJudge sync successful! ${result.totalSolved} problems found`, 'success');
-                
+
                 // Save username for future syncs
                 localStorage.setItem('vjudge-username', username);
-                
+
                 // Update streaks based on VJudge activity
                 this.updateStreakFromVJudge(result.dailyActivity);
-                
+
                 // Reload data to reflect changes
                 await this.loadData();
                 this.updateUI();
@@ -1019,7 +1186,7 @@ class CPJourney {
         const button = document.getElementById('sync-all-platforms');
         button.disabled = true;
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing All...';
-        
+
         this.addLogEntry('info', 'Starting multi-platform sync...');
         this.showSyncLog();
 
@@ -1031,43 +1198,43 @@ class CPJourney {
             });
 
             const result = await response.json();
-            
+
             if (result.success) {
                 // Update individual platform statuses
                 if (result.results.cses) {
                     const status = result.results.cses.success ? 'success' : 'error';
-                    const text = result.results.cses.success ? 
+                    const text = result.results.cses.success ?
                         `✅ ${result.results.cses.totalSolved} problems` : '❌ Sync failed';
                     this.setSyncStatus('cses', status, text);
                     this.addLogEntry(status, `CSES: ${result.results.cses.success ? 'Success' : result.results.cses.error}`);
                 }
-                
+
                 if (result.results.codeforces) {
                     const status = result.results.codeforces.success ? 'success' : 'error';
-                    const text = result.results.codeforces.success ? 
+                    const text = result.results.codeforces.success ?
                         `✅ Rating: ${result.results.codeforces.rating}` : '❌ Sync failed';
                     this.setSyncStatus('codeforces', status, text);
                     this.addLogEntry(status, `Codeforces: ${result.results.codeforces.success ? 'Success' : result.results.codeforces.error}`);
                 }
-                
+
                 if (result.results.vjudge) {
                     const status = result.results.vjudge.success ? 'success' : 'error';
-                    const text = result.results.vjudge.success ? 
+                    const text = result.results.vjudge.success ?
                         `✅ ${result.results.vjudge.totalSolved} problems` : '❌ Sync failed';
                     this.setSyncStatus('vjudge', status, text);
                     this.addLogEntry(status, `VJudge: ${result.results.vjudge.success ? 'Success' : result.results.vjudge.error}`);
                 }
-                
+
                 // Save usernames for future syncs
                 Object.keys(usernames).forEach(platform => {
                     if (usernames[platform]) {
                         localStorage.setItem(`${platform === 'codeforces' ? 'cf' : platform}-username`, usernames[platform]);
                     }
                 });
-                
+
                 this.showNotification('🎉 Multi-platform sync completed!', 'success');
                 this.addLogEntry('success', 'Multi-platform sync completed successfully');
-                
+
                 // Reload data to reflect all changes
                 await this.loadData();
                 this.updateUI();
@@ -1117,32 +1284,32 @@ class CPJourney {
                 const result = await response.json();
                 if (result.success) {
                     const status = result.status;
-                    
+
                     // Load saved usernames and update UI
                     const csesUsername = localStorage.getItem('cses-username') || status.platforms.cses.username;
                     const cfUsername = localStorage.getItem('cf-username') || status.platforms.codeforces.username;
                     const vjudgeUsername = localStorage.getItem('vjudge-username') || status.platforms.vjudge.username;
-                    
+
                     if (csesUsername) {
                         document.getElementById('cses-username').value = csesUsername;
-                        const statusText = status.platforms.cses.success ? 
-                            `✅ Last sync: ${new Date(status.platforms.cses.lastSync).toLocaleDateString()}` : 
+                        const statusText = status.platforms.cses.success ?
+                            `✅ Last sync: ${new Date(status.platforms.cses.lastSync).toLocaleDateString()}` :
                             'Not configured';
                         this.setSyncStatus('cses', status.platforms.cses.success ? 'success' : 'not-configured', statusText);
                     }
-                    
+
                     if (cfUsername) {
                         document.getElementById('cf-username').value = cfUsername;
-                        const statusText = status.platforms.codeforces.success ? 
-                            `✅ Rating: ${status.platforms.codeforces.currentRating}` : 
+                        const statusText = status.platforms.codeforces.success ?
+                            `✅ Rating: ${status.platforms.codeforces.currentRating}` :
                             'Not configured';
                         this.setSyncStatus('codeforces', status.platforms.codeforces.success ? 'success' : 'not-configured', statusText);
                     }
-                    
+
                     if (vjudgeUsername) {
                         document.getElementById('vjudge-username').value = vjudgeUsername;
-                        const statusText = status.platforms.vjudge.success ? 
-                            `✅ ${status.platforms.vjudge.totalSolved} problems` : 
+                        const statusText = status.platforms.vjudge.success ?
+                            `✅ ${status.platforms.vjudge.totalSolved} problems` :
                             'Not configured';
                         this.setSyncStatus('vjudge', status.platforms.vjudge.success ? 'success' : 'not-configured', statusText);
                     }
@@ -1155,7 +1322,7 @@ class CPJourney {
 
     updateStreakFromVJudge(dailyActivity) {
         if (!dailyActivity) return;
-        
+
         const today = new Date().toDateString();
         if (dailyActivity[today] && dailyActivity[today] > 0) {
             this.updateStreak();
@@ -1181,7 +1348,7 @@ class CPJourney {
                 codeforces: document.getElementById('cf-username').value.trim(),
                 vjudge: document.getElementById('vjudge-username').value.trim()
             };
-            
+
             if (usernames.cses || usernames.codeforces || usernames.vjudge) {
                 this.addLogEntry('info', 'Starting automatic daily sync...');
                 this.syncAllPlatforms();
@@ -1314,15 +1481,15 @@ class CPJourney {
             });
 
             const result = await response.json();
-            
+
             if (result.success) {
                 this.authToken = result.token;
                 this.currentUser = result.user;
                 localStorage.setItem('authToken', this.authToken);
-                
+
                 this.showAuthMessage('Login successful! Welcome back!', 'success');
                 this.updateAuthUI(true);
-                
+
                 setTimeout(() => {
                     this.hideAuthModal();
                     // Auto-sync platform data if credentials are available
@@ -1345,10 +1512,10 @@ class CPJourney {
 
     async handleRegister() {
         const formData = new FormData(document.getElementById('registerFormElement'));
-        
+
         const password = formData.get('password');
         const confirmPassword = formData.get('confirmPassword');
-        
+
         if (password !== confirmPassword) {
             this.showAuthMessage('Passwords do not match', 'error');
             return;
@@ -1378,7 +1545,7 @@ class CPJourney {
             });
 
             const result = await response.json();
-            
+
             if (result.success) {
                 this.showAuthMessage('Registration successful! You can now login.', 'success');
                 setTimeout(() => {
@@ -1410,13 +1577,13 @@ class CPJourney {
         this.authToken = null;
         this.currentUser = null;
         localStorage.removeItem('authToken');
-        
+
         // Update UI
         this.updateAuthUI(false);
-        
+
         // Reload with default data
         this.loadData();
-        
+
         console.log('✅ Logged out successfully');
     }
 
@@ -1426,10 +1593,10 @@ class CPJourney {
         }
 
         console.log('🔄 Starting auto-sync on login...');
-        
+
         // Show sync notification
         this.showNotification('Auto-syncing platform data...', 'info');
-        
+
         // Trigger platform sync in background
         setTimeout(() => {
             this.syncAllPlatformsWithCredentials(platformCredentials);
@@ -1454,7 +1621,7 @@ class CPJourney {
             });
 
             const result = await response.json();
-            
+
             if (result.success) {
                 this.showNotification('Auto-sync completed successfully!', 'success');
                 // Reload data to reflect sync results
@@ -1482,7 +1649,7 @@ class CPJourney {
 
         notification.textContent = message;
         notification.className = `notification ${type} show`;
-        
+
         // Auto-hide after 3 seconds
         setTimeout(() => {
             notification.classList.remove('show');
@@ -1546,7 +1713,7 @@ document.addEventListener('keydown', (e) => {
             resetButton.click();
         }
     }
-    
+
     // Space bar to start journey
     if (e.code === 'Space' && e.target === document.body) {
         e.preventDefault();
@@ -1555,4 +1722,319 @@ document.addEventListener('keydown', (e) => {
             startButton.click();
         }
     }
+});
+
+// Enhanced CSES Organization and Management
+class CSESManager {
+    constructor() {
+        this.categories = {
+            intro: { name: 'Introductory Problems', total: 19, difficulty: 'beginner', solved: 0 },
+            sort: { name: 'Sorting and Searching', total: 35, difficulty: 'beginner', solved: 0 },
+            dp: { name: 'Dynamic Programming', total: 19, difficulty: 'intermediate', solved: 0 },
+            graph: { name: 'Graph Algorithms', total: 36, difficulty: 'intermediate', solved: 0 },
+            math: { name: 'Mathematics', total: 31, difficulty: 'intermediate', solved: 0 },
+            range: { name: 'Range Queries', total: 19, difficulty: 'advanced', solved: 0 },
+            tree: { name: 'Tree Algorithms', total: 16, difficulty: 'advanced', solved: 0 },
+            geometry: { name: 'Geometry', total: 7, difficulty: 'advanced', solved: 0 },
+            string: { name: 'String Algorithms', total: 17, difficulty: 'advanced', solved: 0 }
+        };
+
+        this.init();
+    }
+
+    init() {
+        this.loadProgress();
+        this.setupEventListeners();
+        this.updateUI();
+        this.updateRecommendations();
+    }
+
+    loadProgress() {
+        // Load progress from localStorage or API
+        const saved = localStorage.getItem('cses-progress');
+        if (saved) {
+            const progress = JSON.parse(saved);
+            Object.keys(this.categories).forEach(key => {
+                if (progress[key] !== undefined) {
+                    this.categories[key].solved = progress[key];
+                }
+            });
+        }
+    }
+
+    saveProgress() {
+        const progress = {};
+        Object.keys(this.categories).forEach(key => {
+            progress[key] = this.categories[key].solved;
+        });
+        localStorage.setItem('cses-progress', JSON.stringify(progress));
+    }
+
+    setupEventListeners() {
+        // Search functionality
+        const searchInput = document.getElementById('cses-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.filterCategories(e.target.value);
+            });
+        }
+
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                this.filterByDifficulty(e.target.dataset.filter);
+            });
+        });
+
+        // Add problem buttons
+        document.querySelectorAll('.add-problem-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const category = e.target.closest('[data-category]').dataset.category;
+                this.addProblem(category);
+            });
+        });
+
+        // View problems buttons
+        document.querySelectorAll('.view-problems-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const category = e.target.closest('[data-category]').dataset.category;
+                this.viewProblems(category);
+            });
+        });
+    }
+
+    addProblem(category) {
+        if (this.categories[category]) {
+            const cat = this.categories[category];
+            if (cat.solved < cat.total) {
+                cat.solved++;
+                this.saveProgress();
+                this.updateUI();
+                this.updateRecommendations();
+                this.showSuccessMessage(`Added 1 problem to ${cat.name}! (${cat.solved}/${cat.total})`);
+            } else {
+                this.showInfoMessage(`${cat.name} is already completed! 🎉`);
+            }
+        }
+    }
+
+    viewProblems(category) {
+        if (this.categories[category]) {
+            const cat = this.categories[category];
+            const url = `https://cses.fi/problemset/`;
+            window.open(url, '_blank');
+            this.showInfoMessage(`Opening CSES ${cat.name} problems...`);
+        }
+    }
+
+    filterCategories(searchTerm) {
+        const cards = document.querySelectorAll('.category-card');
+        const term = searchTerm.toLowerCase();
+
+        cards.forEach(card => {
+            const category = card.dataset.category;
+            const categoryInfo = this.categories[category];
+            const matches = categoryInfo.name.toLowerCase().includes(term) ||
+                          category.toLowerCase().includes(term);
+
+            card.style.display = matches ? 'block' : 'none';
+        });
+    }
+
+    filterByDifficulty(difficulty) {
+        const sections = document.querySelectorAll('.difficulty-section');
+
+        if (difficulty === 'all') {
+            sections.forEach(section => {
+                section.classList.remove('hidden');
+            });
+        } else {
+            sections.forEach(section => {
+                if (section.dataset.difficulty === difficulty) {
+                    section.classList.remove('hidden');
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+        }
+    }
+
+    updateUI() {
+        let totalSolved = 0;
+        let totalProblems = 0;
+
+        // Update individual categories
+        Object.keys(this.categories).forEach(key => {
+            const cat = this.categories[key];
+            totalSolved += cat.solved;
+            totalProblems += cat.total;
+
+            // Update solved count
+            const solvedEl = document.getElementById(`${key}-solved`);
+            if (solvedEl) {
+                solvedEl.textContent = cat.solved;
+            }
+
+            // Update progress bar
+            const progressEl = document.getElementById(`${key}-progress`);
+            if (progressEl) {
+                const percentage = (cat.solved / cat.total) * 100;
+                progressEl.style.width = `${percentage}%`;
+            }
+
+            // Update progress circle
+            const progressCircle = document.querySelector(`[data-category="${key}"] .progress-circle`);
+            if (progressCircle) {
+                const span = progressCircle.querySelector('span');
+                if (span) {
+                    span.textContent = cat.solved;
+                }
+            }
+        });
+
+        // Update overall stats
+        const totalSolvedEl = document.getElementById('total-cses-solved');
+        if (totalSolvedEl) {
+            totalSolvedEl.textContent = totalSolved;
+        }
+
+        const completionEl = document.getElementById('cses-completion');
+        if (completionEl) {
+            const percentage = Math.round((totalSolved / totalProblems) * 100);
+            completionEl.textContent = `${percentage}%`;
+        }
+
+        const progressStatsEl = document.getElementById('cses-progress-stats');
+        if (progressStatsEl) {
+            progressStatsEl.textContent = `${totalSolved} / ${totalProblems} problems`;
+        }
+
+        const overallProgressBar = document.getElementById('cses-overall-progress-bar');
+        if (overallProgressBar) {
+            const percentage = (totalSolved / totalProblems) * 100;
+            overallProgressBar.style.width = `${percentage}%`;
+        }
+    }
+
+    updateRecommendations() {
+        const recommendationEl = document.getElementById('learning-recommendation');
+        if (!recommendationEl) return;
+
+        // Find next recommended category
+        const beginnerCategories = Object.keys(this.categories).filter(key =>
+            this.categories[key].difficulty === 'beginner'
+        );
+
+        const incompleteBeginnerCategories = beginnerCategories.filter(key =>
+            this.categories[key].solved < this.categories[key].total
+        );
+
+        let recommendation = '';
+
+        if (incompleteBeginnerCategories.length > 0) {
+            const nextCategory = this.categories[incompleteBeginnerCategories[0]];
+            recommendation = `Continue with <strong>${nextCategory.name}</strong> to strengthen your fundamentals! (${nextCategory.solved}/${nextCategory.total} completed)`;
+        } else {
+            const intermediateCategories = Object.keys(this.categories).filter(key =>
+                this.categories[key].difficulty === 'intermediate' &&
+                this.categories[key].solved < this.categories[key].total
+            );
+
+            if (intermediateCategories.length > 0) {
+                const nextCategory = this.categories[intermediateCategories[0]];
+                recommendation = `Great job on basics! Try <strong>${nextCategory.name}</strong> next! (${nextCategory.solved}/${nextCategory.total} completed)`;
+            } else {
+                recommendation = `Excellent progress! Ready for <strong>Advanced Level</strong> challenges! 🚀`;
+            }
+        }
+
+        recommendationEl.innerHTML = `<p>${recommendation}</p>`;
+    }
+
+    updateRecentActivity() {
+        const activityEl = document.getElementById('recent-activity');
+        if (!activityEl) return;
+
+        // This could be enhanced with actual activity tracking
+        const recentlyWorked = Object.keys(this.categories).filter(key =>
+            this.categories[key].solved > 0
+        ).slice(-3);
+
+        if (recentlyWorked.length === 0) {
+            activityEl.innerHTML = '<p>No recent activity. Start solving problems!</p>';
+        } else {
+            const activityHTML = recentlyWorked.map(key => {
+                const cat = this.categories[key];
+                return `<div class="activity-item">
+                    <span class="activity-category">${cat.name}</span>
+                    <span class="activity-progress">${cat.solved}/${cat.total}</span>
+                </div>`;
+            }).join('');
+
+            activityEl.innerHTML = activityHTML;
+        }
+    }
+
+    showSuccessMessage(message) {
+        this.showToast(message, 'success');
+    }
+
+    showInfoMessage(message) {
+        this.showToast(message, 'info');
+    }
+
+    showToast(message, type = 'info') {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+
+        // Style the toast
+        Object.assign(toast.style, {
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            padding: '12px 20px',
+            borderRadius: '8px',
+            color: 'white',
+            fontWeight: '500',
+            zIndex: '10000',
+            transform: 'translateX(100%)',
+            transition: 'transform 0.3s ease',
+            maxWidth: '300px'
+        });
+
+        if (type === 'success') {
+            toast.style.background = '#10b981';
+        } else if (type === 'info') {
+            toast.style.background = '#3b82f6';
+        }
+
+        document.body.appendChild(toast);
+
+        // Animate in
+        setTimeout(() => {
+            toast.style.transform = 'translateX(0)';
+        }, 100);
+
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, 3000);
+    }
+}
+
+// Initialize enhanced CSES manager when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait a bit for other initializations
+    setTimeout(() => {
+        window.csesManager = new CSESManager();
+    }, 1000);
 });

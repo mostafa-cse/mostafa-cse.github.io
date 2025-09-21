@@ -121,15 +121,45 @@
                     <div class="phase-card">
                         <h3>Phase 4: Codeforces Victory</h3>
                         <div class="phase-info">
-                            <span class="duration">Ongoing preparation</span>
+                            <span class="duration">⏰ Unlimited Time Practice</span>
                             <div class="progress-bar">
                                 <div class="progress-fill" id="cf-progress" style="width: 0%"></div>
                             </div>
-                            <span class="progress-text" id="cf-progress-text">Ready for victory!</span>
+                            <span class="progress-text" id="cf-progress-text">Practice at your own pace!</span>
                         </div>
                         <div class="problems-count">
                             <i class="fas fa-crown"></i>
                             <span id="cf-rating">Unrated</span> current rating
+                        </div>
+                    </div>
+
+                    <div class="phase-card">
+                        <h3>Phase 5: IUPC Practice</h3>
+                        <div class="phase-info">
+                            <span class="duration">⏰ Unlimited Time Practice</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="iupc-progress" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text" id="iupc-progress-text">Master university contests!</span>
+                        </div>
+                        <div class="problems-count">
+                            <i class="fas fa-university"></i>
+                            <span id="iupc-solved">0</span> contests practiced
+                        </div>
+                    </div>
+
+                    <div class="phase-card">
+                        <h3>Phase 6: ICPC GYM Practices</h3>
+                        <div class="phase-info">
+                            <span class="duration">⏰ Unlimited Time Practice</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="icpc-progress" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text" id="icpc-progress-text">Train for world finals!</span>
+                        </div>
+                        <div class="problems-count">
+                            <i class="fas fa-globe-americas"></i>
+                            <span id="icpc-solved">0</span> gym problems solved
                         </div>
                     </div>
                 </div>
@@ -139,79 +169,364 @@
         <!-- CSES Section -->
         <section id="cses" class="section">
             <div class="container">
-                <h2><i class="fas fa-code"></i> CSES Problem Set</h2>
-                <div id="cses-topics" class="cses-topics">
-                    <div class="topics-header">
-                        <h3>Explore Topics</h3>
-                        <span id="cses-topics-status" class="topics-status">Loading topics...</span>
+                <div class="cses-header">
+                    <h2><i class="fas fa-code"></i> CSES Problem Set</h2>
+                    <div class="cses-summary">
+                        <div class="summary-item">
+                            <span class="summary-number" id="total-cses-solved">0</span>
+                            <span class="summary-label">Total Solved</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-number" id="cses-completion">0%</span>
+                            <span class="summary-label">Completion</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-number" id="cses-streak">0</span>
+                            <span class="summary-label">Day Streak</span>
+                        </div>
                     </div>
-                    <div id="cses-topics-grid" class="topics-grid"></div>
                 </div>
-                <div class="cses-categories">
-                    <div class="category-card">
-                        <h3>Introductory Problems</h3>
-                        <div class="category-progress">
-                            <span id="intro-solved">0</span>/19 solved
-                            <div class="mini-progress-bar">
-                                <div class="mini-progress-fill" id="intro-progress"></div>
+
+                <!-- Search and Filter -->
+                <div class="cses-controls">
+                    <div class="search-bar">
+                        <input type="text" id="cses-search" placeholder="Search categories or problems...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all">All Categories</button>
+                        <button class="filter-btn" data-filter="beginner">Beginner</button>
+                        <button class="filter-btn" data-filter="intermediate">Intermediate</button>
+                        <button class="filter-btn" data-filter="advanced">Advanced</button>
+                    </div>
+                </div>
+
+                <!-- Overall Progress Bar -->
+                <div class="cses-overall-progress">
+                    <div class="progress-header">
+                        <span class="progress-title">Overall Progress</span>
+                        <span class="progress-stats" id="cses-progress-stats">0 / 300 problems</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-track">
+                            <div class="progress-bar-fill" id="cses-overall-progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CSES Categories with improved organization -->
+                <div class="cses-categories-container">
+                    <!-- Beginner Level -->
+                    <div class="difficulty-section" data-difficulty="beginner">
+                        <div class="difficulty-header">
+                            <h3><i class="fas fa-seedling"></i> Beginner Level</h3>
+                            <span class="difficulty-badge beginner">Start Here</span>
+                        </div>
+                        <div class="categories-grid">
+                            <div class="category-card" data-category="intro" data-difficulty="beginner">
+                                <div class="category-icon">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Introductory Problems</h4>
+                                    <p class="category-desc">Basic programming concepts and problem-solving techniques</p>
+                                    <div class="category-stats">
+                                        <span class="problems-count">19 problems</span>
+                                        <span class="difficulty-level">★☆☆☆☆</span>
+                                    </div>
+                                </div>
+                                <div class="category-progress">
+                                    <div class="progress-circle">
+                                        <span id="intro-solved">0</span>/19
+                                    </div>
+                                    <div class="mini-progress-bar">
+                                        <div class="mini-progress-fill" id="intro-progress"></div>
+                                    </div>
+                                </div>
+                                <div class="category-actions">
+                                    <button class="add-problem-btn" data-category="intro">
+                                        <i class="fas fa-plus"></i> Add Problem
+                                    </button>
+                                    <button class="view-problems-btn" data-category="intro">
+                                        <i class="fas fa-eye"></i> View All
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="category-card" data-category="sort" data-difficulty="beginner">
+                                <div class="category-icon">
+                                    <i class="fas fa-sort"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Sorting and Searching</h4>
+                                    <p class="category-desc">Fundamental algorithms for organizing and finding data</p>
+                                    <div class="category-stats">
+                                        <span class="problems-count">35 problems</span>
+                                        <span class="difficulty-level">★★☆☆☆</span>
+                                    </div>
+                                </div>
+                                <div class="category-progress">
+                                    <div class="progress-circle">
+                                        <span id="sort-solved">0</span>/35
+                                    </div>
+                                    <div class="mini-progress-bar">
+                                        <div class="mini-progress-fill" id="sort-progress"></div>
+                                    </div>
+                                </div>
+                                <div class="category-actions">
+                                    <button class="add-problem-btn" data-category="sort">
+                                        <i class="fas fa-plus"></i> Add Problem
+                                    </button>
+                                    <button class="view-problems-btn" data-category="sort">
+                                        <i class="fas fa-eye"></i> View All
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <button class="add-problem" data-category="intro">+1 Problem</button>
                     </div>
 
-                    <div class="category-card">
-                        <h3>Sorting and Searching</h3>
-                        <div class="category-progress">
-                            <span id="sort-solved">0</span>/35 solved
-                            <div class="mini-progress-bar">
-                                <div class="mini-progress-fill" id="sort-progress"></div>
+                    <!-- Intermediate Level -->
+                    <div class="difficulty-section" data-difficulty="intermediate">
+                        <div class="difficulty-header">
+                            <h3><i class="fas fa-chart-line"></i> Intermediate Level</h3>
+                            <span class="difficulty-badge intermediate">Building Skills</span>
+                        </div>
+                        <div class="categories-grid">
+                            <div class="category-card" data-category="dp" data-difficulty="intermediate">
+                                <div class="category-icon">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Dynamic Programming</h4>
+                                    <p class="category-desc">Optimize solutions using memoization and tabulation</p>
+                                    <div class="category-stats">
+                                        <span class="problems-count">19 problems</span>
+                                        <span class="difficulty-level">★★★☆☆</span>
+                                    </div>
+                                </div>
+                                <div class="category-progress">
+                                    <div class="progress-circle">
+                                        <span id="dp-solved">0</span>/19
+                                    </div>
+                                    <div class="mini-progress-bar">
+                                        <div class="mini-progress-fill" id="dp-progress"></div>
+                                    </div>
+                                </div>
+                                <div class="category-actions">
+                                    <button class="add-problem-btn" data-category="dp">
+                                        <i class="fas fa-plus"></i> Add Problem
+                                    </button>
+                                    <button class="view-problems-btn" data-category="dp">
+                                        <i class="fas fa-eye"></i> View All
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="category-card" data-category="graph" data-difficulty="intermediate">
+                                <div class="category-icon">
+                                    <i class="fas fa-project-diagram"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Graph Algorithms</h4>
+                                    <p class="category-desc">Traverse and analyze complex network structures</p>
+                                    <div class="category-stats">
+                                        <span class="problems-count">36 problems</span>
+                                        <span class="difficulty-level">★★★☆☆</span>
+                                    </div>
+                                </div>
+                                <div class="category-progress">
+                                    <div class="progress-circle">
+                                        <span id="graph-solved">0</span>/36
+                                    </div>
+                                    <div class="mini-progress-bar">
+                                        <div class="mini-progress-fill" id="graph-progress"></div>
+                                    </div>
+                                </div>
+                                <div class="category-actions">
+                                    <button class="add-problem-btn" data-category="graph">
+                                        <i class="fas fa-plus"></i> Add Problem
+                                    </button>
+                                    <button class="view-problems-btn" data-category="graph">
+                                        <i class="fas fa-eye"></i> View All
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="category-card" data-category="math" data-difficulty="intermediate">
+                                <div class="category-icon">
+                                    <i class="fas fa-calculator"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Mathematics</h4>
+                                    <p class="category-desc">Number theory, combinatorics, and mathematical algorithms</p>
+                                    <div class="category-stats">
+                                        <span class="problems-count">31 problems</span>
+                                        <span class="difficulty-level">★★★☆☆</span>
+                                    </div>
+                                </div>
+                                <div class="category-progress">
+                                    <div class="progress-circle">
+                                        <span id="math-solved">0</span>/31
+                                    </div>
+                                    <div class="mini-progress-bar">
+                                        <div class="mini-progress-fill" id="math-progress"></div>
+                                    </div>
+                                </div>
+                                <div class="category-actions">
+                                    <button class="add-problem-btn" data-category="math">
+                                        <i class="fas fa-plus"></i> Add Problem
+                                    </button>
+                                    <button class="view-problems-btn" data-category="math">
+                                        <i class="fas fa-eye"></i> View All
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <button class="add-problem" data-category="sort">+1 Problem</button>
                     </div>
 
-                    <div class="category-card">
-                        <h3>Dynamic Programming</h3>
-                        <div class="category-progress">
-                            <span id="dp-solved">0</span>/19 solved
-                            <div class="mini-progress-bar">
-                                <div class="mini-progress-fill" id="dp-progress"></div>
-                            </div>
+                    <!-- Advanced Level -->
+                    <div class="difficulty-section" data-difficulty="advanced">
+                        <div class="difficulty-header">
+                            <h3><i class="fas fa-crown"></i> Advanced Level</h3>
+                            <span class="difficulty-badge advanced">Master Level</span>
                         </div>
-                        <button class="add-problem" data-category="dp">+1 Problem</button>
-                    </div>
+                        <div class="categories-grid">
+                            <div class="category-card" data-category="range" data-difficulty="advanced">
+                                <div class="category-icon">
+                                    <i class="fas fa-signal"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Range Queries</h4>
+                                    <p class="category-desc">Segment trees, Fenwick trees, and range operations</p>
+                                    <div class="category-stats">
+                                        <span class="problems-count">19 problems</span>
+                                        <span class="difficulty-level">★★★★☆</span>
+                                    </div>
+                                </div>
+                                <div class="category-progress">
+                                    <div class="progress-circle">
+                                        <span id="range-solved">0</span>/19
+                                    </div>
+                                    <div class="mini-progress-bar">
+                                        <div class="mini-progress-fill" id="range-progress"></div>
+                                    </div>
+                                </div>
+                                <div class="category-actions">
+                                    <button class="add-problem-btn" data-category="range">
+                                        <i class="fas fa-plus"></i> Add Problem
+                                    </button>
+                                    <button class="view-problems-btn" data-category="range">
+                                        <i class="fas fa-eye"></i> View All
+                                    </button>
+                                </div>
+                            </div>
 
-                    <div class="category-card">
-                        <h3>Graph Algorithms</h3>
-                        <div class="category-progress">
-                            <span id="graph-solved">0</span>/36 solved
-                            <div class="mini-progress-bar">
-                                <div class="mini-progress-fill" id="graph-progress"></div>
+                            <div class="category-card" data-category="tree" data-difficulty="advanced">
+                                <div class="category-icon">
+                                    <i class="fas fa-sitemap"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Tree Algorithms</h4>
+                                    <p class="category-desc">Advanced tree structures and specialized algorithms</p>
+                                    <div class="category-stats">
+                                        <span class="problems-count">16 problems</span>
+                                        <span class="difficulty-level">★★★★☆</span>
+                                    </div>
+                                </div>
+                                <div class="category-progress">
+                                    <div class="progress-circle">
+                                        <span id="tree-solved">0</span>/16
+                                    </div>
+                                    <div class="mini-progress-bar">
+                                        <div class="mini-progress-fill" id="tree-progress"></div>
+                                    </div>
+                                </div>
+                                <div class="category-actions">
+                                    <button class="add-problem-btn" data-category="tree">
+                                        <i class="fas fa-plus"></i> Add Problem
+                                    </button>
+                                    <button class="view-problems-btn" data-category="tree">
+                                        <i class="fas fa-eye"></i> View All
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                        <button class="add-problem" data-category="graph">+1 Problem</button>
-                    </div>
 
-                    <div class="category-card">
-                        <h3>Range Queries</h3>
-                        <div class="category-progress">
-                            <span id="range-solved">0</span>/19 solved
-                            <div class="mini-progress-bar">
-                                <div class="mini-progress-fill" id="range-progress"></div>
+                            <div class="category-card" data-category="geometry" data-difficulty="advanced">
+                                <div class="category-icon">
+                                    <i class="fas fa-shapes"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>Geometry</h4>
+                                    <p class="category-desc">Computational geometry and spatial algorithms</p>
+                                    <div class="category-stats">
+                                        <span class="problems-count">7 problems</span>
+                                        <span class="difficulty-level">★★★★★</span>
+                                    </div>
+                                </div>
+                                <div class="category-progress">
+                                    <div class="progress-circle">
+                                        <span id="geometry-solved">0</span>/7
+                                    </div>
+                                    <div class="mini-progress-bar">
+                                        <div class="mini-progress-fill" id="geometry-progress"></div>
+                                    </div>
+                                </div>
+                                <div class="category-actions">
+                                    <button class="add-problem-btn" data-category="geometry">
+                                        <i class="fas fa-plus"></i> Add Problem
+                                    </button>
+                                    <button class="view-problems-btn" data-category="geometry">
+                                        <i class="fas fa-eye"></i> View All
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                        <button class="add-problem" data-category="range">+1 Problem</button>
-                    </div>
 
-                    <div class="category-card">
-                        <h3>Tree Algorithms</h3>
-                        <div class="category-progress">
-                            <span id="tree-solved">0</span>/16 solved
-                            <div class="mini-progress-bar">
-                                <div class="mini-progress-fill" id="tree-progress"></div>
+                            <div class="category-card" data-category="string" data-difficulty="advanced">
+                                <div class="category-icon">
+                                    <i class="fas fa-font"></i>
+                                </div>
+                                <div class="category-info">
+                                    <h4>String Algorithms</h4>
+                                    <p class="category-desc">Pattern matching, hashing, and string processing</p>
+                                    <div class="category-stats">
+                                        <span class="problems-count">17 problems</span>
+                                        <span class="difficulty-level">★★★★☆</span>
+                                    </div>
+                                </div>
+                                <div class="category-progress">
+                                    <div class="progress-circle">
+                                        <span id="string-solved">0</span>/17
+                                    </div>
+                                    <div class="mini-progress-bar">
+                                        <div class="mini-progress-fill" id="string-progress"></div>
+                                    </div>
+                                </div>
+                                <div class="category-actions">
+                                    <button class="add-problem-btn" data-category="string">
+                                        <i class="fas fa-plus"></i> Add Problem
+                                    </button>
+                                    <button class="view-problems-btn" data-category="string">
+                                        <i class="fas fa-eye"></i> View All
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <button class="add-problem" data-category="tree">+1 Problem</button>
+                    </div>
+                </div>
+
+                <!-- Quick Stats Dashboard -->
+                <div class="cses-dashboard">
+                    <div class="dashboard-card">
+                        <h4>Learning Path Recommendation</h4>
+                        <div id="learning-recommendation">
+                            <p>Start with <strong>Introductory Problems</strong> to build your foundation!</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h4>Recent Activity</h4>
+                        <div id="recent-activity">
+                            <p>No recent activity. Start solving problems!</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -260,7 +575,13 @@
         <!-- Codeforces Section -->
         <section id="codeforces" class="section">
             <div class="container">
-                <h2><i class="fas fa-crown"></i> Codeforces Preparation</h2>
+                <h2><i class="fas fa-crown"></i> Codeforces Preparation <span class="unlimited-badge">⏰ Unlimited Time</span></h2>
+                <div class="practice-info">
+                    <p class="practice-description">
+                        <i class="fas fa-infinity"></i> Practice Codeforces problems at your own pace without time constraints.
+                        Focus on learning algorithms, improving problem-solving skills, and building consistency.
+                    </p>
+                </div>
                 <div class="cf-stats">
                     <div class="cf-card">
                         <h3>Current Rating</h3>
@@ -278,6 +599,18 @@
                         <h3>Contests Participated</h3>
                         <div class="contests-display" id="cf-contests">0</div>
                         <button id="add-contest">+1 Contest</button>
+                    </div>
+
+                    <div class="cf-card unlimited-practice">
+                        <h3>Practice Sessions</h3>
+                        <div class="session-info">
+                            <p>No deadlines, no pressure - just pure learning!</p>
+                            <div class="practice-benefits">
+                                <span class="benefit-item"><i class="fas fa-clock"></i> Study at your pace</span>
+                                <span class="benefit-item"><i class="fas fa-repeat"></i> Retry problems freely</span>
+                                <span class="benefit-item"><i class="fas fa-lightbulb"></i> Focus on understanding</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -325,17 +658,55 @@
             <!-- IUPC & ICPC Online Practice Section -->
             <section id="contest-practice" class="section">
                 <div class="container">
-                    <h2><i class="fas fa-globe"></i> Online Contest Practice</h2>
+                    <h2><i class="fas fa-globe"></i> Online Contest Practice <span class="unlimited-badge">⏰ Unlimited Time</span></h2>
+                    <div class="practice-info">
+                        <p class="practice-description">
+                            <i class="fas fa-infinity"></i> Practice IUPC and ICPC problems with unlimited time to master concepts and techniques.
+                            No rush, no deadlines - focus on building strong problem-solving foundations.
+                        </p>
+                    </div>
                     <div class="contest-cards">
-                        <div class="contest-card iupc-card">
+                        <div class="contest-card iupc-card unlimited-practice">
                             <h3><i class="fas fa-university"></i> IUPC Practice</h3>
-                            <p>Prepare for Inter University Programming Contest (IUPC) with online practice sets and virtual contests.</p>
-                            <button class="contest-btn" id="iupc-practice-btn">Start IUPC Practice</button>
+                            <p>Prepare for Inter University Programming Contest (IUPC) with unlimited time practice.</p>
+                            <div class="unlimited-features">
+                                <div class="feature-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>No time limits - learn at your pace</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-redo"></i>
+                                    <span>Unlimited attempts on each problem</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-book"></i>
+                                    <span>Access to hints and explanations</span>
+                                </div>
+                            </div>
+                            <button class="contest-btn unlimited-btn" id="iupc-practice-btn">
+                                <i class="fas fa-play"></i> Start Unlimited Practice
+                            </button>
                         </div>
-                        <div class="contest-card icpc-card">
+                        <div class="contest-card icpc-card unlimited-practice">
                             <h3><i class="fas fa-medal"></i> ICPC Practice</h3>
-                            <p>Attempt ICPC-style problems and participate in online mock contests to boost your skills.</p>
-                            <button class="contest-btn" id="icpc-practice-btn">Start ICPC Practice</button>
+                            <p>Master ICPC-style problems with unlimited time and attempts for thorough learning.</p>
+                            <div class="unlimited-features">
+                                <div class="feature-item">
+                                    <i class="fas fa-infinity"></i>
+                                    <span>Unlimited practice sessions</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>Track progress without pressure</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>Team practice with no time constraints</span>
+                                </div>
+                            </div>
+                            <button class="contest-btn unlimited-btn" id="icpc-practice-btn">
+                                <i class="fas fa-play"></i> Start Unlimited Practice
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -350,7 +721,7 @@
                 <button class="tab-btn active" id="loginTab">Login</button>
                 <button class="tab-btn" id="registerTab">Register</button>
             </div>
-            
+
             <!-- Login Form -->
             <div id="loginForm" class="auth-form">
                 <h2>Login to Your Account</h2>
@@ -366,7 +737,7 @@
                     <button type="submit" class="submit-btn">Login</button>
                 </form>
             </div>
-            
+
             <!-- Registration Form -->
             <div id="registerForm" class="auth-form" style="display: none;">
                 <h2>Create New Account</h2>
@@ -387,10 +758,10 @@
                         <label for="regConfirmPassword">Confirm Password:</label>
                         <input type="password" id="regConfirmPassword" name="confirmPassword" required>
                     </div>
-                    
+
                     <h3>Platform Credentials (Optional)</h3>
                     <p class="form-note">Store your platform usernames to enable automatic progress sync</p>
-                    
+
                     <div class="form-group">
                         <label for="regCsesUsername">CSES Username:</label>
                         <input type="text" id="regCsesUsername" name="csesUsername" placeholder="Your CSES username">
@@ -403,18 +774,18 @@
                         <label for="regVjudgeUsername">VJudge Username:</label>
                         <input type="text" id="regVjudgeUsername" name="vjudgeUsername" placeholder="Your VJudge username">
                     </div>
-                    
+
                     <div class="form-group">
                         <label>
                             <input type="checkbox" id="autoSync" name="autoSync" checked>
                             Enable automatic sync on login
                         </label>
                     </div>
-                    
+
                     <button type="submit" class="submit-btn">Register</button>
                 </form>
             </div>
-            
+
             <div id="authMessage" class="auth-message"></div>
         </div>
     </div>

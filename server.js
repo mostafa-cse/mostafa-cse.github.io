@@ -26,7 +26,7 @@ app.use(session({
     secret: 'cp-journey-session-secret',
     resave: false,
     saveUninitialized: false,
-    cookie: { 
+    cookie: {
         secure: false, // Set to true in production with HTTPS
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
@@ -45,7 +45,7 @@ const initializeDatabase = async () => {
     try {
         // Initialize auth system
         await authManager.initializeUsers();
-        
+
         // Initialize main journey data
         if (!await fs.pathExists(DB_FILE)) {
             const defaultData = {
@@ -172,7 +172,7 @@ app.post('/api/auth/register', async (req, res) => {
                     codeforces: result.user.platformCredentials.codeforces,
                     vjudge: result.user.platformCredentials.vjudge
                 };
-                
+
                 // Trigger initial sync in background
                 setTimeout(async () => {
                     try {
@@ -192,20 +192,23 @@ app.post('/api/auth/register', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
     try {
-        const result = await authManager.loginUser(req.body);
+        const { username, password } = req.body;
+        // Map frontend fields to backend expected format
+        const credentials = { identifier: username, password };
+        const result = await authManager.loginUser(credentials);
         if (result.success) {
             // Set session
             req.session.userId = result.user.id;
             req.session.username = result.user.username;
-            
+
             // Load user's journey data
             const userJourneyFile = path.join(DATA_DIR, `journey_${result.user.id}.json`);
             let journeyData = null;
-            
+
             if (await fs.pathExists(userJourneyFile)) {
                 journeyData = await fs.readJson(userJourneyFile);
             }
-            
+
             // Auto-sync platform data on login
             if (result.platformCredentials) {
                 const usernames = {
@@ -213,15 +216,15 @@ app.post('/api/auth/login', async (req, res) => {
                     codeforces: result.platformCredentials.codeforces,
                     vjudge: result.platformCredentials.vjudge
                 };
-                
+
                 // Trigger sync in background
                 setTimeout(async () => {
                     try {
                         const syncResults = await platformAPI.syncAllPlatforms(usernames);
-                        
+
                         // Update user's journey data with sync results
                         let userJourney = journeyData || await this.getDefaultJourneyData();
-                        
+
                         // Update with sync results
                         if (syncResults.cses && syncResults.cses.success) {
                             userJourney.cses = syncResults.cses.categories;
@@ -233,17 +236,17 @@ app.post('/api/auth/login', async (req, res) => {
                                 contests: syncResults.codeforces.contests
                             };
                         }
-                        
+
                         userJourney.platforms = {
                             cses: syncResults.cses,
                             codeforces: syncResults.codeforces,
                             vjudge: syncResults.vjudge
                         };
                         userJourney.lastAutoSync = new Date().toISOString();
-                        
+
                         // Save updated journey data
                         await fs.writeJson(userJourneyFile, userJourney, { spaces: 2 });
-                        
+
                         console.log(`✅ Login sync completed for user: ${result.user.username}`);
                     } catch (error) {
                         console.log(`⚠️ Login sync failed for user: ${result.user.username}`, error.message);
@@ -251,7 +254,7 @@ app.post('/api/auth/login', async (req, res) => {
                 }, 2000); // 2 second delay
             }
         }
-        
+
         res.json(result);
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -273,11 +276,11 @@ app.get('/api/auth/me', authManager.requireAuth, async (req, res) => {
         if (!user) {
             return res.status(404).json({ success: false, error: 'User not found' });
         }
-        
-        res.json({ 
-            success: true, 
+
+        res.json({
+            success: true,
             user: user,
-            platformCredentials: user.platformCredentials 
+            platformCredentials: user.platformCredentials
         });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -306,7 +309,7 @@ app.put('/api/auth/preferences', authManager.requireAuth, async (req, res) => {
 app.get('/api/journey', async (req, res) => {
     try {
         let data;
-        
+
         // Check if user is authenticated
         const token = req.headers.authorization?.split(' ')[1];
         if (token) {
@@ -323,12 +326,12 @@ app.get('/api/journey', async (req, res) => {
                 }
             }
         }
-        
+
         // Fallback to global journey data
         if (!data) {
             data = await readDatabase();
         }
-        
+
         if (data) {
             res.json({ success: true, data });
         } else {
@@ -354,7 +357,7 @@ app.post('/api/journey', async (req, res) => {
     try {
         const newData = req.body;
         const success = await writeDatabase(newData);
-        
+
         if (success) {
             res.json({ success: true, message: 'Data saved successfully' });
         } else {
@@ -370,8 +373,8 @@ app.post('/api/backup', async (req, res) => {
     try {
         const backupFile = await createBackup();
         if (backupFile) {
-            res.json({ 
-                success: true, 
+            res.json({
+                success: true,
                 message: 'Backup created successfully',
                 backupFile: path.basename(backupFile)
             });
@@ -412,7 +415,7 @@ app.get('/api/backup/:filename', async (req, res) => {
     try {
         const filename = req.params.filename;
         const filePath = path.join(BACKUP_DIR, filename);
-        
+
         if (await fs.pathExists(filePath)) {
             res.download(filePath);
         } else {
@@ -444,7 +447,7 @@ app.get('/api/export', async (req, res) => {
 app.post('/api/import', async (req, res) => {
     try {
         const importData = req.body;
-        
+
         // Validate imported data structure
         if (!importData || typeof importData !== 'object') {
             return res.status(400).json({ success: false, error: 'Invalid import data format' });
@@ -452,14 +455,14 @@ app.post('/api/import', async (req, res) => {
 
         // Create backup before importing
         await createBackup();
-        
+
         // Import the new data
         const success = await writeDatabase(importData);
-        
+
         if (success) {
-            res.json({ 
-                success: true, 
-                message: 'Data imported successfully. Previous data backed up.' 
+            res.json({
+                success: true,
+                message: 'Data imported successfully. Previous data backed up.'
             });
         } else {
             res.status(500).json({ success: false, error: 'Failed to import data' });
@@ -471,8 +474,8 @@ app.post('/api/import', async (req, res) => {
 
 // Health check
 app.get('/api/health', (req, res) => {
-    res.json({ 
-        success: true, 
+    res.json({
+        success: true,
         message: 'CP Journey Database Server is running!',
         timestamp: new Date().toISOString(),
         version: '1.0.0'
@@ -490,7 +493,7 @@ app.post('/api/sync/cses', async (req, res) => {
         }
 
         const csesData = await platformAPI.fetchCSESProgress(username);
-        
+
         if (csesData.success) {
             // Update journey data with CSES results
             const journeyData = await readDatabase();
@@ -502,7 +505,7 @@ app.post('/api/sync/cses', async (req, res) => {
                     lastSync: csesData.lastUpdated,
                     totalSolved: csesData.totalSolved
                 };
-                
+
                 await writeDatabase(journeyData);
             }
         }
@@ -522,7 +525,7 @@ app.post('/api/sync/codeforces', async (req, res) => {
         }
 
         const cfData = await platformAPI.fetchCodeforcesProgress(username);
-        
+
         if (cfData.success) {
             // Update journey data with Codeforces results
             const journeyData = await readDatabase();
@@ -530,7 +533,7 @@ app.post('/api/sync/codeforces', async (req, res) => {
                 journeyData.codeforces.rating = cfData.rating;
                 journeyData.codeforces.problemsSolved = cfData.problemsSolved;
                 journeyData.codeforces.contests = cfData.contests;
-                
+
                 journeyData.platforms = journeyData.platforms || {};
                 journeyData.platforms.codeforces = {
                     username: username,
@@ -538,7 +541,7 @@ app.post('/api/sync/codeforces', async (req, res) => {
                     maxRating: cfData.maxRating,
                     dailySolves: cfData.dailySolves
                 };
-                
+
                 await writeDatabase(journeyData);
             }
         }
@@ -558,7 +561,7 @@ app.post('/api/sync/vjudge', async (req, res) => {
         }
 
         const vjData = await platformAPI.fetchVJudgeProgress(username);
-        
+
         if (vjData.success) {
             // Update journey data with VJudge results
             const journeyData = await readDatabase();
@@ -572,13 +575,13 @@ app.post('/api/sync/vjudge', async (req, res) => {
                     dailyActivity: vjData.dailyActivity,
                     recentSolves: vjData.recentSolves
                 };
-                
+
                 // Update daily streaks based on VJudge activity
                 const today = new Date().toDateString();
                 if (vjData.dailyActivity && vjData.dailyActivity[today] > 0) {
                     journeyData.lastActiveDate = today;
                 }
-                
+
                 await writeDatabase(journeyData);
             }
         }
@@ -594,14 +597,14 @@ app.post('/api/sync/all', async (req, res) => {
     try {
         const { usernames } = req.body;
         if (!usernames || typeof usernames !== 'object') {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Usernames object is required with cses, codeforces, and/or vjudge properties' 
+            return res.status(400).json({
+                success: false,
+                error: 'Usernames object is required with cses, codeforces, and/or vjudge properties'
             });
         }
 
         const syncResults = await platformAPI.syncAllPlatforms(usernames);
-        
+
         // Update journey data with all results
         const journeyData = await readDatabase();
         if (journeyData) {
@@ -609,17 +612,17 @@ app.post('/api/sync/all', async (req, res) => {
             if (syncResults.cses && syncResults.cses.success) {
                 journeyData.cses = syncResults.cses.categories;
             }
-            
+
             // Update Codeforces data
             if (syncResults.codeforces && syncResults.codeforces.success) {
                 journeyData.codeforces.rating = syncResults.codeforces.rating;
                 journeyData.codeforces.problemsSolved = syncResults.codeforces.problemsSolved;
                 journeyData.codeforces.contests = syncResults.codeforces.contests;
             }
-            
+
             // Store platform-specific data
             journeyData.platforms = journeyData.platforms || {};
-            
+
             if (syncResults.cses) {
                 journeyData.platforms.cses = {
                     username: usernames.cses,
@@ -628,7 +631,7 @@ app.post('/api/sync/all', async (req, res) => {
                     error: syncResults.cses.error || null
                 };
             }
-            
+
             if (syncResults.codeforces) {
                 journeyData.platforms.codeforces = {
                     username: usernames.codeforces,
@@ -639,7 +642,7 @@ app.post('/api/sync/all', async (req, res) => {
                     dailySolves: syncResults.codeforces.dailySolves
                 };
             }
-            
+
             if (syncResults.vjudge) {
                 journeyData.platforms.vjudge = {
                     username: usernames.vjudge,
@@ -650,7 +653,7 @@ app.post('/api/sync/all', async (req, res) => {
                     dailyActivity: syncResults.vjudge.dailyActivity
                 };
             }
-            
+
             journeyData.lastAutoSync = syncResults.syncTime;
             await writeDatabase(journeyData);
         }
@@ -671,7 +674,7 @@ app.get('/api/sync/status', async (req, res) => {
     try {
         const journeyData = await readDatabase();
         const platforms = journeyData?.platforms || {};
-        
+
         const status = {
             lastAutoSync: journeyData?.lastAutoSync || null,
             platforms: {
@@ -700,7 +703,7 @@ app.get('/api/sync/status', async (req, res) => {
                 }
             }
         };
-        
+
         res.json({ success: true, status });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -724,18 +727,18 @@ const checkAndRunAutoSync = async () => {
         const journeyData = await readDatabase();
         const autoSyncEnabled = journeyData?.autoSyncEnabled || false;
         const platforms = journeyData?.platforms || {};
-        
+
         if (autoSyncEnabled) {
             const usernames = {
                 cses: platforms.cses?.username,
                 codeforces: platforms.codeforces?.username,
                 vjudge: platforms.vjudge?.username
             };
-            
+
             if (usernames.cses || usernames.codeforces || usernames.vjudge) {
                 console.log('🔄 Starting scheduled auto-sync...');
                 const syncResults = await platformAPI.syncAllPlatforms(usernames);
-                
+
                 // Update journey data with sync results
                 if (syncResults) {
                     journeyData.lastAutoSync = syncResults.syncTime;
@@ -754,20 +757,20 @@ const scheduleAutoSync = () => {
     const now = new Date();
     const sixAM = new Date();
     sixAM.setHours(6, 0, 0, 0);
-    
+
     // If it's past 6 AM today, schedule for tomorrow
     if (now > sixAM) {
         sixAM.setDate(sixAM.getDate() + 1);
     }
-    
+
     const timeUntilSixAM = sixAM.getTime() - now.getTime();
-    
+
     setTimeout(() => {
         checkAndRunAutoSync();
         // Then run every 24 hours
         setInterval(checkAndRunAutoSync, 24 * 60 * 60 * 1000);
     }, timeUntilSixAM);
-    
+
     console.log(`⏰ Auto-sync scheduled for ${sixAM.toLocaleString()}`);
 };
 
@@ -776,13 +779,13 @@ app.post('/api/auto-sync/toggle', async (req, res) => {
     try {
         const { enabled } = req.body;
         const journeyData = await readDatabase();
-        
+
         if (journeyData) {
             journeyData.autoSyncEnabled = enabled;
             await writeDatabase(journeyData);
-            
-            res.json({ 
-                success: true, 
+
+            res.json({
+                success: true,
                 message: `Auto-sync ${enabled ? 'enabled' : 'disabled'}`,
                 autoSyncEnabled: enabled
             });
@@ -797,7 +800,7 @@ app.post('/api/auto-sync/toggle', async (req, res) => {
 // Start server
 const startServer = async () => {
     await initializeDatabase();
-    
+
     app.listen(PORT, () => {
         console.log(`🚀 CP Journey Database Server running on http://localhost:${PORT}`);
         console.log(`📊 Dashboard available at http://localhost:${PORT}`);
@@ -805,7 +808,7 @@ const startServer = async () => {
         console.log(`📦 Backups stored in: ${BACKUP_DIR}`);
         console.log(`🔄 Auto-backup every 30 minutes`);
         console.log(`🌐 Platform sync APIs enabled`);
-        
+
         // Start auto-sync scheduler
         scheduleAutoSync();
     });
