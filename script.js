@@ -20,8 +20,6 @@ class CPJourney {
 
     async initializeApp() {
         try {
-            // Show loading screen immediately
-            this.showLoadingScreen();
 
             // Initialize critical features first (synchronously)
             this.setupSecurityHeaders();
@@ -71,8 +69,7 @@ class CPJourney {
                 setTimeout(runBackground, 50);
             }
 
-            // Hide loading screen as soon as critical content is ready
-            await this.hideLoadingScreen();
+            // No loading overlay; proceed immediately
 
         } catch (error) {
             console.error('App initialization failed:', error);
