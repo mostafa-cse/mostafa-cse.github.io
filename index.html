@@ -1,4 +1,50 @@
 <!DOCTYPE html>
+<!--
+    CP Journey Tracker - Professional Edition
+    
+    A comprehensive competitive programming progress tracker built with modern web standards:
+    
+    ✨ FEATURES:
+    • Professional dark/light theme system
+    • Real-time form validation with user-friendly feedback
+    • Touch-friendly mobile navigation (44px+ tap targets)
+    • WCAG AA accessible with proper ARIA labels and semantic HTML
+    • Progressive Web App (PWA) with offline support
+    • Performance optimized with lazy loading and caching
+    • Professional loading states and error handling
+    • Enhanced keyboard navigation and shortcuts
+    
+    🎨 DESIGN PRINCIPLES:
+    • Clean, consistent color scheme matching brand identity
+    • Legible typography with appropriate font sizes and spacing
+    • Clear visual hierarchy with headings and section divisions
+    • Balanced alignment and breathable spacing
+    • High contrast colors meeting WCAG standards
+    
+    🔧 TECHNICAL STANDARDS:
+    • Semantic HTML5 with proper sectioning
+    • CSS Grid and Flexbox with graceful fallbacks
+    • Modern JavaScript with error boundaries
+    • Service Worker for offline functionality
+    • Responsive design with mobile-first approach
+    
+    📱 MOBILE OPTIMIZATION:
+    • Touch-friendly interface with proper tap target sizes
+    • Responsive navigation with hamburger menus
+    • Mobile-optimized forms and interactions
+    • Performance optimized for slower connections
+    
+    ♿ ACCESSIBILITY:
+    • Screen reader compatible with proper ARIA labels
+    • Keyboard navigation throughout the interface
+    • High contrast mode support
+    • Reduced motion preferences respected
+    • Focus indicators for all interactive elements
+    
+    Author: Mostafa's CP Journey Team
+    Version: Professional Edition v1.0
+    Last Updated: September 2025
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -167,6 +213,19 @@
                 <div class="hero-content">
                     <h1 class="hero-title">Master Competitive Programming</h1>
                     <p class="hero-subtitle">Track your journey across CSES, USACO, Codeforces, IUPC, and ICPC with professional analytics</p>
+                    
+                    <!-- Professional CTA Buttons -->
+                    <div class="hero-actions" style="margin: 2rem 0; text-align: center;">
+                        <button id="startJourneyBtn" class="btn btn-primary btn-lg" data-async>
+                            <i class="fas fa-rocket" aria-hidden="true"></i>
+                            Start Your Journey
+                        </button>
+                        <button id="viewProgressBtn" class="btn btn-secondary btn-lg" style="margin-left: 1rem;">
+                            <i class="fas fa-chart-line" aria-hidden="true"></i>
+                            View Progress
+                        </button>
+                    </div>
+                    
                     <div class="hero-stats">
                         <div class="hero-stat">
                             <span class="stat-number" id="hero-problems">0</span>

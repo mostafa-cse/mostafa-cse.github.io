@@ -35,7 +35,7 @@ class CPJourney {
             this.setupDropdowns();
             this.setupBreadcrumbs();
             this.setupNotifications();
-            
+
             // Initialize professional interactions
             this.setupProfessionalInteractions();
 
@@ -2780,16 +2780,16 @@ class CSESManager {
     setupProfessionalInteractions() {
         // Enhanced form validation with real-time feedback
         this.setupFormValidation();
-        
+
         // Professional loading states for all buttons
         this.setupButtonStates();
-        
+
         // Smart error handling with user-friendly messages
         this.setupErrorHandling();
-        
+
         // Performance monitoring and user feedback
         this.setupPerformanceMonitoring();
-        
+
         // Enhanced keyboard navigation
         this.setupKeyboardNavigation();
     }
@@ -2857,7 +2857,7 @@ class CSESManager {
 
     showFieldError(field, message) {
         field.classList.add('field-error');
-        
+
         // Remove existing error message
         const existingError = field.parentNode.querySelector('.field-error-message');
         if (existingError) existingError.remove();
@@ -2880,11 +2880,11 @@ class CSESManager {
         document.addEventListener('click', (e) => {
             if (e.target.matches('button, .btn, input[type="submit"]')) {
                 const button = e.target;
-                
+
                 // Add loading state for async operations
                 if (button.hasAttribute('data-async')) {
                     this.setButtonLoading(button, true);
-                    
+
                     // Auto-clear loading state after 10 seconds (fallback)
                     setTimeout(() => {
                         this.setButtonLoading(button, false);
@@ -2899,7 +2899,7 @@ class CSESManager {
             button.classList.add('btn-loading');
             button.disabled = true;
             button.setAttribute('data-original-text', button.textContent);
-            
+
             // Add spinner if not exists
             if (!button.querySelector('.loading-spinner')) {
                 const spinner = document.createElement('span');
@@ -2909,14 +2909,14 @@ class CSESManager {
         } else {
             button.classList.remove('btn-loading');
             button.disabled = false;
-            
+
             // Restore original text
             const originalText = button.getAttribute('data-original-text');
             if (originalText) {
                 button.textContent = originalText;
                 button.removeAttribute('data-original-text');
             }
-            
+
             // Remove spinner
             const spinner = button.querySelector('.loading-spinner');
             if (spinner) spinner.remove();
@@ -2982,7 +2982,7 @@ class CSESManager {
                 if (perfData) {
                     const loadTime = perfData.loadEventEnd - perfData.loadEventStart;
                     console.log(`Page load time: ${loadTime}ms`);
-                    
+
                     // Warn if load time is too long
                     if (loadTime > 3000) {
                         console.warn('Slow page load detected');
@@ -3003,14 +3003,14 @@ class CSESManager {
                 const response = await originalFetch(...args);
                 const end = performance.now();
                 const duration = end - start;
-                
+
                 console.log(`API call to ${args[0]} took ${duration.toFixed(2)}ms`);
-                
+
                 // Show warning for slow API calls
                 if (duration > 5000) {
                     this.showUserFriendlyError('The server is responding slowly. Please be patient.');
                 }
-                
+
                 return response;
             } catch (error) {
                 const end = performance.now();
@@ -3069,7 +3069,7 @@ class CSESManager {
         if (modal) {
             modal.classList.remove('show');
             modal.setAttribute('aria-hidden', 'true');
-            
+
             // Return focus to trigger element if available
             const trigger = modal.getAttribute('data-trigger');
             if (trigger) {
