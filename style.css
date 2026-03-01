@@ -2029,6 +2029,32 @@ input:checked + .slider:before { transform:translateX(18px); }
 /* ── Footer fade in ──────────────────────────────────────────────────────── */
 .site-footer { animation: fadeSlideUp 0.8s 0.1s cubic-bezier(0.22,1,0.36,1) both; }
 
+/* ── Wave section dividers ───────────────────────────────────────────────── */
+.wave-divider {
+  position: relative;
+  z-index: 1;
+  margin: -1px 0;
+  line-height: 0;
+  overflow: hidden;
+}
+.wave-divider svg path {
+  transition: fill 0.3s ease;
+}
+[data-dark="true"] .wave-divider svg path:first-child { fill: rgba(83,131,220,0.06); }
+[data-dark="true"] .wave-divider svg path:last-child  { fill: var(--bg); opacity: 0.2; }
+
+/* ── Scroll progress bar animation ───────────────────────────────────────── */
+/* (Element created by JS — styles are inline for simplicity) */
+
+/* ── Smooth card perspective transitions ─────────────────────────────────── */
+.truth-card,
+.keyword-card,
+.micro-step,
+.growth-list li {
+  transition: transform 0.4s cubic-bezier(0.22,1,0.36,1), box-shadow 0.4s ease, border-color 0.4s ease;
+  will-change: transform;
+}
+
 /* Respect reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
