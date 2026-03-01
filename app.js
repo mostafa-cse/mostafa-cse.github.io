@@ -1977,8 +1977,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   markReveal('.prayer-watch-card', 'from-right');
   markReveal('.footer-inner');
   markReveal('#micro-timeline', 'reveal-stagger');
+  markReveal('.keyword-card');
+  markReveal('.strategy-rule10');
+  markReveal('.strategy-tip', 'scale-in');
+  markReveal('.subsection-header', 'from-left');
+  markReveal('.table-wrap');
+  markReveal('.micro60-sub');
   // Prayer time pills stagger
   document.querySelector('.prayer-times-hero')?.classList.add('reveal-stagger');
+  // Tools grid stagger
+  document.querySelector('#tools-grid')?.classList.add('reveal-stagger');
+  // Growth list stagger
+  document.querySelector('#growth-list')?.classList.add('reveal-stagger');
+  // Keywords grid stagger
+  document.querySelector('#keywords-grid')?.classList.add('reveal-stagger');
 
   // 2. Intersection Observer — fires once per element
   const observer = new IntersectionObserver((entries) => {
@@ -1990,7 +2002,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (el.classList.contains('section-heading')) el.classList.add('visible');
       observer.unobserve(el);
     });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
 
   document.querySelectorAll('.reveal, .reveal-stagger, .section-heading').forEach(el => observer.observe(el));
 
@@ -2013,7 +2025,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
       el.textContent = Math.round(eased * target);
       if (p < 1) requestAnimationFrame(step);
-      else el.textContent = target;
+      else { el.textContent = target; el.classList.add('counted'); }
     };
     requestAnimationFrame(step);
   };
@@ -2043,5 +2055,74 @@ document.addEventListener('DOMContentLoaded', async () => {
     requestAnimationFrame(addTickOnSecond);
   };
   requestAnimationFrame(addTickOnSecond);
-});
 
+  // 6. Button ripple effect
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn');
+    if (!btn) return;
+    const circle = document.createElement('span');
+    circle.classList.add('ripple-circle');
+    const rect = btn.getBoundingClientRect();
+    circle.style.left = (e.clientX - rect.left) + 'px';
+    circle.style.top = (e.clientY - rect.top) + 'px';
+    btn.appendChild(circle);
+    circle.addEventListener('animationend', () => circle.remove());
+  });
+
+  // 7. Parallax-like subtle scroll effect on hero
+  const hero = document.getElementById('hero');
+  const heroRight = document.querySelector('.hero-right');
+  if (hero && heroRight) {
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          const heroH = hero.offsetHeight;
+          if (scrollY < heroH) {
+            const ratio = scrollY / heroH;
+            heroRight.style.transform = `translateY(${ratio * 30}px)`;
+            heroRight.style.opacity = Math.max(0, 1 - ratio * 0.7);
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+  }
+
+  // 8. Tilt effect on tool cards (desktop only)
+  if (!('ontouchstart' in window)) {
+    document.querySelectorAll('.tool-card').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        card.style.transform = `translateY(-6px) perspective(600px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg) scale(1.01)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+      });
+    });
+  }
+
+  // 9. Navbar shrink-on-scroll
+  const topnav = document.getElementById('topnav');
+  if (topnav) {
+    let navTicking = false;
+    window.addEventListener('scroll', () => {
+      if (!navTicking) {
+        requestAnimationFrame(() => {
+          if (window.scrollY > 60) {
+            topnav.style.padding = '0.4rem ' + getComputedStyle(topnav).paddingRight;
+            topnav.style.boxShadow = '0 2px 20px rgba(0,0,0,0.15)';
+          } else {
+            topnav.style.padding = '';
+            topnav.style.boxShadow = '';
+          }
+          navTicking = false;
+        });
+        navTicking = true;
+      }
+    }, { passive: true });
+  }
