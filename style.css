@@ -34,13 +34,20 @@
 }
 
 [data-dark="true"] {
-  --bg:        #0a0e1a;
-  --bg-card:   #141829;
-  --text:      #e8eaf0;
-  --text-muted:#8890a4;
-  --border:    #1e2338;
-  --shadow:    0 4px 24px rgba(0,0,0,0.4);
-  --accent-glow: rgba(83,131,220,0.25);
+  --primary:       #5383DC;
+  --primary-dark:  #2D5AAA;
+  --primary-light: rgba(45,90,170,0.15);
+  --accent:        #6ea0f0;
+  --accent2:       #7eb8ff;
+  --badge-bg:      rgba(45,90,170,0.18);
+  --bg:            #0a0e1a;
+  --bg-card:       #141829;
+  --text:          #e8eaf0;
+  --text-muted:    #9aa2b8;
+  --border:        #1e2338;
+  --shadow:        0 4px 24px rgba(0,0,0,0.4);
+  --shadow-lg:     0 8px 40px rgba(0,0,0,0.5);
+  --accent-glow:   rgba(83,131,220,0.25);
 }
 
 /* ── Reset ───────────────────────────────────────────────────────────────── */
@@ -70,7 +77,7 @@ img, svg { display: block; max-width: 100%; }
   transition: background var(--transition), padding 0.3s ease, box-shadow 0.3s ease;
 }
 [data-theme="ramadan"] .topnav { background: rgba(20,55,120,0.85); }
-[data-dark="true"] .topnav { background: rgba(10,12,24,0.92); }
+[data-dark="true"] .topnav { background: rgba(13,20,50,0.92); }
 .nav-brand { display:flex; align-items:center; gap:0.5rem; flex-shrink:0; }
 .nav-logo { font-size:1.3rem; }
 .nav-title { color:#fff; font-weight:700; font-family:var(--font-serif); font-size:1rem; letter-spacing:0.01em; }
@@ -284,6 +291,8 @@ img, svg { display: block; max-width: 100%; }
 }
 .suhoor-pill { background:#e8eef8; border-color:#5383DC; color:#143778; }
 .iftar-pill  { background:#dce8ff; border-color:#2D5AAA; color:#0d2450; }
+[data-dark="true"] .suhoor-pill { background:rgba(83,131,220,0.15); border-color:#5383DC; color:#7eb8ff; }
+[data-dark="true"] .iftar-pill  { background:rgba(45,90,170,0.15); border-color:#6ea0f0; color:#a0ccff; }
 
 /* 5-Prayer times grid in hero */
 .prayer-times-hero {
@@ -799,10 +808,14 @@ img, svg { display: block; max-width: 100%; }
 }
 .golden-list li:hover {
   transform: translateX(6px);
-  background: #ffffff;
-  color: #000000;
+  background: var(--bg-card);
+  color: var(--text);
   border-color: var(--accent);
   box-shadow: 0 4px 16px rgba(20,55,120,0.1);
+}
+[data-dark="true"] .golden-list li:hover {
+  background: #1a2038;
+  box-shadow: 0 4px 20px rgba(83,131,220,0.2);
 }
 .golden-list li:hover .golden-bullet {
   animation: wiggle 0.5s ease;
@@ -918,10 +931,10 @@ img, svg { display: block; max-width: 100%; }
   display: inline-flex; align-items: center; gap: 0.3rem;
   font-size: 0.72rem; font-weight: 700; font-family: monospace;
   color: var(--phase-a);
-  background: linear-gradient(90deg, rgba(26,154,106,0.12), rgba(14,143,154,0.08));
+  background: linear-gradient(90deg, rgba(20,55,120,0.15), rgba(45,90,170,0.10));
   padding: 0.15rem 0.55rem;
   border-radius: 20px;
-  border: 1px solid rgba(26,154,106,0.22);
+  border: 1px solid rgba(45,90,170,0.25);
   width: fit-content;
 }
 .micro-step-time::before { content: '⏱'; font-style: normal; font-size: 0.7rem; }
