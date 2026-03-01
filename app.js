@@ -94,33 +94,46 @@ class AuroraWaves {
       });
     }
 
-    // Wave layers — each has its own colour, speed, amplitude
+    // Wave layers — unified deep blue palette
     this.waves = [
-      { color: [20, 70, 160],  amp: 0.18, freq: 0.8,  speed: 0.012, phase: 0,    yOff: 0.35 },
-      { color: [26, 180, 155], amp: 0.14, freq: 1.2,  speed: 0.018, phase: 2.1,  yOff: 0.45 },
-      { color: [83, 131, 220], amp: 0.12, freq: 1.5,  speed: 0.015, phase: 4.0,  yOff: 0.55 },
-      { color: [45, 90, 170],  amp: 0.16, freq: 0.6,  speed: 0.008, phase: 1.2,  yOff: 0.65 },
-      { color: [14, 76, 120],  amp: 0.10, freq: 1.9,  speed: 0.022, phase: 3.3,  yOff: 0.75 },
+      { color: [15, 40, 120],  amp: 0.20, freq: 0.7,  speed: 0.010, phase: 0,    yOff: 0.30 },
+      { color: [30, 65, 160],  amp: 0.16, freq: 1.1,  speed: 0.016, phase: 1.8,  yOff: 0.40 },
+      { color: [83, 131, 220], amp: 0.13, freq: 1.4,  speed: 0.013, phase: 3.5,  yOff: 0.50 },
+      { color: [45, 90, 180],  amp: 0.18, freq: 0.5,  speed: 0.007, phase: 1.0,  yOff: 0.62 },
+      { color: [20, 55, 140],  amp: 0.11, freq: 1.8,  speed: 0.020, phase: 2.8,  yOff: 0.72 },
+      { color: [60, 110, 200], amp: 0.09, freq: 2.2,  speed: 0.025, phase: 4.5,  yOff: 0.82 },
     ];
 
-    // Floating orbs for depth
+    // Floating orbs — all blue tones
     this.orbs = [];
-    for (let i = 0; i < 6; i++) {
+    const orbColors = [
+      [20, 55, 180], [45, 90, 200], [83, 131, 220],
+      [13, 36, 120], [55, 100, 190], [30, 70, 170],
+      [70, 120, 210], [40, 80, 160],
+    ];
+    for (let i = 0; i < 8; i++) {
       this.orbs.push({
         x: Math.random(),
         y: Math.random(),
-        r: 40 + Math.random() * 100,
-        vx: (Math.random() - 0.5) * 0.0004,
-        vy: (Math.random() - 0.5) * 0.0003,
-        color: [
-          [20, 80, 180],
-          [26, 160, 140],
-          [60, 120, 200],
-          [14, 60, 130],
-          [40, 100, 180],
-          [10, 140, 120]
-        ][i],
-        alpha: 0.06 + Math.random() * 0.06,
+        r: 50 + Math.random() * 120,
+        vx: (Math.random() - 0.5) * 0.0003,
+        vy: (Math.random() - 0.5) * 0.00025,
+        color: orbColors[i],
+        alpha: 0.04 + Math.random() * 0.06,
+      });
+    }
+
+    // Floating star particles
+    this.stars = [];
+    for (let i = 0; i < 60; i++) {
+      this.stars.push({
+        x: Math.random(),
+        y: Math.random(),
+        size: 0.5 + Math.random() * 2,
+        speed: 0.0001 + Math.random() * 0.0003,
+        twinkleSpeed: 0.02 + Math.random() * 0.04,
+        twinklePhase: Math.random() * Math.PI * 2,
+        alpha: 0.15 + Math.random() * 0.35,
       });
     }
 
@@ -142,29 +155,66 @@ class AuroraWaves {
     this._draw();
   }
 
+  _waveY(w, nx, H) {
+    const mouseBend = Math.sin((nx - this.mouse.x) * Math.PI) * (this.mouse.y - 0.5) * 0.05;
+    return w.yOff * H +
+      Math.sin(nx * Math.PI * 2 * w.freq + w.phase) * w.amp * H * 0.5 +
+      Math.sin(nx * Math.PI * 3.7 + w.phase * 1.3) * w.amp * H * 0.25 +
+      Math.cos(nx * Math.PI * 1.3 - w.phase * 0.7) * w.amp * H * 0.15 +
+      Math.sin(nx * Math.PI * 5.1 + w.phase * 0.5) * w.amp * H * 0.08 +
+      mouseBend * H;
+  }
+
   _draw() {
     const { ctx, W, H } = this;
     this.time += 1;
 
-    // Clear with slight trail for smooth motion — bg.png shows through
     ctx.clearRect(0, 0, W, H);
+
+    // ── Ambient background glow ───────────────────────────────────────────
+    const bgGlow = ctx.createRadialGradient(W * 0.3, H * 0.3, 0, W * 0.3, H * 0.3, W * 0.6);
+    bgGlow.addColorStop(0, 'rgba(20,55,120,0.06)');
+    bgGlow.addColorStop(1, 'rgba(10,22,40,0)');
+    ctx.fillStyle = bgGlow;
+    ctx.fillRect(0, 0, W, H);
+
+    // ── Twinkling star particles ──────────────────────────────────────────
+    for (const s of this.stars) {
+      s.y -= s.speed;
+      if (s.y < -0.02) { s.y = 1.02; s.x = Math.random(); }
+      const twinkle = 0.5 + Math.sin(this.time * s.twinkleSpeed + s.twinklePhase) * 0.5;
+      const a = s.alpha * twinkle;
+      if (a < 0.02) continue;
+      const sx = s.x * W, sy = s.y * H;
+      ctx.beginPath();
+      ctx.arc(sx, sy, s.size, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(180,200,255,${a.toFixed(3)})`;
+      ctx.fill();
+      // Tiny glow around brighter stars
+      if (s.size > 1.2 && a > 0.2) {
+        const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, s.size * 4);
+        glow.addColorStop(0, `rgba(130,170,255,${(a * 0.2).toFixed(3)})`);
+        glow.addColorStop(1, 'rgba(130,170,255,0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(sx - s.size * 4, sy - s.size * 4, s.size * 8, s.size * 8);
+      }
+    }
 
     // ── Floating gradient orbs ────────────────────────────────────────────
     for (const orb of this.orbs) {
-      // Drift
-      orb.x += orb.vx + (this.mouse.x - 0.5) * 0.00015;
-      orb.y += orb.vy + (this.mouse.y - 0.5) * 0.00012;
-      // Wrap
-      if (orb.x < -0.1) orb.x = 1.1;
-      if (orb.x > 1.1) orb.x = -0.1;
-      if (orb.y < -0.1) orb.y = 1.1;
-      if (orb.y > 1.1) orb.y = -0.1;
+      orb.x += orb.vx + (this.mouse.x - 0.5) * 0.0001;
+      orb.y += orb.vy + (this.mouse.y - 0.5) * 0.00008;
+      if (orb.x < -0.15) orb.x = 1.15;
+      if (orb.x > 1.15) orb.x = -0.15;
+      if (orb.y < -0.15) orb.y = 1.15;
+      if (orb.y > 1.15) orb.y = -0.15;
 
       const cx = orb.x * W;
       const cy = orb.y * H;
-      const rScale = orb.r * (1 + Math.sin(this.time * 0.008 + orb.x * 5) * 0.2);
+      const rScale = orb.r * (1 + Math.sin(this.time * 0.006 + orb.x * 4) * 0.25);
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rScale);
       grad.addColorStop(0, `rgba(${orb.color[0]},${orb.color[1]},${orb.color[2]},${orb.alpha})`);
+      grad.addColorStop(0.6, `rgba(${orb.color[0]},${orb.color[1]},${orb.color[2]},${(orb.alpha * 0.3).toFixed(4)})`);
       grad.addColorStop(1, `rgba(${orb.color[0]},${orb.color[1]},${orb.color[2]},0)`);
       ctx.fillStyle = grad;
       ctx.fillRect(cx - rScale, cy - rScale, rScale * 2, rScale * 2);
@@ -175,57 +225,51 @@ class AuroraWaves {
       w.phase += w.speed;
       ctx.beginPath();
       ctx.moveTo(0, H);
-
       for (let x = 0; x <= W; x += 3) {
-        const nx = x / W;
-        // Multi-sine for organic feel, mouse bends the wave
-        const mouseBend = Math.sin((nx - this.mouse.x) * Math.PI) * (this.mouse.y - 0.5) * 0.04;
-        const y = w.yOff * H +
-          Math.sin(nx * Math.PI * 2 * w.freq + w.phase) * w.amp * H * 0.5 +
-          Math.sin(nx * Math.PI * 3.7 + w.phase * 1.3) * w.amp * H * 0.25 +
-          Math.cos(nx * Math.PI * 1.3 - w.phase * 0.7) * w.amp * H * 0.15 +
-          mouseBend * H;
-        ctx.lineTo(x, y);
+        ctx.lineTo(x, this._waveY(w, x / W, H));
       }
-
       ctx.lineTo(W, H);
       ctx.closePath();
 
-      // Gradient fill: colour at top of wave, transparent at bottom
       const grad = ctx.createLinearGradient(0, w.yOff * H - w.amp * H, 0, H);
-      grad.addColorStop(0, `rgba(${w.color[0]},${w.color[1]},${w.color[2]},0.13)`);
-      grad.addColorStop(0.4, `rgba(${w.color[0]},${w.color[1]},${w.color[2]},0.06)`);
+      grad.addColorStop(0, `rgba(${w.color[0]},${w.color[1]},${w.color[2]},0.14)`);
+      grad.addColorStop(0.35, `rgba(${w.color[0]},${w.color[1]},${w.color[2]},0.07)`);
       grad.addColorStop(1, `rgba(${w.color[0]},${w.color[1]},${w.color[2]},0)`);
       ctx.fillStyle = grad;
       ctx.fill();
 
-      // Thin glowing edge line at the wave crest
+      // Glowing crest line
       ctx.beginPath();
       for (let x = 0; x <= W; x += 3) {
-        const nx = x / W;
-        const mouseBend = Math.sin((nx - this.mouse.x) * Math.PI) * (this.mouse.y - 0.5) * 0.04;
-        const y = w.yOff * H +
-          Math.sin(nx * Math.PI * 2 * w.freq + w.phase) * w.amp * H * 0.5 +
-          Math.sin(nx * Math.PI * 3.7 + w.phase * 1.3) * w.amp * H * 0.25 +
-          Math.cos(nx * Math.PI * 1.3 - w.phase * 0.7) * w.amp * H * 0.15 +
-          mouseBend * H;
+        const y = this._waveY(w, x / W, H);
         if (x === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
-      const pulse = 0.5 + Math.sin(this.time * 0.02 + w.phase) * 0.3;
-      ctx.strokeStyle = `rgba(${w.color[0]},${w.color[1]},${w.color[2]},${(0.15 + pulse * 0.1).toFixed(3)})`;
-      ctx.lineWidth = 1.5;
+      const pulse = 0.5 + Math.sin(this.time * 0.018 + w.phase) * 0.35;
+      ctx.strokeStyle = `rgba(${w.color[0]},${w.color[1]},${w.color[2]},${(0.18 + pulse * 0.12).toFixed(3)})`;
+      ctx.lineWidth = 1.8;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = `rgba(${w.color[0]},${w.color[1]},${w.color[2]},0.15)`;
       ctx.stroke();
+      ctx.shadowBlur = 0;
     }
 
-    // ── Subtle moving highlight spot that follows mouse ───────────────────
+    // ── Mouse-following spotlight ──────────────────────────────────────────
     const spotX = this.mouse.x * W;
     const spotY = this.mouse.y * H;
-    const spotR = 180 + Math.sin(this.time * 0.015) * 40;
+    const spotR = 200 + Math.sin(this.time * 0.012) * 50;
     const spotGrad = ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, spotR);
-    spotGrad.addColorStop(0, 'rgba(83,131,220,0.07)');
+    spotGrad.addColorStop(0, 'rgba(83,131,220,0.09)');
+    spotGrad.addColorStop(0.5, 'rgba(45,90,170,0.03)');
     spotGrad.addColorStop(1, 'rgba(83,131,220,0)');
     ctx.fillStyle = spotGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // ── Gentle vignette ───────────────────────────────────────────────────
+    const vig = ctx.createRadialGradient(W / 2, H / 2, W * 0.25, W / 2, H / 2, W * 0.75);
+    vig.addColorStop(0, 'rgba(0,0,0,0)');
+    vig.addColorStop(1, 'rgba(6,14,36,0.15)');
+    ctx.fillStyle = vig;
     ctx.fillRect(0, 0, W, H);
   }
 
@@ -2048,7 +2092,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }, { passive: true });
   }
-});
+
   // 8. Tilt effect on tool cards (desktop only)
   if (!('ontouchstart' in window)) {
     document.querySelectorAll('.tool-card').forEach(card => {
@@ -2056,7 +2100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const rect = card.getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width - 0.5;
         const y = (e.clientY - rect.top) / rect.height - 0.5;
-        card.style.transform = `translateY(-6px) perspective(600px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg) scale(1.01)`;
+        card.style.transform = `translateY(-8px) perspective(600px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) scale(1.015)`;
       });
       card.addEventListener('mouseleave', () => {
         card.style.transform = '';
@@ -2073,7 +2117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         requestAnimationFrame(() => {
           if (window.scrollY > 60) {
             topnav.style.padding = '0.4rem ' + getComputedStyle(topnav).paddingRight;
-            topnav.style.boxShadow = '0 2px 20px rgba(0,0,0,0.15)';
+            topnav.style.boxShadow = '0 2px 24px rgba(20,55,120,0.2)';
           } else {
             topnav.style.padding = '';
             topnav.style.boxShadow = '';
@@ -2084,3 +2128,45 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }, { passive: true });
   }
+
+  // 10. Magnetic hover for truth cards & keyword cards (desktop)
+  if (!('ontouchstart' in window)) {
+    document.querySelectorAll('.truth-card, .keyword-card, .micro-step, .growth-list li').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        card.style.transform = `translateY(-4px) perspective(800px) rotateY(${x * 4}deg) rotateX(${-y * 4}deg) scale(1.01)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+      });
+    });
+  }
+
+  // 11. Smooth section progress indicator (blue line at top of viewport)
+  const progressBar = document.createElement('div');
+  progressBar.style.cssText = 'position:fixed;top:0;left:0;height:3px;z-index:1001;' +
+    'background:linear-gradient(90deg,#143778,#5383DC,#2D5AAA);' +
+    'transition:width 0.15s linear;width:0;pointer-events:none;border-radius:0 2px 2px 0;' +
+    'box-shadow:0 0 8px rgba(83,131,220,0.4);';
+  document.body.appendChild(progressBar);
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = docH > 0 ? (scrollTop / docH * 100) + '%' : '0%';
+  }, { passive: true });
+
+  // 12. Animated section dividers — add wave SVGs between sections
+  document.querySelectorAll('.section + .section').forEach(section => {
+    const divider = document.createElement('div');
+    divider.className = 'wave-divider';
+    divider.innerHTML = `<svg viewBox="0 0 1440 60" preserveAspectRatio="none" style="display:block;width:100%;height:40px;">
+      <path d="M0,30 C180,60 360,0 540,30 C720,60 900,0 1080,30 C1260,60 1440,0 1440,30 L1440,60 L0,60 Z" fill="var(--primary-light)" opacity="0.5"/>
+      <path d="M0,35 C240,10 480,55 720,35 C960,15 1200,50 1440,35 L1440,60 L0,60 Z" fill="var(--bg)" opacity="0.3"/>
+    </svg>`;
+    divider.style.cssText = 'margin:-1px 0;position:relative;z-index:1;overflow:hidden;line-height:0;';
+    section.parentNode.insertBefore(divider, section);
+  });
+
+});
