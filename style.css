@@ -130,7 +130,7 @@ a { color: var(--accent); text-decoration: none; }
   display: flex;
   width: 100%;
   min-height: calc(100vh - 52px);
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 0 6%;
   gap: 2rem;
@@ -147,14 +147,16 @@ a { color: var(--accent); text-decoration: none; }
   font-weight: 700;
 }
 
-/* Hero text — left side */
+/* Hero text — centered */
 .hero-right {
-  flex: 1;
-  max-width: 600px;
+  flex: 0 1 auto;
+  max-width: 700px;
   padding: 3rem 2.5rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+  text-align: center;
   gap: 1.5rem;
   background: none;
   backdrop-filter: none;
@@ -162,7 +164,7 @@ a { color: var(--accent); text-decoration: none; }
   border-radius: 0;
   border: none;
   box-shadow: none;
-  margin: 0;
+  margin: 0 auto;
 }
 
 /* Dark mode panel overrides */
@@ -193,16 +195,7 @@ a { color: var(--accent); text-decoration: none; }
 
 /* ── ANALOG CLOCK ────────────────────────────────────────────────────────── */
 .hero-analog-wrap {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-#analog-clock {
-  width: 380px;
-  height: 380px;
-  display: block;
-  filter: drop-shadow(0 8px 32px rgba(14,76,52,0.22)) drop-shadow(0 2px 8px rgba(0,0,0,0.10));
+  display: none;
 }
 
 .clock-block { display:flex; flex-direction:column; gap:0.2rem; }
@@ -221,7 +214,7 @@ a { color: var(--accent); text-decoration: none; }
   line-height: 1.1;
 }
 .hero-sub { color: var(--text-muted); font-size:1rem; }
-.hero-stats { display:flex; gap:2rem; }
+.hero-stats { display:flex; gap:2rem; justify-content:center; }
 .stat { display:flex; flex-direction:column; }
 .stat-num { font-size:2rem; font-weight:700; color:var(--accent); line-height:1; }
 .stat-lbl { font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; }
@@ -1254,10 +1247,8 @@ input:checked + .slider:before { transform:translateX(18px); }
 
 /* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .hero-inner { flex-direction: column; align-items: flex-start; padding: 1.5rem; gap: 2rem; }
+  .hero-inner { flex-direction: column; align-items: center; padding: 1.5rem; gap: 2rem; }
   .hero-right { max-width: 100%; padding: 0; }
-  .hero-analog-wrap { align-self: center; }
-  .hero-analog-wrap canvas { width: 240px !important; height: 240px !important; }
   .hero-title { font-size:1.8rem; }
   .clock { font-size:2rem; }
   .two-col { grid-template-columns:1fr; }
