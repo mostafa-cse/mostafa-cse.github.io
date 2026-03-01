@@ -34,11 +34,11 @@
 }
 
 [data-dark="true"] {
-  --bg:        #0a0e1a;
-  --bg-card:   #141829;
+  --bg:        #080e22;
+  --bg-card:   #111830;
   --text:      #e8eaf0;
   --text-muted:#8890a4;
-  --border:    #1e2338;
+  --border:    #1a2340;
   --shadow:    0 4px 24px rgba(0,0,0,0.4);
   --accent-glow: rgba(83,131,220,0.25);
 }
@@ -70,7 +70,7 @@ img, svg { display: block; max-width: 100%; }
   transition: background var(--transition), padding 0.3s ease, box-shadow 0.3s ease;
 }
 [data-theme="ramadan"] .topnav { background: rgba(20,55,120,0.85); }
-[data-dark="true"] .topnav { background: rgba(10,12,24,0.92); }
+[data-dark="true"] .topnav { background: rgba(13,30,72,0.93); }
 .nav-brand { display:flex; align-items:center; gap:0.5rem; flex-shrink:0; }
 .nav-logo { font-size:1.3rem; }
 .nav-title { color:#fff; font-weight:700; font-family:var(--font-serif); font-size:1rem; letter-spacing:0.01em; }
@@ -357,7 +357,7 @@ img, svg { display: block; max-width: 100%; }
 /* ── SECTIONS ────────────────────────────────────────────────────────────── */
 .section { padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1rem, 4vw, 2rem); }
 .alt-section { background: var(--primary-light); }
-[data-dark="true"] .alt-section { background: #12141f; }
+[data-dark="true"] .alt-section { background: #0f1530; }
 .container { max-width: 1100px; margin: 0 auto; }
 .section-heading {
   font-family: var(--font-serif);
@@ -799,10 +799,10 @@ img, svg { display: block; max-width: 100%; }
 }
 .golden-list li:hover {
   transform: translateX(6px);
-  background: #ffffff;
-  color: #000000;
+  background: var(--primary-light);
+  color: var(--primary-dark);
   border-color: var(--accent);
-  box-shadow: 0 4px 16px rgba(20,55,120,0.1);
+  box-shadow: 0 4px 16px rgba(20,55,120,0.15);
 }
 .golden-list li:hover .golden-bullet {
   animation: wiggle 0.5s ease;
