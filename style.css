@@ -199,8 +199,8 @@ a { color: var(--accent); text-decoration: none; }
   justify-content: center;
 }
 #analog-clock {
-  width: 300px;
-  height: 300px;
+  width: 380px;
+  height: 380px;
   display: block;
   filter: drop-shadow(0 8px 32px rgba(14,76,52,0.22)) drop-shadow(0 2px 8px rgba(0,0,0,0.10));
 }
@@ -1193,7 +1193,7 @@ input:checked + .slider:before { transform:translateX(18px); }
   .hero-inner { flex-direction: column; align-items: flex-start; padding: 1.5rem; gap: 2rem; }
   .hero-right { max-width: 100%; padding: 0; }
   .hero-analog-wrap { align-self: center; }
-  .hero-analog-wrap canvas { width: 200px !important; height: 200px !important; }
+  .hero-analog-wrap canvas { width: 240px !important; height: 240px !important; }
   .hero-title { font-size:1.8rem; }
   .clock { font-size:2rem; }
   .two-col { grid-template-columns:1fr; }

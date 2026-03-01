@@ -7,6 +7,36 @@
 'use strict';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
+const APP_TIMEZONE = 'Asia/Dhaka';
+
+function zonedNow(timeZone = APP_TIMEZONE) {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    hour12: false,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).formatToParts(now).reduce((acc, part) => {
+    if (part.type !== 'literal') acc[part.type] = part.value;
+    return acc;
+  }, {});
+
+  return new Date(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second),
+    now.getMilliseconds()
+  );
+}
+
 function pad(n, d = 2) { return String(n).padStart(d, '0'); }
 function hhmm(h, m) { return pad(h) + ':' + pad(m); }
 function parseHHMM(str) {
@@ -20,8 +50,8 @@ function addMinutes(timeStr, delta) {
   if (t >= 1440) t -= 1440;
   return minsToHHMM(t);
 }
-function nowMinutes(d = new Date()) { return d.getHours() * 60 + d.getMinutes(); }
-function secondsUntil(targetHHMM, now = new Date()) {
+function nowMinutes(d = zonedNow()) { return d.getHours() * 60 + d.getMinutes(); }
+function secondsUntil(targetHHMM, now = zonedNow()) {
   const tm = parseHHMM(targetHHMM) * 60;
   const nm = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
   let diff = tm - nm;
@@ -525,7 +555,7 @@ class NextPrayerWatch {
     this.scene.add(this.prayerArc);
   }
 
-  _updateDigital(now = new Date()) {
+  _updateDigital(now = zonedNow()) {
     const next = this._getNextPrayer(now);
     const nameEl = document.getElementById('next-prayer-name');
     const cdEl = document.getElementById('next-prayer-countdown');
@@ -544,7 +574,7 @@ class NextPrayerWatch {
 
   _loop() {
     const tick = () => {
-      const now = new Date();
+      const now = zonedNow();
       if (this.renderer && this.scene) {
         this._updateHands(now);
         this._updatePrayerArc(now);
@@ -568,7 +598,7 @@ class RealTimeClock {
     setInterval(() => this._tick(), 100);
   }
   _tick() {
-    const now = new Date();
+    const now = zonedNow();
     const s = now.getSeconds();
     if (s !== this._last) {
       this._last = s;
@@ -593,7 +623,7 @@ class AnalogClock {
     this._ctx = this._canvas.getContext('2d');
     // Retina/HiDPI support
     const dpr = window.devicePixelRatio || 1;
-    const size = 300;
+    const size = 380;
     this._canvas.width  = size * dpr;
     this._canvas.height = size * dpr;
     this._canvas.style.width  = size + 'px';
@@ -614,7 +644,7 @@ class AnalogClock {
     const cx   = S / 2, cy = S / 2;
     const R    = S / 2 - 6; // outer radius
     const dark = this._isDark();
-    const now  = new Date();
+    const now  = zonedNow();
     const hrs  = now.getHours() % 12 + now.getMinutes() / 60 + now.getSeconds() / 3600;
     const min  = now.getMinutes() + now.getSeconds() / 60;
     const sec  = now.getSeconds() + now.getMilliseconds() / 1000;
@@ -796,7 +826,7 @@ class TimelineView {
     if (!this._tbody) return;
     this._tbody.innerHTML = '';
     const routine = window.ROUTINE || [];
-    const nowMins = nowMinutes(new Date());
+    const nowMins = nowMinutes(zonedNow());
     for (const b of routine) {
       if (b.ramadanOnly && !window._isRamadan) continue;
       const blockEnd = parseHHMM(b.end);
@@ -875,7 +905,7 @@ class PrayerTimeService {
   // Fetch from Aladhan API given lat/lon
   static async _fetchAladhan(lat, lng) {
     const method = window.PRAYER_METHOD || 2;
-    const today  = new Date();
+    const today  = zonedNow();
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yyyy = today.getFullYear();
@@ -918,13 +948,13 @@ class PrayerTimeService {
   static fromGeolocation() {
     return new Promise(async resolve => {
       // Use LOCAL date (not UTC) as cache key — avoids timezone-crossing cache miss
-      const now   = new Date();
+      const now   = zonedNow();
       const local = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
       const cacheKey = 'prayer_' + local;
       const FALLBACK_DEFAULTS = ['04:30', '12:30', '15:45', '18:10', '20:00'];
 
       // Purge any UTC-keyed stale entries from previous sessions
-      const utcKey = 'prayer_' + new Date().toISOString().slice(0, 10);
+      const utcKey = 'prayer_' + zonedNow().toISOString().slice(0, 10);
       if (utcKey !== cacheKey) localStorage.removeItem(utcKey);
 
       // Check local-date cache — skip if it holds the hardcoded defaults
@@ -1061,7 +1091,7 @@ class PrayerTimeService {
     if (srcEl) srcEl.hidden = false;
 
     // Highlight the currently-next prayer pill
-    const now = new Date();
+    const now = zonedNow();
     const nowMins = now.getHours() * 60 + now.getMinutes();
     const toMins = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
     const prayers = [
@@ -1687,7 +1717,7 @@ function renderContent() {
 // THEME / MODE DETECTION
 // ══════════════════════════════════════════════════════════════════════════════
 async function detectRamadan() {
-  const today = new Date();
+  const today = zonedNow();
   // Use local date (not UTC) to avoid timezone-crossing false negatives
   const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
 
@@ -1767,7 +1797,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Footer year
   const yearEl = document.getElementById('footer-year');
-  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  if (yearEl) yearEl.textContent = zonedNow().getFullYear();
 
   // 1. Detect mode
   const isRamadan = await detectRamadan();
@@ -1820,17 +1850,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Refresh button — clears today's cache and re-fetches
   document.getElementById('prayer-refresh-btn')?.addEventListener('click', () => {
-    const d = new Date();
+    const d = zonedNow();
     const local = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     localStorage.removeItem('prayer_' + local);
-    localStorage.removeItem('prayer_' + new Date().toISOString().slice(0, 10)); // also clear UTC key
+    localStorage.removeItem('prayer_' + zonedNow().toISOString().slice(0, 10)); // also clear UTC key
     PrayerTimeService._setLabel('🔄 Refreshing prayer times…', false);
     runPrayerFetch();
   });
 
   // Banner retry button
   document.getElementById('geo-banner-retry')?.addEventListener('click', () => {
-    const d = new Date();
+    const d = zonedNow();
     const local = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     localStorage.removeItem('prayer_' + local);
     document.getElementById('geo-banner').hidden = true;
@@ -1902,7 +1932,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 17. Auto-switch mode at midnight (Ramadan start/end transitions without reload)
   const schedMidnightCheck = () => {
-    const now = new Date();
+    const now = zonedNow();
     const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now;
     setTimeout(async () => {
       const wasRamadan = window._isRamadan;
@@ -2003,7 +2033,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const clockEl = document.getElementById('clock-display');
   let lastSec = -1;
   const addTickOnSecond = () => {
-    const s = new Date().getSeconds();
+    const s = zonedNow().getSeconds();
     if (s !== lastSec && clockEl) {
       lastSec = s;
       clockEl.classList.remove('tick');
