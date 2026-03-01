@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    CP Routine — app.js
-   All classes: ThreeJSBackground, NextPrayerWatch, RealTimeClock,
+   All classes: AuroraWaves, ThreeJSBackground, NextPrayerWatch, RealTimeClock,
    RoutineEngine, TimelineView, PrayerTimeService, RamadanCountdown,
    AudioAlertService, Stopwatch, CountdownTimer
 ════════════════════════════════════════════════════════════════════════════ */
@@ -72,39 +72,55 @@ function dispatch(name, detail = {}) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// CANVAS 2D PARTICLE NETWORK (canvas3-style indigo network)
+// CANVAS 2D AURORA WAVES (smooth continuous gradient animation)
 // ══════════════════════════════════════════════════════════════════════════════
-class ParticleNetwork {
+class AuroraWaves {
   constructor(canvasId) {
     this.canvas = document.getElementById(canvasId);
     if (!this.canvas) return;
     this.ctx = this.canvas.getContext('2d');
-
-    // Colors matching the navy + teal palette of bg.png
-    this._colors = [
-      '#1a2a72', '#2d3a9c', '#0d1f6e', '#3b4dbf',
-      '#1a5e8a', '#0d4d7a', '#205080', '#162060'
-    ];
-
-    this.particles = [];
-    this.mouse = { x: -9999, y: -9999 };
-
+    this.mouse = { x: 0.5, y: 0.5 };
+    this.time = 0;
     this._resize();
-    this._initParticles(300);
 
     window.addEventListener('resize', () => this._resize());
 
-    // Listen on hero parent so mouse events aren't blocked by overlaid content
     const hero = this.canvas.closest('.hero') || this.canvas.parentElement;
     if (hero) {
       hero.addEventListener('mousemove', e => {
         const r = this.canvas.getBoundingClientRect();
-        this.mouse.x = e.clientX - r.left;
-        this.mouse.y = e.clientY - r.top;
+        this.mouse.x = (e.clientX - r.left) / this.W;
+        this.mouse.y = (e.clientY - r.top) / this.H;
       });
-      hero.addEventListener('mouseleave', () => {
-        this.mouse.x = -9999;
-        this.mouse.y = -9999;
+    }
+
+    // Wave layers — each has its own colour, speed, amplitude
+    this.waves = [
+      { color: [20, 70, 160],  amp: 0.18, freq: 0.8,  speed: 0.012, phase: 0,    yOff: 0.35 },
+      { color: [26, 180, 155], amp: 0.14, freq: 1.2,  speed: 0.018, phase: 2.1,  yOff: 0.45 },
+      { color: [83, 131, 220], amp: 0.12, freq: 1.5,  speed: 0.015, phase: 4.0,  yOff: 0.55 },
+      { color: [45, 90, 170],  amp: 0.16, freq: 0.6,  speed: 0.008, phase: 1.2,  yOff: 0.65 },
+      { color: [14, 76, 120],  amp: 0.10, freq: 1.9,  speed: 0.022, phase: 3.3,  yOff: 0.75 },
+    ];
+
+    // Floating orbs for depth
+    this.orbs = [];
+    for (let i = 0; i < 6; i++) {
+      this.orbs.push({
+        x: Math.random(),
+        y: Math.random(),
+        r: 40 + Math.random() * 100,
+        vx: (Math.random() - 0.5) * 0.0004,
+        vy: (Math.random() - 0.5) * 0.0003,
+        color: [
+          [20, 80, 180],
+          [26, 160, 140],
+          [60, 120, 200],
+          [14, 60, 130],
+          [40, 100, 180],
+          [10, 140, 120]
+        ][i],
+        alpha: 0.06 + Math.random() * 0.06,
       });
     }
 
@@ -115,30 +131,10 @@ class ParticleNetwork {
   _resize() {
     this.W = this.canvas.offsetWidth  || this.canvas.parentElement.offsetWidth;
     this.H = this.canvas.offsetHeight || this.canvas.parentElement.offsetHeight;
-    this.canvas.width  = this.W;
-    this.canvas.height = this.H;
-    // Re-distribute particles within new bounds
-    if (this.particles.length) {
-      this.particles.forEach(p => {
-        p.x = Math.random() * this.W;
-        p.y = Math.random() * this.H;
-      });
-    }
-  }
-
-  _initParticles(n) {
-    this.particles = [];
-    for (let i = 0; i < n; i++) {
-      this.particles.push({
-        x:     Math.random() * this.W,
-        y:     Math.random() * this.H,
-        vx:    (Math.random() - 0.5) * 0.55,
-        vy:    (Math.random() - 0.5) * 0.55,
-        r:     1.5 + Math.random() * 2.2,
-        color: this._colors[Math.floor(Math.random() * this._colors.length)],
-        alpha: 0.55 + Math.random() * 0.45,
-      });
-    }
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.canvas.width  = this.W * dpr;
+    this.canvas.height = this.H * dpr;
+    this.ctx.scale(dpr, dpr);
   }
 
   _loop() {
@@ -148,127 +144,89 @@ class ParticleNetwork {
 
   _draw() {
     const { ctx, W, H } = this;
+    this.time += 1;
 
-    // Transparent — bg.png shows through
+    // Clear with slight trail for smooth motion — bg.png shows through
     ctx.clearRect(0, 0, W, H);
 
-    const LINK_DIST    = 190;
-    const MOUSE_REPEL  = 110;
-    const MAX_SPEED    = 1.6;
-    const MIN_SPEED_SQ = 0.01;
+    // ── Floating gradient orbs ────────────────────────────────────────────
+    for (const orb of this.orbs) {
+      // Drift
+      orb.x += orb.vx + (this.mouse.x - 0.5) * 0.00015;
+      orb.y += orb.vy + (this.mouse.y - 0.5) * 0.00012;
+      // Wrap
+      if (orb.x < -0.1) orb.x = 1.1;
+      if (orb.x > 1.1) orb.x = -0.1;
+      if (orb.y < -0.1) orb.y = 1.1;
+      if (orb.y > 1.1) orb.y = -0.1;
 
-    // ── update positions ──────────────────────────────────────────────────
-    for (const p of this.particles) {
-      const dx   = p.x - this.mouse.x;
-      const dy   = p.y - this.mouse.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      if (dist < MOUSE_REPEL && dist > 0) {
-        const force = (MOUSE_REPEL - dist) / MOUSE_REPEL;
-        p.vx += (dx / dist) * force * 0.55;
-        p.vy += (dy / dist) * force * 0.55;
-      }
-
-      // Damping
-      p.vx *= 0.97;
-      p.vy *= 0.97;
-
-      // Random micro-jitter so still particles drift again
-      if (p.vx * p.vx + p.vy * p.vy < MIN_SPEED_SQ) {
-        p.vx += (Math.random() - 0.5) * 0.06;
-        p.vy += (Math.random() - 0.5) * 0.06;
-      }
-
-      // Clamp max speed
-      const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-      if (spd > MAX_SPEED) { p.vx *= MAX_SPEED / spd; p.vy *= MAX_SPEED / spd; }
-
-      p.x += p.vx;
-      p.y += p.vy;
-
-      // Wrap edges
-      if (p.x < 0)  p.x = W;
-      if (p.x > W)  p.x = 0;
-      if (p.y < 0)  p.y = H;
-      if (p.y > H)  p.y = 0;
+      const cx = orb.x * W;
+      const cy = orb.y * H;
+      const rScale = orb.r * (1 + Math.sin(this.time * 0.008 + orb.x * 5) * 0.2);
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rScale);
+      grad.addColorStop(0, `rgba(${orb.color[0]},${orb.color[1]},${orb.color[2]},${orb.alpha})`);
+      grad.addColorStop(1, `rgba(${orb.color[0]},${orb.color[1]},${orb.color[2]},0)`);
+      ctx.fillStyle = grad;
+      ctx.fillRect(cx - rScale, cy - rScale, rScale * 2, rScale * 2);
     }
 
-    // ── draw connections ──────────────────────────────────────────────────
-    for (let i = 0; i < this.particles.length; i++) {
-      for (let j = i + 1; j < this.particles.length; j++) {
-        const a = this.particles[i];
-        const b = this.particles[j];
-        const dx = a.x - b.x;
-        const dy = a.y - b.y;
-        const d2 = dx * dx + dy * dy;
-        if (d2 < LINK_DIST * LINK_DIST) {
-          const alpha = (1 - Math.sqrt(d2) / LINK_DIST) * 0.55;
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.strokeStyle = `rgba(26,180,155,${alpha.toFixed(3)})`;
-          ctx.lineWidth   = 0.9;
-          ctx.stroke();
-        }
-      }
-    }
-
-    // ── draw particles ────────────────────────────────────────────────────
-    for (const p of this.particles) {
-      ctx.globalAlpha = p.alpha;
+    // ── Flowing wave layers ───────────────────────────────────────────────
+    for (const w of this.waves) {
+      w.phase += w.speed;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = p.color;
+      ctx.moveTo(0, H);
+
+      for (let x = 0; x <= W; x += 3) {
+        const nx = x / W;
+        // Multi-sine for organic feel, mouse bends the wave
+        const mouseBend = Math.sin((nx - this.mouse.x) * Math.PI) * (this.mouse.y - 0.5) * 0.04;
+        const y = w.yOff * H +
+          Math.sin(nx * Math.PI * 2 * w.freq + w.phase) * w.amp * H * 0.5 +
+          Math.sin(nx * Math.PI * 3.7 + w.phase * 1.3) * w.amp * H * 0.25 +
+          Math.cos(nx * Math.PI * 1.3 - w.phase * 0.7) * w.amp * H * 0.15 +
+          mouseBend * H;
+        ctx.lineTo(x, y);
+      }
+
+      ctx.lineTo(W, H);
+      ctx.closePath();
+
+      // Gradient fill: colour at top of wave, transparent at bottom
+      const grad = ctx.createLinearGradient(0, w.yOff * H - w.amp * H, 0, H);
+      grad.addColorStop(0, `rgba(${w.color[0]},${w.color[1]},${w.color[2]},0.13)`);
+      grad.addColorStop(0.4, `rgba(${w.color[0]},${w.color[1]},${w.color[2]},0.06)`);
+      grad.addColorStop(1, `rgba(${w.color[0]},${w.color[1]},${w.color[2]},0)`);
+      ctx.fillStyle = grad;
       ctx.fill();
-    }
-    ctx.globalAlpha = 1;
 
-    // ── spinning gear wheels ──────────────────────────────────────────────
-    this._gearAngle = (this._gearAngle || 0) + 0.022;
-    this._drawGear(W * 0.88, H * 0.14, 140, 100, 14, this._gearAngle,        0.28);
-    this._drawGear(W * 0.10, H * 0.78,  90,  65, 10, -this._gearAngle * 1.6, 0.22);
-    this._drawGear(W * 0.50, H * 0.94,  55,  38,  8,  this._gearAngle * 2.5, 0.18);
-  }
-
-  _drawGear(cx, cy, outerR, innerR, teeth, angle, alpha) {
-    const ctx  = this.ctx;
-    const step = (Math.PI * 2) / teeth;
-    const tw   = step * 0.38; // tooth arc half-width
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.strokeStyle = 'rgba(26,100,180,0.7)';
-    ctx.lineWidth   = 1.4;
-    ctx.translate(cx, cy);
-    ctx.rotate(angle);
-
-    // Gear outline
-    ctx.beginPath();
-    for (let i = 0; i < teeth; i++) {
-      const a = i * step;
-      ctx.lineTo(Math.cos(a - tw) * innerR, Math.sin(a - tw) * innerR);
-      ctx.lineTo(Math.cos(a - tw) * outerR, Math.sin(a - tw) * outerR);
-      ctx.lineTo(Math.cos(a + tw) * outerR, Math.sin(a + tw) * outerR);
-      ctx.lineTo(Math.cos(a + tw) * innerR, Math.sin(a + tw) * innerR);
-    }
-    ctx.closePath();
-    ctx.stroke();
-
-    // Hub ring
-    const hub = innerR * 0.28;
-    ctx.beginPath();
-    ctx.arc(0, 0, hub, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Spokes
-    const spokePairs = Math.min(teeth, 6);
-    for (let i = 0; i < spokePairs; i++) {
-      const a = (i / spokePairs) * Math.PI * 2;
+      // Thin glowing edge line at the wave crest
       ctx.beginPath();
-      ctx.moveTo(Math.cos(a) * hub, Math.sin(a) * hub);
-      ctx.lineTo(Math.cos(a) * innerR * 0.82, Math.sin(a) * innerR * 0.82);
+      for (let x = 0; x <= W; x += 3) {
+        const nx = x / W;
+        const mouseBend = Math.sin((nx - this.mouse.x) * Math.PI) * (this.mouse.y - 0.5) * 0.04;
+        const y = w.yOff * H +
+          Math.sin(nx * Math.PI * 2 * w.freq + w.phase) * w.amp * H * 0.5 +
+          Math.sin(nx * Math.PI * 3.7 + w.phase * 1.3) * w.amp * H * 0.25 +
+          Math.cos(nx * Math.PI * 1.3 - w.phase * 0.7) * w.amp * H * 0.15 +
+          mouseBend * H;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      const pulse = 0.5 + Math.sin(this.time * 0.02 + w.phase) * 0.3;
+      ctx.strokeStyle = `rgba(${w.color[0]},${w.color[1]},${w.color[2]},${(0.15 + pulse * 0.1).toFixed(3)})`;
+      ctx.lineWidth = 1.5;
       ctx.stroke();
     }
-    ctx.restore();
+
+    // ── Subtle moving highlight spot that follows mouse ───────────────────
+    const spotX = this.mouse.x * W;
+    const spotY = this.mouse.y * H;
+    const spotR = 180 + Math.sin(this.time * 0.015) * 40;
+    const spotGrad = ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, spotR);
+    spotGrad.addColorStop(0, 'rgba(83,131,220,0.07)');
+    spotGrad.addColorStop(1, 'rgba(83,131,220,0)');
+    ctx.fillStyle = spotGrad;
+    ctx.fillRect(0, 0, W, H);
   }
 
   destroy() {
@@ -1816,8 +1774,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 3. Render content sections
   renderContent();
 
-  // 4. Particle network animation (canvas3-style indigo floating network)
-  _bg = new ParticleNetwork('hero-canvas');
+  // 4. Aurora waves animation (smooth continuous flowing background)
+  _bg = new AuroraWaves('hero-canvas');
   new AnalogClock('analog-clock');
 
   // 5. Prayer watch widget
@@ -2090,7 +2048,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }, { passive: true });
   }
-
+});
   // 8. Tilt effect on tool cards (desktop only)
   if (!('ontouchstart' in window)) {
     document.querySelectorAll('.tool-card').forEach(card => {
