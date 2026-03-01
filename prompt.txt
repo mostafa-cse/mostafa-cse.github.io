@@ -1,0 +1,623 @@
+================================================================================
+  CP ROUTINE — STATIC WEBSITE BUILD PROMPT
+  Paste ALL sections below as ONE prompt into any AI assistant (Copilot, Claude,
+  ChatGPT) to generate the complete working codebase in a single response.
+================================================================================
+
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 1 — PROJECT SCAFFOLD
+────────────────────────────────────────────────────────────────────────────────
+
+Create a static single-page website (HTML + CSS + vanilla JS, no frameworks,
+no build tools, no npm).
+
+File structure:
+  index.html
+  style.css
+  app.js
+  three.min.js          ← include Three.js r165 locally (download from
+                            https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.min.js)
+                            so the site works fully offline after first setup.
+  data/ramadan.js
+  data/general.js
+
+Requirements:
+
+1. REAL-TIME CLOCK
+   - Displayed at the top of the page, updates every second.
+   - Shows HH:MM:SS and the full date (e.g. Sunday, 1 March 2026).
+
+2. AUTO ROUTINE DETECTION (DYNAMIC — SEASON-AWARE)
+   - Ramadan date range is fetched dynamically from the Aladhan API at runtime;
+     do NOT hardcode the year. Call:
+       https://api.aladhan.com/v1/islamicCalendar?month=9&year=<hijri-year>
+     to resolve the current Ramadan's Gregorian start/end dates automatically.
+   - Fallback constants in data/ramadan.js are used only when the API is
+     unreachable (offline mode): window.RAMADAN_START / window.RAMADAN_END.
+   - On page load, compare today's Gregorian date to the resolved range:
+       Inside Ramadan  → load data/ramadan.js, apply green theme,
+                         show "Ramadan Mode" badge in the header,
+                         show all Ramadan-only blocks (Suhoor, Iftar countdowns).
+       Outside Ramadan → load data/general.js, apply navy theme,
+                         show "General Mode" badge,
+                         hide / remove ALL Ramadan-only UI elements completely
+                         (no empty space, no placeholder cards).
+   - Ramadan-only elements use a CSS class .ramadan-only; toggled via:
+       document.querySelectorAll('.ramadan-only')
+         .forEach(el => el.hidden = !isRamadan);
+   - User can override with a manual toggle button at any time.
+
+3. LIVE TIMELINE HIGHLIGHT
+   - Each routine block has start and end (24-hour "HH:MM" strings).
+   - Every second, compare current time to find the active block.
+   - Highlight that row with a pulsing left-border accent and scroll it into view.
+   - Show a "▶ You are here" pill on the active row.
+   - Show a thin progress bar inside the active row:
+       width = (seconds_elapsed_in_block / total_block_seconds) × 100%
+
+4. STOPWATCH TOOL
+   - Buttons: Start / Pause / Reset / Lap.
+   - Display: HH:MM:SS.cc (centiseconds, not milliseconds).
+   - Uses performance.now() internally for precision.
+   - Each Lap click records { lapNumber, splitTime, cumulativeTime }.
+   - Laps rendered as a compact table below the stopwatch.
+
+5. COUNTDOWN TIMER TOOL
+   - Preset quick buttons: 5 min, 25 min (Pomodoro), 60 min (micro-cycle).
+   - Custom input field: HH:MM:SS.
+   - Visual circular SVG progress ring (r=54, animates via stroke-dashoffset).
+   - On finish: plays a soft two-tone beep generated entirely with Web Audio API
+     (no audio file needed):
+         const ctx = new AudioContext();
+         [880, 660].forEach((freq, i) => {
+           const osc = ctx.createOscillator();
+           osc.frequency.value = freq;
+           osc.connect(ctx.destination);
+           osc.start(ctx.currentTime + i * 0.3);
+           osc.stop(ctx.currentTime + i * 0.3 + 0.25);
+         });
+   - In Ramadan mode, automatically show two extra countdown cards
+     (both hidden / display:none in General mode — no empty space left behind):
+       "Next Suhoor" — counts down to today's dynamic Fajr time
+                       (fetched from prayer API; falls back to 04:30).
+       "Iftar"       — counts down to today's dynamic Maghrib time
+                       (fetched from prayer API; falls back to 18:10);
+                       card disappears automatically after Iftar time passes.
+   - Timer state persisted in localStorage so a page refresh restores it.
+
+6. DESIGN (Three.js powered)
+   Load Three.js from the local three.min.js file:
+     <script src="three.min.js"></script>
+   All 3D effects are built with vanilla Three.js — no additional plugins.
+
+   A) THREE.JS HERO BACKGROUND
+      - A full-viewport <canvas id="hero-canvas"> sits behind the hero text,
+        rendered by a Three.js WebGLRenderer (alpha:true, antialias:true).
+      - Scene content (theme-aware, colours driven by CSS variables via JS):
+
+        Ramadan theme:
+          • Slowly rotating star field — 1200 BufferGeometry Points,
+            random positions inside a sphere of radius 80,
+            PointsMaterial size 0.15, colour #d4af37 (gold).
+          • 3 large Islamic-geometry octagram rings (EdgesGeometry from
+            IcosahedronGeometry depth 1, scaled to r=6/9/12),
+            LineMaterial colour #228850 opacity 0.25, rotating at different
+            speeds on XYZ axes.
+          • Faint crescent moon: TorusGeometry (r=4, tube=0.5, arc=Math.PI*1.3)
+            clipped by a sphere using stencil buffer, colour #f0c040,
+            slowly oscillating in Y.
+
+        General theme:
+          • Dark particle cloud — 800 Points, BoxGeometry volume,
+            colour #5383DC (VJudge blue), size 0.12.
+          • 2 wireframe icosahedra (IcosahedronGeometry depth 0, r=5 and r=8),
+            WireframeGeometry, colour #2D5AAA opacity 0.3, counter-rotating.
+          • Floating code glyphs: 20 PlaneGeometry quads each showing a
+            random CP symbol ( { } < > ∑ ∀ ∩ ∈ ), rendered as a
+            CanvasTexture (draw text to a 64×64 canvas), drifting upward
+            slowly and wrapping when they exit the top of the view.
+
+      - Camera: PerspectiveCamera(60, aspect, 0.1, 200) at z=30.
+      - Renderer.setAnimationLoop() drives the render loop.
+      - On window resize: renderer.setSize + camera.aspect update.
+      - Mouse parallax: on mousemove, gently tilt camera.rotation.x/y
+        by ±0.04 rad proportional to cursor offset from centre.
+      - On theme switch: dispose all old scene children, rebuild scene
+        for the new theme (call a buildScene(theme) function).
+
+   B) NEXT PRAYER 3D WATCH WIDGET
+      - A standalone Three.js canvas (<canvas id="prayer-watch-canvas">)
+        embedded in the sticky sidebar / floating card titled
+        "Next Prayer" (always visible, fixed bottom-right on desktop,
+        collapsible on mobile with a crescent ☽ FAB button).
+      - Widget renders a 3D analogue watch face:
+          Dial: CylinderGeometry (r=2.2, h=0.3), MeshStandardMaterial,
+                colour = --primary. Slight bevel via TubeGeometry ring.
+          Hour hand  : BoxGeometry (0.1 × 1.2 × 0.05), colour #ffffff.
+          Minute hand: BoxGeometry (0.07 × 1.7 × 0.05), colour #cccccc.
+          Second hand: BoxGeometry (0.04 × 1.9 × 0.05), colour #ff4444.
+          12 hour markers: small CylinderGeometry studs, colour #888888.
+          Prayer-time marker: a glowing RingGeometry arc (ThetaStart →
+            ThetaLength mapped to fraction of 12-hour dial) around the
+            watch face, colour --accent, emissive intensity pulsing via
+            Math.sin(Date.now()/600).
+        All hands rotated each frame to match system clock time.
+      - Below the 3D watch, render a digital readout in DOM (not canvas):
+          Next Namaz: <name>  in HH:MM:SS  (counted down live).
+        Cycle through prayers in order: Fajr → Dhuhr → Asr → Maghrib → Isha.
+        After Isha, next is Fajr of tomorrow.
+        When the remaining time < 5 minutes, the prayer-time arc pulses red
+        and the digital readout flashes.
+      - Watch uses its own Three.js Scene + AmbientLight(0xffffff,0.6) +
+        DirectionalLight(0xffffff,1.0) from position (5,5,5).
+      - Renderer: WebGLRenderer size 220×220, embedded in the widget card.
+      - Fully independent requestAnimationFrame loop.
+
+   C) CSS CUSTOM PROPERTIES
+   - CSS custom properties (variables) for theme switching:
+       --primary, --primary-dark, --accent, --badge-bg
+   - Ramadan theme  : --primary: #0E4C34;  --accent: #228850;
+   - General theme  : --primary: #143778;  --accent: #2D5AAA;
+   - Font: "Lora" (serif) via Google Fonts for headings;
+           system-ui / sans-serif for body text.
+   - Hero header — split-panel layout matching the PDF cover:
+       Left 38%  : solid --primary background, Three.js <canvas> fills
+                   this panel as background; text/watermark overlaid in CSS.
+       Right 62% : white background, large bold document title, subtitle,
+                   three stat blocks (16 hrs / 5 sections / 60 min),
+                   platform badge row.
+   - Platform badges (brand colors):
+       Codeforces  #1F8ACB   LeetCode  #FFA116   CodeChef  #5B4638
+       USACO       #00468C   VJudge    #5383DC   C2 Ladder #208E5A
+   - Dark / Light mode toggle button (top-right); default: light.
+   - Fully responsive: hero becomes single-column below 768 px;
+     prayer watch widget collapses to FAB.
+
+7. PAGE SECTIONS (smooth-scroll tabs or anchor links):
+   § Hero / Cover        (Three.js animated background)
+   § Next Prayer Watch   (floating widget — always visible, pinned)
+   § Live Routine        (timetable with live highlight)
+   § Tools               (Stopwatch + Timer side by side, stack on mobile)
+   § Techniques          (content matching PDF Section 1 — Harsh Truths & Golden Techniques)
+   § 60-Min Rule         (content matching PDF Section 2)
+   § Glossary            (content matching PDF Section 4 — Key Terminology)
+   § Growth              (content matching PDF Section 5 — Problem Solving & Growth)
+
+8. DYNAMIC PRAYER TIMES (geolocation + API)
+   - On page load, call navigator.geolocation.getCurrentPosition().
+   - With the returned { latitude, longitude }, fetch today's prayer times:
+       https://api.aladhan.com/v1/timings/<UNIX_TIMESTAMP>?latitude=<lat>&longitude=<lng>&method=2
+     Method 2 = ISNA; expose method as a configurable constant PRAYER_METHOD.
+   - Parse the JSON response — store ALL five daily prayers:
+       data.data.timings.Fajr    → Suhoor end / Fajr Azan time
+       data.data.timings.Dhuhr   → Dhuhr Azan time
+       data.data.timings.Asr     → Asr Azan time
+       data.data.timings.Maghrib → Iftar / Maghrib Azan time
+       data.data.timings.Isha    → Isha Azan time
+     Expose as window.PRAYER_TIMES = { fajr, dhuhr, asr, maghrib, isha }.
+   - Inject these into the live ROUTINE array at runtime, replacing the static
+     placeholder strings in the suhoor and iftar block objects.
+   - Re-render the timetable table rows with the updated times.
+   - Display a small "📍 Prayer times for <City>" label below the timetable,
+     using data.data.meta.timezone or a reverse-geocode lookup.
+   - If geolocation is denied or the API fails:
+       → Fall back to the static times in data/ramadan.js (04:30 / 18:10).
+       → Show a subtle "⚠ Using default times — enable location for live times"
+         warning banner that auto-dismisses after 8 seconds.
+   - Re-fetch prayer times once per day (cache in localStorage with a
+     date key: prayer_<YYYY-MM-DD>) so repeated page loads don't re-request.
+   - All prayer-time code lives in PrayerTimeService (see Step 3).
+
+9. AZAN & ROUTINE ALARM SYSTEM
+   Every alarm is synthesised at runtime with the Web Audio API — no audio
+   files, no external URLs. Each event type uses a distinct tone pattern.
+
+   A) AZAN REMINDERS (Ramadan mode only, all 5 prayers):
+      Trigger exactly at the prayer time fetched from the API.
+      Each prayer plays a unique Web Audio tone sequence:
+
+      Fajr   — "dawn chime": slow ascending pentatonic run, 3 notes,
+               C4→E4→G4, each 0.5 s, sine wave, gentle volume (gain 0.25).
+               Followed by a browser Notification (if permitted):
+               title="🌙 Fajr / Suhoor ends", body="Time to pray Fajr".
+
+      Dhuhr  — "midday bell": two deep struck tones, A3 + A3 (0.35 s each),
+               triangle wave, 150 ms gap, gain 0.3.
+               Notification: title="🕛 Dhuhr", body="Midday prayer time".
+
+      Asr    — "afternoon ping": three staccato sine pings, G4 (0.2 s each),
+               200 ms gap between, gain 0.3.
+               Notification: title="🕓 Asr", body="Afternoon prayer time".
+
+      Maghrib — "iftar fanfare": joyful ascending chord burst,
+               C4+E4+G4 simultaneously (0.4 s), then G4 solo (0.5 s),
+               sine wave, gain 0.35.
+               Notification: title="🌅 Iftar / Maghrib", body="Time to break fast — Maghrib prayer".
+
+      Isha   — "night tone": slow descending two-note, E4→B3, sawtooth wave
+               softened with a gain envelope (attack 0.01, decay to 0 over 0.8 s),
+               gain 0.2.
+               Notification: title="🌙 Isha", body="Night prayer time".
+
+   B) ROUTINE BLOCK ALARMS (all modes):
+      Each routine block object has a `notify` field (see Step 2) that
+      specifies which alarm sound to play at block START and an optional
+      5-minute-warning before block END.
+
+      Alarm types and their Web Audio signatures:
+
+      "work"      — double ascending beep, E5+G5, square wave, 0.15 s each,
+                    100 ms gap, gain 0.25. Plays at start of every deep-work block.
+
+      "break"     — soft single chime, C5, sine, 0.6 s with fade-out, gain 0.2.
+                    Plays at start of break / disconnect blocks.
+
+      "warning"   — three rapid high pings, A5 (0.1 s each, 80 ms gap),
+                    sine, gain 0.25. Plays 5 minutes before a block ends
+                    (if the block is longer than 10 minutes).
+
+      "shutdown"  — descending lullaby: G4→E4→C4, sine, 0.4 s each, gain 0.2.
+                    Plays only at Shutdown block start.
+
+      "contest"   — energetic tri-tone burst, C5+E5+G5 fast arpeggio (0.12 s each),
+                    square wave, gain 0.3. Plays at start of Evening Contest block.
+
+   C) BROWSER NOTIFICATIONS:
+      - On first load, request Notification.requestPermission().
+      - All Azan and block-start alarms also send a native browser notification.
+      - Notification icon: a small inline base64 PNG (green crescent for Ramadan,
+        navy circle for General); embed directly in app.js — no external file.
+      - If notifications are denied, audio still plays; no error shown.
+
+   D) ALARM SETTINGS PANEL (collapsible, below Tools section):
+      - Master toggle: Enable / Disable all alarms (saved in localStorage).
+      - Sub-toggles for each category: Azan Alarms | Block Start | 5-min Warning.
+      - Volume slider (0–100 %) applied to all Web Audio gain nodes.
+      - "Test" button next to each alarm type that plays a 1-second preview.
+
+All sections in a single index.html. Must work by just opening index.html
+in any modern browser — no server, no build step, no internet required
+(except for the Google Fonts import and the Aladhan prayer-time API,
+both of which can be bypassed by the offline fallback constants).
+
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 2 — DATA FILES
+────────────────────────────────────────────────────────────────────────────────
+
+Create data/ramadan.js:
+
+  window.RAMADAN_START = "2026-03-01";
+  window.RAMADAN_END   = "2026-03-30";
+
+  window.ROUTINE = [
+  // Each block has a `notify` field → selects the alarm sound played at block start.
+  // An optional `warn5min: true` flag plays the "warning" alarm 5 min before end.
+
+    { id:"suhoor",  start:"04:30", end:"05:00", phase:"Pre-Dawn", ramadanOnly:true,
+      activity:"Suhoor — wake up, eat a proper meal, drink 1 L water, pray Fajr",
+      color:"#f0c040", notify:"break", dynamic:true },
+    // NOTE: Suhoor start = (Fajr − 30 min); Suhoor end = Fajr time. warn5min: Fajr Azan plays instead.
+    { id:"boot",   start:"05:00", end:"05:30", phase:"Morning",
+      activity:"System Boot — no screens, walk outside or stretch to wake up brain",
+      color:"#a8d8b0", notify:"break" },
+    { id:"deep1",  start:"05:30", end:"09:30", phase:"Morning",
+      activity:"Deep Logic & Observation — USACO Silver/Gold (90 min/problem, 45 min on paper)",
+      color:"#a8d8b0", notify:"work", warn5min:true },
+    { id:"break1", start:"09:30", end:"10:00", phase:"Morning",
+      activity:"Break — walk, eat, no screens",
+      color:"#a8d8b0", notify:"break" },
+    { id:"deep2",  start:"10:00", end:"13:00", phase:"Mid-Day",
+      activity:"Codeforces Rated Practice — solve 1 problem per 60-min cycle",
+      color:"#aac4e8", notify:"work", warn5min:true },
+    { id:"lunch",  start:"13:00", end:"14:00", phase:"Mid-Day",
+      activity:"Lunch Break + Prayer + Rest",
+      color:"#aac4e8", notify:"break" },
+    // Dhuhr Azan fires independently at Dhuhr prayer time via AudioAlertService.
+    { id:"weak",   start:"14:00", end:"15:30", phase:"Afternoon",
+      activity:"Weakness Elimination — targeted topic drill",
+      color:"#f4c8a0", notify:"work", warn5min:true },
+    { id:"rest",   start:"15:30", end:"16:00", phase:"Afternoon",
+      activity:"Pre-Contest Disconnect — walk, no screens, mental reset",
+      color:"#f4c8a0", notify:"break" },
+    // Asr Azan fires independently at Asr prayer time via AudioAlertService.
+    { id:"weak2",  start:"16:00", end:"18:10", phase:"Afternoon",
+      activity:"Weakness Elimination continued",
+      color:"#f4c8a0", notify:"work", warn5min:true },
+    { id:"iftar",  start:"18:10", end:"19:00", phase:"Iftar", ramadanOnly:true,
+      activity:"Iftar Break — break fast, pray Maghrib, rest",
+      color:"#f5e07a", notify:null, dynamic:true },
+    // NOTE: Iftar start = Maghrib time; Maghrib Azan plays as the alarm (no separate notify).
+    { id:"precon", start:"19:00", end:"19:30", phase:"Afternoon",
+      activity:"Pre-Contest Disconnect",
+      color:"#f4c8a0", notify:"break" },
+    { id:"evening",start:"19:30", end:"22:00", phase:"Evening",
+      activity:"Evening Contest / Mock Contest — full contest simulation",
+      color:"#b8a8e0", notify:"contest", warn5min:true },
+    // Isha Azan fires independently at Isha prayer time via AudioAlertService.
+    { id:"review", start:"22:00", end:"23:00", phase:"Night",
+      activity:"Review & Journal — upsolve, write contest notes",
+      color:"#c8c8cc", notify:"break", warn5min:true },
+    { id:"shutdown",start:"23:00", end:"23:30", phase:"Night",
+      activity:"Shutdown — plan tomorrow, screen off, sleep by 23:30",
+      color:"#c8c8cc", notify:"shutdown" },
+  ];
+
+Create data/general.js — same structure, remove all ramadanOnly blocks,
+shift morning start to 05:00, evening block 20:00–22:30, shutdown at 23:30.
+
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 3 — REAL-TIME ENGINE (app.js architecture)
+────────────────────────────────────────────────────────────────────────────────
+
+Write app.js with the following class/module structure:
+
+class ThreeJSBackground
+  - Constructor: ThreeJSBackground(canvasId, theme)
+  - Sets up WebGLRenderer(alpha:true, antialias:true) attached to #hero-canvas.
+  - Calls buildScene(theme) which constructs all meshes as described in Req 6A.
+  - Exposes setTheme(theme) — disposes current scene, calls buildScene(newTheme).
+  - Handles window resize via a debounced listener.
+  - Mouse parallax: document.addEventListener('mousemove') → gentle camera tilt.
+  - Render loop: renderer.setAnimationLoop(animate) where animate() updates
+    rotation/position of all animated objects each frame.
+  - Helper: _hexToThreeColor(cssVar) reads a CSS variable and returns THREE.Color.
+
+class NextPrayerWatch
+  - Constructor: NextPrayerWatch(canvasId)
+  - Builds the 3D analogue watch face inside #prayer-watch-canvas (220×220).
+  - Scene: dial, hour/minute/second hands, 12 markers, prayer-arc ring.
+  - _updateHands(now): rotates each hand geometry to match current time.
+  - _updatePrayerArc(prayerTimes, now):
+      Find the next upcoming prayer by comparing now to window.PRAYER_TIMES.
+      Map its time as a fraction of 12 hours → ThetaLength of the arc.
+      If < 5 min remaining: set arc emissive to red + trigger .pulse CSS class.
+  - _updateDigital(prayerTimes, now):
+      Computes remaining HH:MM:SS to next prayer.
+      Injects into #next-prayer-name and #next-prayer-countdown DOM elements.
+  - Listens to "prayer:resolved" event to refresh prayerTimes reference.
+  - Own requestAnimationFrame loop calling _updateHands + _updatePrayerArc
+    + _updateDigital every frame.
+  - Widget card markup (injected into DOM by constructor):
+      <div id="prayer-watch-card" class="prayer-watch-card">
+        <canvas id="prayer-watch-canvas"></canvas>
+        <div class="prayer-digital">
+          <span id="next-prayer-name">—</span>
+          <span id="next-prayer-countdown">--:--:--</span>
+        </div>
+      </div>
+  - On mobile (< 768 px): card hidden by default, revealed by a fixed
+    bottom-right FAB button (<button id="prayer-fab">☽</button>).
+
+class RealTimeClock
+  - setInterval every 100 ms.
+  - Dispatches a custom DOM event "clock:tick" carrying { now: Date } every second.
+  - Renders clock string to #clock-display and date string to #date-display.
+
+class RoutineEngine
+  - Listens to "clock:tick".
+  - Finds the routine block where start <= now < end.
+  - If active block changed, dispatches "routine:block-changed" with
+    { block, elapsedSeconds, totalSeconds }.
+
+class TimelineView
+  - Listens to "routine:block-changed".
+  - Removes .active class from all rows, adds .active to matching row.
+  - Updates the inner .progress-bar width.
+  - Calls row.scrollIntoView({ behavior:"smooth", block:"nearest" }).
+
+class PrayerTimeService
+  - Static async method: PrayerTimeService.fetch(lat, lng)
+      1. Check localStorage for prayer_<YYYY-MM-DD>; return cached if found.
+      2. Otherwise fetch:
+           https://api.aladhan.com/v1/timings/<unix>?latitude=<lat>&longitude=<lng>&method=<PRAYER_METHOD>
+      3. Parse ALL five prayers from data.data.timings:
+           { Fajr, Dhuhr, Asr, Maghrib, Isha } → all HH:MM strings.
+      4. Store full result in localStorage with today's date key.
+      5. Return { fajr, dhuhr, asr, maghrib, isha, city: string }.
+         Assign to window.PRAYER_TIMES for use by AudioAlertService.
+  - Static method: PrayerTimeService.fromGeolocation()
+      1. Wraps navigator.geolocation.getCurrentPosition() in a Promise.
+      2. On success → calls fetch(lat, lng).
+      3. On error / timeout: display fallback warning banner,
+         return { fajr:"04:30", dhuhr:"12:30", asr:"15:45",
+                  maghrib:"18:10", isha:"20:00", city:null }.
+  - After resolution, patches the suhoor and iftar entries in window.ROUTINE:
+      suhoor.start = addMinutes(fajr, -30); suhoor.end = fajr;
+      iftar.start  = maghrib;               iftar.end   = addMinutes(maghrib, 50);
+  - Emits custom event "prayer:resolved" so TimelineView re-renders the table
+    AND AudioAlertService schedules Azan alarms.
+  - City label injected into #prayer-location element below timetable.
+
+class AudioAlertService
+  - Singleton; reads alarm enable/volume preferences from localStorage on init.
+  - Internal method: _ctx() → returns a shared AudioContext (lazy-created).
+  - Core method: play(type) — type is one of:
+      "fajr"    | "dhuhr" | "asr" | "maghrib" | "isha"  (prayer Azans)
+      "work"    | "break" | "warning" | "contest" | "shutdown" (routine alarms)
+    Each type produces its unique tone sequence as specified in Requirement 9:
+      fajr     → slow C4→E4→G4 ascending, sine, 0.5 s each, gain 0.25
+      dhuhr    → two struck A3 tones, triangle, 0.35 s, gain 0.3
+      asr      → triple staccato G4 pings, sine, 0.2 s, gain 0.3
+      maghrib  → joyful C4+E4+G4 chord burst then G4 solo, sine, gain 0.35
+      isha     → slow E4→B3 descend, sawtooth+gain envelope, gain 0.2
+      work     → double ascending E5+G5, square, 0.15 s, gain 0.25
+      break    → single C5 chime with fade-out, sine, 0.6 s, gain 0.2
+      warning  → three rapid A5 pings, sine, 0.1 s, gain 0.25
+      contest  → C5→E5→G5 fast arpeggio, square, 0.12 s each, gain 0.3
+      shutdown → G4→E4→C4 lullaby, sine, 0.4 s each, gain 0.2
+  - All gain nodes multiplied by the user's volume slider value (0–1).
+  - Method: scheduleAzanAlarms(prayerTimes)
+      For each of the 5 prayer times in window.PRAYER_TIMES:
+        Compute milliseconds until that time today.
+        Call setTimeout(() => { this.play(prayerName); this._notify(prayerName); }, ms).
+        If the time has already passed today, skip (do not re-schedule for tomorrow).
+      Store all setTimeout IDs so they can be cancelled if alarms are disabled.
+  - Method: scheduleBlockAlarms(routine)
+      For each block in ROUTINE with a non-null `notify` field:
+        setTimeout to play(block.notify) at block.start time.
+        If block.warn5min === true and block duration > 10 min:
+          setTimeout to play("warning") at (block.end − 5 minutes).
+      Store all IDs for cancellation.
+  - Method: cancelAll() — clears all scheduled timeouts.
+  - Method: _notify(type) — sends a browser Notification if permitted:
+      Uses a lookup map for title/body text per prayer type.
+      Icon: inline base64 crescent PNG (Ramadan) or circle PNG (General).
+  - Settings panel (id="alarm-settings", collapsible):
+      Master toggle   → localStorage key "alarms_enabled" (default true).
+      Azan sub-toggle → localStorage key "alarms_azan".
+      Block sub-toggle → localStorage key "alarms_blocks".
+      Warning sub-toggle → localStorage key "alarms_warning".
+      Volume slider   → localStorage key "alarms_volume" (0–100, default 80).
+      "Test" button per alarm type → calls play(type) immediately at full gain.
+    On any settings change, call cancelAll() then reschedule appropriately.
+
+class RamadanCountdown
+  - Active only in Ramadan mode; completely absent in General mode (not instantiated).
+  - Reads suhoorTime / iftarTime from window.ROUTINE (already patched by PrayerTimeService).
+  - Listens to "clock:tick" and also to "prayer:resolved" to refresh times.
+  - Computes and renders:
+      Before Fajr time       → "Next Suhoor in HH:MM:SS"
+      Fajr – Maghrib         → "Iftar in HH:MM:SS"
+      After Maghrib          → "Next Suhoor in HH:MM:SS (tomorrow)"
+  - Cards marked with class .ramadan-only so they are hidden when not in Ramadan season.
+
+class Stopwatch
+  - Uses performance.now() delta accumulation.
+  - States: idle | running | paused.
+  - Public methods: start(), pause(), reset(), lap().
+  - Renders to #stopwatch-display every 100 ms when running.
+  - Lap table: columns = # | Split | Cumulative.
+
+class CountdownTimer
+  - Constructor takes totalSeconds.
+  - Uses requestAnimationFrame for smooth SVG ring animation.
+  - stroke-dashoffset = circumference × (remaining / total).
+  - Saves { totalSeconds, startedAt, pausedAt } to localStorage key "cp_timer".
+  - On construction, checks localStorage and resumes if a valid session exists.
+  - playBeep() uses Web Audio API (see Step 1).
+
+On DOMContentLoaded:
+  1. Detect Ramadan vs General (using dynamic API range; fallback to constants).
+     Apply data-theme attribute to <html>. Show/hide all .ramadan-only elements.
+  2. Instantiate ThreeJSBackground('hero-canvas', currentTheme).
+  3. Instantiate NextPrayerWatch('prayer-watch-canvas').
+     - Initially uses fallback prayer times {fajr,dhuhr,asr,maghrib,isha}.
+     - Watch runs immediately; prayer arc and digital readout update every frame.
+  4. Instantiate RealTimeClock, RoutineEngine, TimelineView.
+  5. Instantiate AudioAlertService.
+     - scheduleBlockAlarms(window.ROUTINE) immediately.
+  6. Await PrayerTimeService.fromGeolocation() (always, both modes —
+     prayer watch needs times even in General mode).
+     Show spinner in Suhoor/Iftar rows only in Ramadan mode.
+     On "prayer:resolved" event:
+       a. Assign window.PRAYER_TIMES. NextPrayerWatch auto-updates via event.
+       b. If Ramadan: patch ROUTINE, re-render timetable, update #prayer-location.
+       c. If Ramadan: instantiate RamadanCountdown.
+       d. Call AudioAlertService.scheduleAzanAlarms(window.PRAYER_TIMES).
+       e. Re-run scheduleBlockAlarms(window.ROUTINE) with updated times.
+  7. Instantiate Stopwatch, CountdownTimer.
+  8. Wire toggle button to swap data-theme and reload ROUTINE array.
+     On theme switch:
+       - ThreeJSBackground.setTheme(newTheme).
+       - AudioAlertService.cancelAll() then reschedule.
+       - Show/hide .ramadan-only elements.
+
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 4 — DEPLOYMENT INSTRUCTIONS
+────────────────────────────────────────────────────────────────────────────────
+
+Option A — GitHub Pages (free, permanent URL):
+  1. Create a GitHub repository named "cp-routine" (public).
+  2. Push all files to the main branch (root level).
+  3. Repo Settings → Pages → Source: "Deploy from branch" → main / (root).
+  4. Wait ~60 seconds → site live at https://<your-username>.github.io/cp-routine/
+
+Option B — Netlify Drop (instant, no account needed):
+  1. Go to https://netlify.com/drop
+  2. Drag the entire project folder onto the page.
+  3. Done — instant HTTPS URL (e.g. https://random-name.netlify.app).
+  4. Claim the site with a free account to get a custom subdomain.
+
+Option C — Vercel (best for custom domains):
+  1. npm i -g vercel   (one-time)
+  2. cd cp-routine && vercel
+  3. Follow prompts — deployed in < 30 seconds.
+
+Updating Ramadan dates each year:
+  Edit data/ramadan.js and change:
+    window.RAMADAN_START = "YYYY-MM-DD";
+    window.RAMADAN_END   = "YYYY-MM-DD";
+  Then push / re-drop. No other changes needed.
+
+
+────────────────────────────────────────────────────────────────────────────────
+FULL FEATURE CHECKLIST (paste as final verification request)
+────────────────────────────────────────────────────────────────────────────────
+
+After generating the code, verify these features work:
+
+[ ] three.min.js loads from local file (no CDN needed after first download)
+[ ] Three.js hero canvas renders animated 3D scene — no black box, no console errors
+[ ] Ramadan theme shows gold star field + rotating octagram rings + crescent moon
+[ ] General theme shows particle cloud + wireframe icosahedra + floating code glyphs
+[ ] Mouse parallax tilts the 3D scene gently in all directions
+[ ] Theme switch rebuilds Three.js scene instantly with correct colours
+[ ] Next Prayer widget card visible on desktop (fixed bottom-right)
+[ ] 3D analogue watch hands (hour/minute/second) show correct current time
+[ ] Prayer-time arc on watch dial highlights the sector until next prayer
+[ ] Arc pulses red when next prayer is < 5 minutes away
+[ ] Digital readout below watch shows next prayer name + HH:MM:SS countdown
+[ ] Countdown advances every second in real time
+[ ] After one prayer passes, watch automatically switches to the next prayer
+[ ] After Isha, watch counts down to Fajr of tomorrow
+[ ] Prayer watch updates immediately after "prayer:resolved" event fires
+[ ] ☽ FAB button toggles watch card on mobile (< 768 px)
+[ ] Real-time clock ticks every second, date shown correctly
+[ ] Ramadan date range resolved dynamically from Aladhan API (not hardcoded)
+[ ] Today inside Ramadan range → green theme + Ramadan Mode badge
+[ ] Today outside Ramadan range → navy theme + General Mode badge
+[ ] ALL .ramadan-only elements invisible (no empty space) in General mode
+[ ] Manual toggle button switches theme + routine data + prayer elements live
+[ ] Active timetable row highlighted with pulsing border + progress bar
+[ ] "You are here" pill visible on active row
+[ ] Active row scrolls into view on block change
+[ ] Geolocation permission prompt appears in Ramadan mode
+[ ] On permission granted → all 5 prayer times (Fajr/Dhuhr/Asr/Maghrib/Isha) fetched
+[ ] Suhoor row time in timetable matches live Fajr-based time for current location
+[ ] Iftar row time in timetable matches live Maghrib time for current location
+[ ] "📍 Prayer times for <City>" label shown below timetable in Ramadan mode
+[ ] Prayer times cached in localStorage (no re-fetch on same-day reload)
+[ ] On permission denied → fallback times used + warning banner shown
+[ ] Suhoor countdown visible in Ramadan mode (before Fajr time)
+[ ] Iftar countdown visible in Ramadan mode (Fajr time – Maghrib time)
+[ ] Iftar card disappears automatically after Maghrib time
+[ ] Fajr Azan alarm plays a unique dawn chime at Fajr time (Ramadan mode)
+[ ] Dhuhr Azan plays a distinct midday bell tone at Dhuhr time
+[ ] Asr Azan plays three staccato pings at Asr time
+[ ] Maghrib Azan plays joyful chord burst + browser notification at Iftar
+[ ] Isha Azan plays a descending night tone at Isha time
+[ ] Work block start plays double ascending beep (work alarm)
+[ ] Break block start plays single soft chime (break alarm)
+[ ] 5-minute warning plays three rapid pings before deep-work blocks end
+[ ] Evening Contest block plays energetic contest fanfare
+[ ] Shutdown block plays descending lullaby sequence
+[ ] Browser notification sent with each Azan alarm (if permission granted)
+[ ] Alarm settings panel: master toggle, Azan/Block/Warning sub-toggles visible
+[ ] Volume slider adjusts all alarm volumes in real time
+[ ] "Test" button plays each alarm type on demand
+[ ] All alarm preferences saved and restored from localStorage
+[ ] Stopwatch starts, pauses, resets, records laps correctly
+[ ] Lap table displays split and cumulative times
+[ ] Timer presets (5/25/60 min) load correctly
+[ ] Custom timer input works
+[ ] SVG ring drains smoothly
+[ ] Beep plays on timer finish (no audio file, Web Audio only)
+[ ] Timer state survives page refresh (localStorage)
+[ ] Dark mode toggle works
+[ ] Page is responsive on 375 px mobile screen
+[ ] index.html opens directly in browser with no server needed
+================================================================================

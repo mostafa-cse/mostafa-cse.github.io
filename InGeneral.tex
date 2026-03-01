@@ -1,0 +1,652 @@
+\documentclass[12pt, a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{charter}               % Professional editorial serif font
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{colortbl}
+\usepackage[table]{xcolor}
+\usepackage{fancyhdr}
+\usepackage{mdframed}
+\usepackage{tocloft}
+\usepackage{tikz}
+\usetikzlibrary{calc,arrows.meta}
+
+\geometry{top=0.85in, bottom=0.85in, left=1in, right=1in, headheight=15pt}
+
+% ── Colour palette ────────────────────────────────────────────────────────
+\definecolor{primary}{RGB}{20, 55, 120}      % Deep navy
+\definecolor{rule}{RGB}{45, 90, 170}          % Medium blue for rules
+\definecolor{subrule}{RGB}{175, 200, 240}
+\definecolor{textdark}{RGB}{20, 20, 20}
+\definecolor{textgray}{RGB}{75, 75, 75}
+\definecolor{midgray}{RGB}{155, 155, 155}
+\definecolor{lightbg}{RGB}{246, 247, 252}     % Near-white blue tint
+\definecolor{palebg}{RGB}{252, 252, 252}
+% ── Platform brand colours ─────────────────────────────────────────────────────
+\definecolor{cfBlue}{RGB}{31, 138, 203}       % Codeforces
+\definecolor{lcOrange}{RGB}{255, 161, 22}     % LeetCode
+\definecolor{ccBrown}{RGB}{91, 70, 56}        % CodeChef
+\definecolor{usacoNavy}{RGB}{0, 70, 140}      % USACO
+\definecolor{vjBlue}{RGB}{83, 131, 220}       % VJudge
+\definecolor{c2Green}{RGB}{32, 142, 90}       % C2 Ladder
+
+% ── Hyperref ────────────────────────────────────────────────────────────────
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primary,
+    urlcolor=rule,
+    citecolor=primary,
+}
+
+% ── Section headings ─────────────────────────────────────────────────────────
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{primary}}
+  {\thesection.}{0.6em}{}
+  [{\vspace{2pt}\color{rule}\titlerule[1pt]}]
+\titlespacing*{\section}{0pt}{22pt}{9pt}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{textdark}}
+  {\thesubsection}{0.7em}{}
+\titlespacing*{\subsection}{0pt}{14pt}{4pt}
+
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\itshape\color{textgray}}
+  {\thesubsubsection}{0.7em}{}
+
+% ── Header / Footer ────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\scshape\color{primary} Competitive Programming --- General Reference}
+\fancyhead[R]{\small\color{midgray} 2026}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\headrule}{{\color{subrule}\hrule width\headwidth height 0.5pt}}
+\fancyfoot[C]{\small\color{midgray}--- \thepage\ ---}
+\renewcommand{\footrulewidth}{0pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyfoot[C]{\small\color{midgray}--- \thepage\ ---}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+
+% ── Bullet lists ────────────────────────────────────────────────────────────
+\setlist[itemize,1]{%
+  label={\color{rule}\textbullet},
+  leftmargin=2em, itemsep=5pt, topsep=4pt, parsep=0pt}
+\setlist[itemize,2]{%
+  label={\color{midgray}\normalfont$\circ$},
+  leftmargin=1.8em, itemsep=2pt, topsep=2pt}
+
+% ── Framed sidebar blocks ──────────────────────────────────────────────────
+\newmdenv[%
+  leftline=true, rightline=false, topline=false, bottomline=false,
+  linewidth=3.5pt, linecolor=rule,
+  backgroundcolor=lightbg,
+  innerleftmargin=12pt, innerrightmargin=10pt,
+  innertopmargin=10pt, innerbottommargin=10pt,
+  skipabove=8pt, skipbelow=6pt
+]{sidebar}
+
+\newmdenv[%
+  leftline=true, rightline=false, topline=false, bottomline=false,
+  linewidth=3.5pt, linecolor=midgray,
+  backgroundcolor=palebg,
+  innerleftmargin=12pt, innerrightmargin=10pt,
+  innertopmargin=10pt, innerbottommargin=10pt,
+  skipabove=8pt, skipbelow=6pt
+]{sidebarGray}
+
+% ── TOC styling ─────────────────────────────────────────────────────────────
+\renewcommand{\cftsecfont}{\bfseries\color{primary}}
+\renewcommand{\cftsecpagefont}{\bfseries\color{primary}}
+\renewcommand{\cftsubsecfont}{\color{textgray}}
+\renewcommand{\cftsubsecpagefont}{\color{textgray}}
+\renewcommand{\cftsecleader}{\color{midgray}\cftdotfill{\cftdotsep}}
+\setlength{\cftbeforesecskip}{4pt}
+
+% ── Title data ───────────────────────────────────────────────────────────────
+\title{}
+\author{}
+\date{}
+
+\begin{document}
+
+% =============================================================================
+%  COVER PAGE
+% =============================================================================
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture, overlay]
+
+  % ── Left accent panel (38 % of page width) ──────────────────────────────
+  \fill[primary]
+    (current page.north west)
+    rectangle
+    ($(current page.south west) + (0.38\paperwidth, 0)$);
+
+  % ── Decorative concentric rings centred on panel edge, 42 % from top ────
+  \coordinate (RING) at
+    ($(current page.north west) + (0.38\paperwidth, -0.42\paperheight)$);
+  \fill  [white, opacity=0.05] (RING) circle (0.20\paperwidth);
+  \draw  [white, line width=1.2pt, opacity=0.18] (RING) circle (0.23\paperwidth);
+  \draw  [white, line width=0.5pt, opacity=0.10] (RING) circle (0.30\paperwidth);
+
+  % ── Giant faded "CP" watermark on the panel ──────────────────────────────
+  \node[white, opacity=0.08,
+        font=\fontsize{116}{116}\selectfont\bfseries,
+        anchor=center]
+    at ($(current page.north west) + (0.19\paperwidth, -0.30\paperheight)$)
+    {CP};
+
+  % ── Thin vertical accent bar inside panel ────────────────────────────────
+  \draw[white, opacity=0.35, line width=1.8pt]
+    ($(current page.north west) + (0.05\paperwidth, -0.68\paperheight)$)
+    -- ($(current page.north west) + (0.05\paperwidth, -0.87\paperheight)$);
+
+  % ── Panel bottom label ───────────────────────────────────────────────────
+  \node[white, opacity=0.75,
+        font=\fontsize{8}{11}\selectfont\scshape,
+        anchor=south west, align=left]
+    at ($(current page.south west) + (0.055\paperwidth, 0.08\paperheight)$)
+    {Competitive\\[3pt]Programming};
+
+  % ── Thin top accent line (full width) ────────────────────────────────────
+  \fill[rule]
+    ($(current page.north west) + (0, -0.052\paperheight)$)
+    rectangle
+    ($(current page.north east) + (0, -0.058\paperheight)$);
+
+  % ── Year badge (top-right area) ──────────────────────────────────────────
+  \node[rule, font=\fontsize{11}{11}\selectfont\bfseries\scshape,
+        anchor=north east]
+    at ($(current page.north east) + (-0.05\paperwidth, -0.075\paperheight)$)
+    {GENERAL REFERENCE · 2026};
+
+  % ── Main title (right side) ───────────────────────────────────────────────
+  \node[primary,
+        font=\fontsize{40}{48}\selectfont\bfseries,
+        anchor=north west, align=left,
+        text width=0.55\paperwidth]
+    at ($(current page.north west) + (0.43\paperwidth, -0.17\paperheight)$)
+    {Competitive\\Programming};
+
+  % ── Sub-title ─────────────────────────────────────────────────────────────
+  \node[textgray,
+        font=\fontsize{11}{16}\selectfont,
+        anchor=north west, align=left,
+        text width=0.53\paperwidth]
+    at ($(current page.north west) + (0.43\paperwidth, -0.40\paperheight)$)
+    {A comprehensive reference guide covering\\strategies, techniques \& daily routine};
+
+  % ── Horizontal rule under subtitle ────────────────────────────────────────
+  \draw[rule, line width=0.8pt]
+    ($(current page.north west) + (0.43\paperwidth, -0.47\paperheight)$)
+    -- ($(current page.north west) + (0.94\paperwidth, -0.47\paperheight)$);
+
+  % ── Stat 1 : Daily hours ──────────────────────────────────────────────────
+  \node[primary, font=\fontsize{28}{28}\selectfont\bfseries, anchor=north west]
+    at ($(current page.north west) + (0.43\paperwidth, -0.50\paperheight)$) {16};
+  \node[midgray, font=\fontsize{7.5}{10}\selectfont\scshape,
+        anchor=north west, align=left]
+    at ($(current page.north west) + (0.43\paperwidth, -0.565\paperheight)$)
+    {hours of\\deep work};
+
+  % ── Stat 2 : Sections ────────────────────────────────────────────────────
+  \node[primary, font=\fontsize{28}{28}\selectfont\bfseries, anchor=north west]
+    at ($(current page.north west) + (0.595\paperwidth, -0.50\paperheight)$) {5};
+  \node[midgray, font=\fontsize{7.5}{10}\selectfont\scshape,
+        anchor=north west, align=left]
+    at ($(current page.north west) + (0.595\paperwidth, -0.565\paperheight)$)
+    {structured\\sections};
+
+  % ── Stat 3 : 60-min cycle ────────────────────────────────────────────────
+  \node[primary, font=\fontsize{28}{28}\selectfont\bfseries, anchor=north west]
+    at ($(current page.north west) + (0.745\paperwidth, -0.50\paperheight)$) {60};
+  \node[midgray, font=\fontsize{7.5}{10}\selectfont\scshape,
+        anchor=north west, align=left]
+    at ($(current page.north west) + (0.745\paperwidth, -0.565\paperheight)$)
+    {min problem\\micro-cycle};
+
+  % ── General reference tagline ─────────────────────────────────────────────
+  \node[textgray, font=\fontsize{9}{13}\selectfont, anchor=north west, align=left]
+    at ($(current page.north west) + (0.43\paperwidth, -0.67\paperheight)$)
+    {\textbf{Codeforces}~~Rated Practice
+     \enspace{\color{subrule}\textbar}\enspace
+     \textbf{CSES}~~Problem Set
+     \enspace{\color{subrule}\textbar}\enspace
+     \textbf{Editorial Protocol}};
+
+  % ── Platform badges section label ─────────────────────────────────────────
+  \draw[midgray!50, line width=0.5pt]
+    ($(current page.north west) + (0.43\paperwidth, -0.728\paperheight)$)
+    -- ($(current page.north west) + (0.94\paperwidth, -0.728\paperheight)$);
+
+  \node[midgray, font=\fontsize{6.5}{6.5}\selectfont\bfseries\scshape,
+        anchor=north west]
+    at ($(current page.north west) + (0.43\paperwidth, -0.740\paperheight)$)
+    {practice platforms};
+
+  % ── Platform badge — Codeforces (3-bar icon) ──────────────────────────────
+  \node[fill=cfBlue!9, draw=cfBlue, line width=0.45pt,
+        rounded corners=4pt, text=cfBlue,
+        font=\fontsize{8}{8}\selectfont\bfseries,
+        inner xsep=7pt, inner ysep=5.5pt, anchor=north west]
+    at ($(current page.north west) + (0.430\paperwidth, -0.772\paperheight)$)
+    {\tikz[baseline=-2.5pt,scale=0.24]{%
+       \fill[yellow!80!orange](0,0)rectangle(.28,.65);%
+       \fill[cfBlue](.34,0)rectangle(.62,.95);%
+       \fill[red!60!black](.68,0)rectangle(.96,.42);}%
+     \enspace Codeforces};
+
+  % ── Platform badge — LeetCode (arc icon) ─────────────────────────────────
+  \node[fill=lcOrange!9, draw=lcOrange, line width=0.45pt,
+        rounded corners=4pt, text=lcOrange,
+        font=\fontsize{8}{8}\selectfont\bfseries,
+        inner xsep=7pt, inner ysep=5.5pt, anchor=north west]
+    at ($(current page.north west) + (0.601\paperwidth, -0.772\paperheight)$)
+    {\tikz[baseline=-2.5pt]{%
+       \draw[lcOrange,line width=2.3pt,line cap=round](42:5.2pt)arc(42:-222:5.2pt);}%
+     \enspace LeetCode};
+
+  % ── Platform badge — CodeChef (rounded rect icon) ────────────────────────
+  \node[fill=ccBrown!9, draw=ccBrown, line width=0.45pt,
+        rounded corners=4pt, text=ccBrown,
+        font=\fontsize{8}{8}\selectfont\bfseries,
+        inner xsep=7pt, inner ysep=5.5pt, anchor=north west]
+    at ($(current page.north west) + (0.769\paperwidth, -0.772\paperheight)$)
+    {\tikz[baseline=-3pt]{%
+       \fill[ccBrown,rounded corners=1.5pt](0,-4pt)rectangle(11pt,5pt);%
+       \node[white,font=\fontsize{4.5}{4.5}\selectfont\bfseries\sffamily] at (5.5pt,.5pt){CC};}%
+     \enspace CodeChef};
+
+  % ── Platform badge — USACO (navy circle icon) ────────────────────────────
+  \node[fill=usacoNavy!9, draw=usacoNavy, line width=0.45pt,
+        rounded corners=4pt, text=usacoNavy,
+        font=\fontsize{8}{8}\selectfont\bfseries,
+        inner xsep=7pt, inner ysep=5.5pt, anchor=north west]
+    at ($(current page.north west) + (0.430\paperwidth, -0.845\paperheight)$)
+    {\tikz[baseline=-3pt]{%
+       \fill[usacoNavy](0,0)circle(5.5pt);%
+       \node[white,font=\fontsize{3.8}{3.8}\selectfont\bfseries] at (0,0){USA};}%
+     \enspace USACO};
+
+  % ── Platform badge — VJudge (square icon) ────────────────────────────────
+  \node[fill=vjBlue!9, draw=vjBlue, line width=0.45pt,
+        rounded corners=4pt, text=vjBlue,
+        font=\fontsize{8}{8}\selectfont\bfseries,
+        inner xsep=7pt, inner ysep=5.5pt, anchor=north west]
+    at ($(current page.north west) + (0.601\paperwidth, -0.845\paperheight)$)
+    {\tikz[baseline=-3pt]{%
+       \fill[vjBlue,rounded corners=1.5pt](-4.5pt,-4pt)rectangle(4.5pt,4pt);%
+       \node[white,font=\fontsize{5}{5}\selectfont\bfseries] at (0,0){VJ};}%
+     \enspace VJudge};
+
+  % ── Platform badge — C2 Ladder (bar chart + arrow icon) ──────────────────
+  \node[fill=c2Green!9, draw=c2Green, line width=0.45pt,
+        rounded corners=4pt, text=c2Green,
+        font=\fontsize{8}{8}\selectfont\bfseries,
+        inner xsep=7pt, inner ysep=5.5pt, anchor=north west]
+    at ($(current page.north west) + (0.769\paperwidth, -0.845\paperheight)$)
+    {\tikz[baseline=-2.5pt,scale=0.24]{%
+       \fill[yellow!75!orange](0,0)rectangle(.30,.46);%
+       \fill[cfBlue!80!c2Green](.36,0)rectangle(.64,.70);%
+       \fill[red!55!black](.70,0)rectangle(.98,.28);%
+       \draw[c2Green,line width=.9pt,-stealth](-.02,.22)--(.32,.09)--(.64,.56)--(.98,.38);}%
+     \enspace C2 Ladder};
+
+  % ── Footer strip ─────────────────────────────────────────────────────────
+  \fill[primary!82!black]
+    (current page.south west)
+    rectangle ($(current page.south east) + (0, 0.058\paperheight)$);
+
+  \node[white, opacity=0.85, font=\fontsize{8.5}{8.5}\selectfont\scshape,
+        anchor=west]
+    at ($(current page.south west) + (0.43\paperwidth, 0.029\paperheight)$)
+    {General Reference \enspace·\enspace 2026};
+
+  \node[white, opacity=0.45, font=\fontsize{8}{8}\selectfont,
+        anchor=east]
+    at ($(current page.south east) + (-0.04\paperwidth, 0.029\paperheight)$)
+    {Competitive Programming};
+
+\end{tikzpicture}
+\newpage
+
+% =============================================================================
+%  TABLE OF CONTENTS
+% =============================================================================
+\thispagestyle{plain}
+{\hypersetup{linkcolor=primary}
+\tableofcontents}
+\newpage
+
+% =============================================================================
+\section{The Harsh Truths \& Core Techniques}
+% =============================================================================
+
+\noindent\textbf{The Harsh Truths of Competitive Programming}
+\begin{sidebar}
+\begin{itemize}[leftmargin=1.5em, itemsep=5pt]
+
+  \item \textbf{Typing is not problem-solving:} If your fingers are moving, your
+        brain is usually turned off. Spend 80\% of your time on paper, 20\% on
+        the keyboard.
+
+  \item \textbf{Easy problems are a trap:} Solving 1{,}000 easy problems gives
+        you a fake dopamine hit. If you aren't struggling and your brain doesn't
+        physically hurt trying to bridge a logical gap, you aren't growing.
+
+  \item \textbf{CSES is the wrench, Codeforces is the engine:} CSES taught you
+        algorithms. Codeforces will hand you scrap metal and ask you to build a
+        machine. Do not force heavy CSES data structures onto simple CF
+        ad-hoc math problems.
+
+  \item \textbf{Embrace the Flatline:} Your rating will flatline for months.
+        You will feel stupid. Then, overnight, a pattern will click, and you
+        will jump 200 points. Do not quit.
+
+\end{itemize}
+\end{sidebar}
+
+\vspace{4pt}
+\noindent\textbf{The Golden Techniques}
+\begin{sidebar}
+\begin{itemize}[leftmargin=1.5em, itemsep=5pt]
+
+  \item \textbf{Reverse-Engineer Constraints:} Always look at $N$ before the
+        story.
+        \begin{itemize}
+          \item If $N \le 2{,}000$, then $O(N^2)$ is safe.
+          \item If $N \le 2 \cdot 10^5$, you are strictly bound to
+                $O(N \log N)$ or $O(N)$.
+        \end{itemize}
+
+  \item \textbf{The ``Three Strikes'' Rule:} Never open an editorial unless you
+        have written down at least \emph{three distinct, failed approaches} on
+        paper.
+
+  \item \textbf{The ``Amnesia'' Rule:} If you read an editorial, close it, step
+        away for 30 minutes, and then code it from memory. If you can't, you
+        didn't learn it.
+
+\end{itemize}
+\end{sidebar}
+
+% =============================================================================
+\section{The Micro-Strategy: The 60-Minute Rule}
+% =============================================================================
+
+Apply this strict timeline to \textbf{every single problem} you solve outside of live contests.
+
+\begin{sidebar}
+\begin{itemize}[leftmargin=1.5em, itemsep=6pt]
+
+  \item \textbf{Minutes 0--5 (Reconnaissance):} Read the problem twice. Check
+        constraints. Guess the intended time complexity.
+
+  \item \textbf{Minutes 5--25 (Observation):} \textbf{No keyboard.} Pen and
+        paper only. Draw sample cases. Find the math/logic invariant.
+
+  \item \textbf{Minutes 25--35 (Attack It):} Try to break your logic with
+        extreme edge cases (e.g., $N = 1$, all zeros, sorted array).
+
+  \item \textbf{Minutes 35--45 (Code It):} Only touch the keyboard if your
+        logic survived your own attacks.
+
+  \item \textbf{Minutes 45--60 (The Struggle):} Debug or rethink.
+
+  \item \textbf{Minute 60+ (Editorial Protocol):} Read \emph{only the first
+        hint}. Close the tab. Wait 30 minutes. Code from memory.
+
+\end{itemize}
+\end{sidebar}
+
+% =============================================================================
+\section{The Daily Timetable (16 Hours Deep Work)}
+% =============================================================================
+
+This layout accommodates your 1:00 PM nap and perfectly aligns your evening
+block with live Codeforces, LeetCode, or AtCoder contests.
+
+\vspace{0.8em}
+{%
+\arrayrulecolor{gray!60}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\textwidth}{|%
+  >{\bfseries\raggedright\arraybackslash}p{3.4cm}|%
+  c|%
+  c|%
+  >{\raggedright\arraybackslash}X|%
+}
+\hline
+\rowcolor{primary!90!black}
+{\color{white}\centering\textbf{Time}} &
+{\color{white}\textbf{Duration}} &
+{\color{white}\textbf{Phase}} &
+{\color{white}\centering\arraybackslash\textbf{Block / Activity}} \\
+\hline
+05:00 -- 05:30 AM & 30 min & Morning &
+  System Boot: wake up, 1\,L water, zero screens, stretch \\
+\hline
+05:30 -- 09:30 AM & 4 hrs & Morning &
+  Deep Logic \& Observation --- USACO Silver/Gold (90 min/problem, 45 min on paper) \\
+\hline
+09:30 -- 10:00 AM & 30 min & Morning &
+  Refuel: quick breakfast, step away from desk \\
+\hline
+\rowcolor{blue!6}
+10:00 AM -- 01:00 PM & 3 hrs & Mid-Day &
+  CF Foundations Part A --- C2Ladders or CF ``Most Solved'' (+100--+200 above current rating) \\
+\hline
+\rowcolor{blue!6}
+01:00 -- 02:00 PM & 1 hr & Mid-Day &
+  Hard Reset: lunch + mandatory 30--40 min nap \\
+\hline
+\rowcolor{blue!6}
+02:00 -- 03:30 PM & 1.5 hrs & Mid-Day &
+  CF Foundations Part B: finish C2Ladders quota \\
+\hline
+\rowcolor{orange!8}
+03:30 -- 07:30 PM & 4 hrs & Afternoon &
+  Weakness Elimination: topic-wise upsolve (Graph DP, Binary Search, Constructives\ldots) \\
+\hline
+\rowcolor{orange!8}
+07:30 -- 08:00 PM & 30 min & Afternoon &
+  Pre-Contest Disconnect: fast dinner, mental detach from CP \\
+\hline
+\rowcolor{green!6}
+08:00 -- 10:30 PM & 2.5 hrs & Evening &
+  Live Contests / Virtual: Codeforces Rounds (8:05 or 8:35 PM BD Time); raw speed on A \& B \\
+\hline
+\rowcolor{gray!10}
+10:30 -- 11:30 PM & 1 hr & Night &
+  Codification: post-contest upsolve, clean code, update TRD \\
+\hline
+\rowcolor{gray!10}
+11:30 PM & --- & Night &
+  Hard Shutdown: screens off, sleep immediately \\
+\hline
+\end{tabularx}
+}
+\vspace{0.8em}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Morning: The Logic Awakening}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{itemize}[leftmargin=2em, itemsep=6pt]
+
+  \item \textbf{05:00 AM -- 05:30 AM $|$ System Boot (30 min):} Wake up, drink
+        1\,L of water. Zero screens. Walk outside or stretch to wake up your
+        brain.
+
+  \item \textbf{05:30 AM -- 09:30 AM $|$ Deep Logic \& Observation (4 hrs):}
+    \begin{itemize}
+      \item \textbf{Target:} USACO Section-Wise (Silver/Gold).
+      \item \textbf{Execution:} USACO requires deep thought. Expand the
+            micro-strategy to 90 minutes per problem. Spend up to 45 minutes
+            purely on paper.
+    \end{itemize}
+
+  \item \textbf{09:30 AM -- 10:00 AM $|$ Refuel (30 min):} Quick breakfast.
+        Step away from the desk.
+
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Mid-Day: The Classic Foundations}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{itemize}[leftmargin=2em, itemsep=6pt]
+
+  \item \textbf{10:00 AM -- 01:00 PM $|$ CF Foundations --- Part A (3 hrs):}
+    \begin{itemize}
+      \item \textbf{Target:} C2Ladders or CF ``Most Solved''
+            (+100 to +200 rating above current level).
+      \item \textbf{Execution:} Apply the strict 60-Minute Micro-Strategy.
+            Learn the classic CP tricks.
+    \end{itemize}
+
+  \item \textbf{01:00 PM -- 02:00 PM $|$ Hard Reset (1 hr):} Lunch and a
+        mandatory 30--40 minute nap. Your brain is running on low sleep; this
+        nap is non-negotiable for afternoon survival.
+
+  \item \textbf{02:00 PM -- 03:30 PM $|$ CF Foundations --- Part B (1.5 hrs):}
+    \begin{itemize}
+      \item \textbf{Target:} Finish your C2Ladders quota for the day.
+    \end{itemize}
+
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Afternoon: Targeted Repair}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{itemize}[leftmargin=2em, itemsep=6pt]
+
+  \item \textbf{03:30 PM -- 07:30 PM $|$ Weakness Elimination (4 hrs):}
+    \begin{itemize}
+      \item \textbf{Target:} Topic-wise Upsolve
+            (e.g., Graph DP, Binary Search, Constructives).
+      \item \textbf{Execution:} Apply the 60-Minute Micro-Strategy. Since you
+            know the topic tag, spend minutes 5--25 figuring out how the
+            algorithm is hidden in the story.
+    \end{itemize}
+
+  \item \textbf{07:30 PM -- 08:00 PM $|$ Pre-Contest Disconnect (30 min):}
+        Fast dinner. Completely detach from CP to clear your mind before the
+        contest window.
+
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Evening: The Contest Arena}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{itemize}[leftmargin=2em, itemsep=6pt]
+
+  \item \textbf{08:00 PM -- 10:30 PM $|$ The Modern Meta \& Live Contests
+        (2.5 hrs):}
+    \begin{itemize}
+      \item \textbf{Target:} Live Codeforces Rounds
+            (usually 8:05 PM or 8:35 PM BD Time).
+      \item \textbf{Execution:} If there is a live contest, compete with zero
+            distractions. If there is no live contest, run a Virtual Contest
+            from recent Div.\,2 / Div.\,3 rounds. Ignore the 60-minute rule
+            for problems A and B to practice raw speed.
+    \end{itemize}
+
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Night: Codification \& Shutdown}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{itemize}[leftmargin=2em, itemsep=6pt]
+
+  \item \textbf{10:30 PM -- 11:30 PM $|$ Codification (1 hr):}
+    \begin{itemize}
+      \item \textbf{Target:} Post-Contest Upsolve \& Team Reference Document
+            (TRD) Build.
+      \item \textbf{Execution:} Take the code from the contest you just did.
+            Clean it up, read the editorial for the problem you failed, and add
+            any new templates to your TRD.
+    \end{itemize}
+
+  \item \textbf{11:30 PM $|$ Hard Shutdown:} Screens off. Go to sleep
+        immediately.
+
+\end{itemize}
+
+% =============================================================================
+\section{Most Important Words for Competitive Programming}
+% =============================================================================
+
+\begin{sidebarGray}
+\begin{itemize}[leftmargin=1.5em, itemsep=6pt]
+
+  \item \textbf{Upsolve:} Solving problems after the contest ends. Contests
+        measure your skill; upsolving \emph{builds} it.
+
+  \item \textbf{Paper:} Your true compiler. A wrong answer on paper costs
+        0 penalty points.
+
+  \item \textbf{Constraints:} The blueprint. The constraints whisper the
+        intended algorithm to you before you even read the story.
+
+  \item \textbf{Counter-Example:} The act of playing devil's advocate and
+        aggressively trying to break your own logic before typing.
+
+  \item \textbf{Occam's Razor:} The simplest solution is usually the right one.
+        If a 1400-rated problem requires 150 lines of complex data structures,
+        your approach is wrong.
+
+\end{itemize}
+\end{sidebarGray}
+
+% =============================================================================
+\section{Problem Solving Tricks \& Growth Strategy}
+% =============================================================================
+
+\subsection*{When Should I Move to the Next Rating Bracket?}
+
+\begin{itemize}[leftmargin=2em, itemsep=4pt]
+
+  \item \textbf{The ``Rule of 10'':} Do not blindly solve 300 problems per
+        rating bracket. If you can solve \emph{10 problems in a row} at a
+        specific rating (e.g., 1400) within 45 minutes each, \emph{without
+        ever looking at the editorial}, you have mastered that rating.
+        Move up immediately.
+
+\end{itemize}
+
+\subsection*{Strategy for CF Rating Growth}
+
+\begin{itemize}[leftmargin=2em, itemsep=6pt]
+
+  \item \textbf{Stop doing easy problems in practice:} Jump straight to
+        problems C and D during your CF Foundation blocks. Get comfortable
+        feeling completely lost.
+
+  \item \textbf{Hunt your weaknesses:} Look at your last 5 contest
+        performances. Identify the exact tag that stopped you, and spend your
+        03:30 PM block destroying that specific weakness for a whole week.
+
+  \item \textbf{Read the Standings:} During a live contest, if you are stuck
+        on Problem C but 1{,}000 people have solved Problem D, abandon C
+        immediately. The scoreboard is telling you that D is secretly easier.
+
+\end{itemize}
+
+\end{document}
