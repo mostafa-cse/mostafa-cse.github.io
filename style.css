@@ -1738,8 +1738,8 @@ input:checked + .slider:before { transform:translateX(18px); }
   50%       { transform: translateY(-8px); }
 }
 @keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(100,220,140,0.4); }
-  50%       { box-shadow: 0 0 22px rgba(100,220,140,0.85); }
+  0%, 100% { box-shadow: 0 0 8px rgba(83,131,220,0.4); }
+  50%       { box-shadow: 0 0 22px rgba(83,131,220,0.85); }
 }
 @keyframes shimmer {
   0%   { background-position: -400px 0; }
@@ -1771,7 +1771,7 @@ input:checked + .slider:before { transform:translateX(18px); }
 
 /* ── NEW: Glow pulse for borders ─────────────────────────────────────────── */
 @keyframes borderGlow {
-  0%, 100% { border-color: var(--accent); box-shadow: 0 0 6px rgba(34,136,80,0.15); }
+  0%, 100% { border-color: var(--accent); box-shadow: 0 0 6px rgba(45,90,170,0.15); }
   50%      { border-color: var(--accent2); box-shadow: 0 0 18px rgba(83,131,220,0.25); }
 }
 
