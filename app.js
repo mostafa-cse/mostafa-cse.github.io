@@ -1635,7 +1635,7 @@ function renderContent() {
       const [time, ...rest] = step.split('  ');
       mt.innerHTML += `<div class="micro-step"><span class="micro-step-time">${time}</span><span class="micro-step-text">${rest.join('  ')}</span></div>`;
     } else {
-      // phase 1 = steps 1-2 (green), phase 2 = steps 3-4 (teal), phase 3 = steps 5-6 (amber)
+      // phase 1 = steps 1-2, phase 2 = steps 3-4, phase 3 = steps 5-6 (all blue shades)
       const phase = i < 2 ? 1 : i < 4 ? 2 : 3;
       mt.innerHTML += `
         <div class="micro-step" data-phase="${phase}" style="--i:${i}">
