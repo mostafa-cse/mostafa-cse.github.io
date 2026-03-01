@@ -334,7 +334,7 @@ class ThreeJSBackground {
     const positions = new Float32Array(1200 * 3);
     for (let i = 0; i < 1200 * 3; i++) positions[i] = (Math.random() - 0.5) * 160;
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    const stars = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xd4af37, size: 0.15, transparent: true, opacity: 0.8 }));
+    const stars = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x5383DC, size: 0.15, transparent: true, opacity: 0.8 }));
     this.scene.add(stars); this._objects.push(stars);
 
     // 2. Octagram rings (3 sizes)
@@ -342,7 +342,7 @@ class ThreeJSBackground {
       const icoGeo = new THREE.IcosahedronGeometry(r, 1);
       const edges = new THREE.EdgesGeometry(icoGeo);
       const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
-        color: 0x228850, transparent: true, opacity: 0.22 - i * 0.04
+        color: 0x5383DC, transparent: true, opacity: 0.22 - i * 0.04
       }));
       line._speed = [0.001 + i * 0.0005, 0.0007 + i * 0.0004, 0.0003 + i * 0.0006];
       this.scene.add(line); this._objects.push(line);
@@ -351,7 +351,7 @@ class ThreeJSBackground {
 
     // 3. Crescent moon (torus arc)
     const torusGeo = new THREE.TorusGeometry(4, 0.55, 16, 60, Math.PI * 1.3);
-    const moon = new THREE.Mesh(torusGeo, new THREE.MeshBasicMaterial({ color: 0xf0c040, transparent: true, opacity: 0.7 }));
+    const moon = new THREE.Mesh(torusGeo, new THREE.MeshBasicMaterial({ color: 0x7eb8ff, transparent: true, opacity: 0.7 }));
     moon.position.set(10, 5, -5);
     moon._isMoon = true; moon._baseY = 5;
     this.scene.add(moon); this._objects.push(moon);
@@ -494,7 +494,7 @@ class NextPrayerWatch {
     this.scene.add(this.hourHand, this.minuteHand, this.secondHand);
 
     // Prayer arc (ring segment on top of dial)
-    this.prayerArcMat = new THREE.MeshBasicMaterial({ color: 0x228850, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
+    this.prayerArcMat = new THREE.MeshBasicMaterial({ color: 0x2D5AAA, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
     this.prayerArc = null; // built by _updatePrayerArc()
   }
 
@@ -550,7 +550,7 @@ class NextPrayerWatch {
     }
     const arcGeo = new THREE.RingGeometry(2.0, 2.2, 32, 1, -Math.PI / 2, theta);
     const urgent = next.seconds < 300;
-    this.prayerArcMat.color.setHex(urgent ? 0xe63300 : 0x228850);
+    this.prayerArcMat.color.setHex(urgent ? 0xe63300 : 0x2D5AAA);
     this.prayerArcMat.opacity = urgent ? (0.5 + 0.5 * Math.sin(performance.now() / 200)) : 0.85;
     this.prayerArc = new THREE.Mesh(arcGeo, this.prayerArcMat);
     this.prayerArc.position.z = 0.22;
@@ -656,11 +656,11 @@ class AnalogClock {
     // ── Face background ───────────────────────────────────────────────────
     const faceGrad = ctx.createRadialGradient(cx, cy - R * 0.2, R * 0.1, cx, cy, R);
     if (dark) {
-      faceGrad.addColorStop(0, 'rgba(20, 50, 36, 0.92)');
-      faceGrad.addColorStop(1, 'rgba(4, 20, 12, 0.95)');
+      faceGrad.addColorStop(0, 'rgba(15, 30, 70, 0.92)');
+      faceGrad.addColorStop(1, 'rgba(6, 14, 36, 0.95)');
     } else {
-      faceGrad.addColorStop(0, 'rgba(240, 252, 246, 0.92)');
-      faceGrad.addColorStop(1, 'rgba(210, 240, 224, 0.88)');
+      faceGrad.addColorStop(0, 'rgba(232, 238, 248, 0.92)');
+      faceGrad.addColorStop(1, 'rgba(210, 225, 248, 0.88)');
     }
     ctx.beginPath();
     ctx.arc(cx, cy, R, 0, Math.PI * 2);
@@ -669,9 +669,9 @@ class AnalogClock {
 
     // ── Outer ring ────────────────────────────────────────────────────────
     const ringGrad = ctx.createLinearGradient(cx - R, cy - R, cx + R, cy + R);
-    ringGrad.addColorStop(0, dark ? 'rgba(76,175,128,0.6)' : 'rgba(34,136,80,0.5)');
-    ringGrad.addColorStop(0.5, dark ? 'rgba(14,76,52,0.4)' : 'rgba(14,76,52,0.25)');
-    ringGrad.addColorStop(1, dark ? 'rgba(76,175,128,0.6)' : 'rgba(34,136,80,0.5)');
+    ringGrad.addColorStop(0, dark ? 'rgba(83,131,220,0.6)' : 'rgba(20,55,120,0.5)');
+    ringGrad.addColorStop(0.5, dark ? 'rgba(20,55,120,0.4)' : 'rgba(20,55,120,0.25)');
+    ringGrad.addColorStop(1, dark ? 'rgba(83,131,220,0.6)' : 'rgba(20,55,120,0.5)');
     ctx.beginPath();
     ctx.arc(cx, cy, R, 0, Math.PI * 2);
     ctx.strokeStyle = ringGrad;
@@ -688,8 +688,8 @@ class AnalogClock {
       ctx.moveTo(cx + Math.cos(angle) * tickOuter, cy + Math.sin(angle) * tickOuter);
       ctx.lineTo(cx + Math.cos(angle) * tickInner, cy + Math.sin(angle) * tickInner);
       ctx.strokeStyle = isHour
-        ? (dark ? 'rgba(76,200,140,0.9)' : 'rgba(14,76,52,0.85)')
-        : (dark ? 'rgba(76,175,128,0.35)' : 'rgba(14,76,52,0.25)');
+        ? (dark ? 'rgba(83,131,220,0.9)' : 'rgba(20,55,120,0.85)')
+        : (dark ? 'rgba(83,131,220,0.35)' : 'rgba(20,55,120,0.25)');
       ctx.lineWidth = isHour ? 2.2 : 1;
       ctx.lineCap = 'round';
       ctx.stroke();
@@ -697,7 +697,7 @@ class AnalogClock {
 
     // ── Hour numbers (12, 3, 6, 9) ───────────────────────────────────────
     const numRadius = R - 26;
-    const numColor  = dark ? 'rgba(180,230,200,0.9)' : 'rgba(8,50,30,0.85)';
+    const numColor  = dark ? 'rgba(180,210,255,0.9)' : 'rgba(13,36,80,0.85)';
     ctx.font = `bold 15px 'Lora', Georgia, serif`;
     ctx.fillStyle = numColor;
     ctx.textAlign = 'center';
@@ -727,13 +727,13 @@ class AnalogClock {
     const minAngle    = (min / 60) * Math.PI * 2 - Math.PI / 2;
     const secAngle    = (sec / 60) * Math.PI * 2 - Math.PI / 2;
 
-    const hourColor = dark ? '#b4e6c8' : '#0E4C34';
-    const minColor  = dark ? '#7ee8a2' : '#1a6b40';
-    const secColor  = '#22c76e';
+    const hourColor = dark ? '#a8c8f0' : '#143778';
+    const minColor  = dark ? '#7eb8ff' : '#2D5AAA';
+    const secColor  = '#5383DC';
 
-    drawHand(hourAngle, R * 0.52, 5.5, hourColor, 8, dark ? 'rgba(76,200,140,0.4)' : 'rgba(14,76,52,0.3)');
-    drawHand(minAngle,  R * 0.75, 3.5, minColor,  6, dark ? 'rgba(76,200,140,0.3)' : 'rgba(14,76,52,0.25)');
-    drawHand(secAngle,  R * 0.82, 1.5, secColor,  10, 'rgba(34,200,110,0.55)');
+    drawHand(hourAngle, R * 0.52, 5.5, hourColor, 8, dark ? 'rgba(83,131,220,0.4)' : 'rgba(20,55,120,0.3)');
+    drawHand(minAngle,  R * 0.75, 3.5, minColor,  6, dark ? 'rgba(83,131,220,0.3)' : 'rgba(20,55,120,0.25)');
+    drawHand(secAngle,  R * 0.82, 1.5, secColor,  10, 'rgba(83,131,220,0.55)');
 
     // ── Second hand tail ──────────────────────────────────────────────────
     ctx.save();
@@ -751,9 +751,9 @@ class AnalogClock {
     // Outer ring
     ctx.beginPath();
     ctx.arc(cx, cy, 7, 0, Math.PI * 2);
-    ctx.fillStyle = dark ? '#3adb78' : '#228850';
+    ctx.fillStyle = dark ? '#7eb8ff' : '#2D5AAA';
     ctx.shadowBlur = 10;
-    ctx.shadowColor = 'rgba(34,200,110,0.6)';
+    ctx.shadowColor = 'rgba(83,131,220,0.6)';
     ctx.fill();
     ctx.shadowBlur = 0;
     // Inner dot

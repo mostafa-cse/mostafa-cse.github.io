@@ -22,15 +22,15 @@
 }
 
 [data-theme="ramadan"] {
-  --primary:       #0E4C34;
-  --primary-dark:  #072b1e;
-  --primary-light: #e6f4ee;
-  --accent:        #228850;
-  --accent2:       #4caf80;
-  --badge-bg:      #d4eddf;
-  --text:          #0d1f16;
-  --shadow:        0 4px 24px rgba(14,76,52,0.12);
-  --shadow-lg:     0 8px 40px rgba(14,76,52,0.18);
+  --primary:       #143778;
+  --primary-dark:  #0d2450;
+  --primary-light: #e8eef8;
+  --accent:        #2D5AAA;
+  --accent2:       #5383DC;
+  --badge-bg:      #dce8ff;
+  --text:          #1a1a2e;
+  --shadow:        0 4px 24px rgba(20,55,120,0.12);
+  --shadow-lg:     0 8px 40px rgba(20,55,120,0.18);
 }
 
 [data-dark="true"] {
@@ -69,7 +69,7 @@ img, svg { display: block; max-width: 100%; }
   border-bottom: 1px solid rgba(255,255,255,0.08);
   transition: background var(--transition), padding 0.3s ease, box-shadow 0.3s ease;
 }
-[data-theme="ramadan"] .topnav { background: rgba(14,76,52,0.85); }
+[data-theme="ramadan"] .topnav { background: rgba(20,55,120,0.85); }
 [data-dark="true"] .topnav { background: rgba(10,12,24,0.92); }
 .nav-brand { display:flex; align-items:center; gap:0.5rem; flex-shrink:0; }
 .nav-logo { font-size:1.3rem; }
@@ -282,8 +282,8 @@ img, svg { display: block; max-width: 100%; }
   font-weight:600;
   border: 1px solid var(--accent);
 }
-.suhoor-pill { background:#fff9e6; border-color:#d4af37; color:#7a6000; }
-.iftar-pill  { background:#fff6e0; border-color:#e08a00; color:#8a4800; }
+.suhoor-pill { background:#e8eef8; border-color:#5383DC; color:#143778; }
+.iftar-pill  { background:#dce8ff; border-color:#2D5AAA; color:#0d2450; }
 
 /* 5-Prayer times grid in hero */
 .prayer-times-hero {
@@ -836,8 +836,8 @@ img, svg { display: block; max-width: 100%; }
 
 /* Staggered entrance: cards start invisible and slide up */
 .micro-step {
-  --phase-a: #1a9a6a;
-  --phase-b: #0e8f9a;
+  --phase-a: #2D5AAA;
+  --phase-b: #5383DC;
 
   position: relative;
   display: flex;
@@ -943,9 +943,9 @@ img, svg { display: block; max-width: 100%; }
 }
 
 /* Phase overrides */
-.micro-step[data-phase="1"] { --phase-a: #228850; --phase-b: #3aac6c; }
-.micro-step[data-phase="2"] { --phase-a: #0e7a8a; --phase-b: #14aabe; }
-.micro-step[data-phase="3"] { --phase-a: #b06a10; --phase-b: #d98b2a; }
+.micro-step[data-phase="1"] { --phase-a: #143778; --phase-b: #2D5AAA; }
+.micro-step[data-phase="2"] { --phase-a: #1a4a9e; --phase-b: #5383DC; }
+.micro-step[data-phase="3"] { --phase-a: #0d2450; --phase-b: #3a6bc5; }
 
 /* legacy string-format fallback */
 .micro-step-text { font-size:0.9rem; color:var(--text); line-height:1.4; }
