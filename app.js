@@ -921,8 +921,39 @@ class PrayerTimeService {
     return {
       fajr: t.Fajr.slice(0, 5), dhuhr: t.Dhuhr.slice(0, 5),
       asr: t.Asr.slice(0, 5),   maghrib: t.Maghrib.slice(0, 5),
-      isha: t.Isha.slice(0, 5), city: tz, source: 'Aladhan API'
+      isha: t.Isha.slice(0, 5), city: '', timezone: tz, source: 'Aladhan API',
+      lat: +lat, lon: +lng
     };
+  }
+
+  // Reverse geocode lat/lon to get actual city/district name
+  static async _reverseGeocode(lat, lon) {
+    const geoServices = [
+      {
+        url: `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10&accept-language=en`,
+        parse: j => {
+          const a = j.address || {};
+          return a.city || a.town || a.district || a.county || a.state_district || a.state || null;
+        }
+      },
+      {
+        url: `https://geocode.maps.co/reverse?lat=${lat}&lon=${lon}&format=json`,
+        parse: j => {
+          const a = j.address || {};
+          return a.city || a.town || a.district || a.county || a.state || null;
+        }
+      }
+    ];
+    for (const svc of geoServices) {
+      try {
+        const r = await fetch(svc.url, { signal: AbortSignal.timeout(5000) });
+        if (!r.ok) continue;
+        const j = await r.json();
+        const city = svc.parse(j);
+        if (city) return city;
+      } catch (_) {}
+    }
+    return null;
   }
 
   // Resolve lat/lon via IP geolocation, trying multiple services
@@ -968,7 +999,9 @@ class PrayerTimeService {
         if (!isDefault) {
           window.PRAYER_TIMES = d;
           PrayerTimeService._patch(d);
-          PrayerTimeService._setLabel('📡 ' + (d.city || 'Cached prayer times'), true);
+          const cachedCity = d.city || '';
+          const cachedCoord = (d.lat && d.lon) ? ` (${d.lat.toFixed(2)}°, ${d.lon.toFixed(2)}°)` : '';
+          PrayerTimeService._setLabel('📡 ' + (cachedCity || 'Cached') + cachedCoord, true);
           dispatch('prayer:resolved', d);
           return resolve(d);
         }
@@ -983,35 +1016,43 @@ class PrayerTimeService {
         resolve(data);
       };
 
-      const tryWithCoords = async (lat, lon, label) => {
+      const tryWithCoords = async (lat, lon, label, cityHint) => {
         try {
           const data = await PrayerTimeService._fetchAladhan(lat, lon);
           data.source = label;
-          PrayerTimeService._setLabel('📍 ' + label + (data.city ? ' · ' + data.city : ''), true);
+          // Try reverse geocoding to get actual city name
+          if (cityHint) {
+            data.city = cityHint;
+          } else {
+            const geoCity = await PrayerTimeService._reverseGeocode(lat, lon).catch(() => null);
+            data.city = geoCity || '';
+          }
+          const displayCity = data.city || data.timezone || '';
+          const coordStr = `(${(+lat).toFixed(2)}°, ${(+lon).toFixed(2)}°)`;
+          PrayerTimeService._setLabel('📍 ' + label + (displayCity ? ' · ' + displayCity : '') + ' ' + coordStr, true);
           save(data);
           return true;
         } catch (e) { console.warn('Prayer fetch failed:', label, e); return false; }
       };
 
-      // 1. Try browser GPS
+      // 1. Try browser GPS (high accuracy for correct city-level coords)
       if (navigator.geolocation) {
         const gpsResult = await new Promise(res => {
           navigator.geolocation.getCurrentPosition(
-            p => res({ lat: p.coords.latitude, lon: p.coords.longitude, city: 'GPS location' }),
+            p => res({ lat: p.coords.latitude, lon: p.coords.longitude }),
             err => {
               if (err.code === 1) {
-                // PERMISSION_DENIED — don't wait for IP, show banner early
                 console.warn('Geolocation permission denied');
               } else {
                 console.warn('Geolocation error:', err.message);
               }
               res(null);
             },
-            { timeout: 10000, enableHighAccuracy: false, maximumAge: 60000 }
+            { timeout: 15000, enableHighAccuracy: true, maximumAge: 300000 }
           );
         });
         if (gpsResult) {
-          if (await tryWithCoords(gpsResult.lat, gpsResult.lon, 'GPS')) return;
+          if (await tryWithCoords(gpsResult.lat, gpsResult.lon, 'GPS', null)) return;
         }
       }
 
@@ -1019,8 +1060,9 @@ class PrayerTimeService {
       PrayerTimeService._setLabel('🌐 Locating via IP…', false);
       const ipCoords = await PrayerTimeService._ipCoords();
       if (ipCoords) {
-        const label = (ipCoords.city || 'IP location');
-        if (await tryWithCoords(ipCoords.lat, ipCoords.lon, label)) return;
+        // IP city is often the ISP hub (e.g. Dhaka), not the user's actual city
+        // Pass it as a hint but prefer reverse geocoding from coords
+        if (await tryWithCoords(ipCoords.lat, ipCoords.lon, 'IP', null)) return;
       }
 
       // 3. All failed — use hardcoded defaults
@@ -1088,7 +1130,8 @@ class PrayerTimeService {
     // Source label
     const city = data.city || '';
     const src  = data.source || 'Aladhan API';
-    set('prayer-src-label', '📍 ' + src + (city ? ' · ' + city : ''));
+    const coordInfo = (data.lat && data.lon) ? ` (${data.lat.toFixed(2)}°, ${data.lon.toFixed(2)}°)` : '';
+    set('prayer-src-label', '📍 ' + src + (city ? ' · ' + city : '') + coordInfo);
     const srcEl = document.getElementById('prayer-src-label');
     if (srcEl) srcEl.hidden = false;
 
