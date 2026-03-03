@@ -273,6 +273,8 @@ class AuroraWaves {
     ctx.fillRect(0, 0, W, H);
   }
 
+  setTheme() { /* AuroraWaves is theme-agnostic — no-op so midnight mode-switch doesn't throw */ }
+
   destroy() {
     if (this._raf) cancelAnimationFrame(this._raf);
   }
@@ -843,6 +845,8 @@ class TimelineView {
         : `<span class="status-pending">—</span>`;
       const tr = document.createElement('tr');
       tr.dataset.id = b.id;
+      if (b.isContestBlock) tr.classList.add('contest-block-row');
+      if (b.id === 'contest_live') tr.classList.add('contest-live-row');
       tr.innerHTML = `
         <td class="time-tag">${b.start}–${b.end}<div class="progress-bar-wrap" id="pb-${b.id}"><div class="progress-bar" id="bar-${b.id}" style="width:0%"></div></div></td>
         <td><span class="phase-dot" style="background:${b.color}"></span>${b.phase}</td>
@@ -1648,6 +1652,507 @@ class CountdownTimer {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// CONTEST SERVICE  —  Codeforces live API + generated schedules (no auth needed)
+// ══════════════════════════════════════════════════════════════════════════════
+class ContestService {
+  static CACHE_KEY = 'contests_v3_cache';
+  static CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+  static clearCache() {
+    localStorage.removeItem(this.CACHE_KEY);
+  }
+
+  // ── Time helpers ──────────────────────────────────────────────────────────
+  static toLocalDate(isoString) {
+    const d = new Date(isoString.endsWith('Z') ? isoString : isoString + 'Z');
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: APP_TIMEZONE, hour12: false, hourCycle: 'h23',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    }).formatToParts(d).reduce((a, p) => { if (p.type !== 'literal') a[p.type] = p.value; return a; }, {});
+    return new Date(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
+  }
+  static toLocalHHMM(isoString) {
+    const d = this.toLocalDate(isoString);
+    return pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+  static toLocalDateStr(isoString) {
+    const d = this.toLocalDate(isoString);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  static todayStr() {
+    const n = zonedNow();
+    return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+  }
+  static formatDuration(seconds) {
+    const h = Math.floor(seconds / 3600), m = Math.floor((seconds % 3600) / 60);
+    if (h && m) return `${h}h ${m}m`;
+    return h ? `${h}h` : `${m}m`;
+  }
+  static platformInfo(resource) {
+    const map = {
+      'codeforces.com':  { name: 'Codeforces', color: '#1a73e8', abbr: 'CF' },
+      'codechef.com':    { name: 'CodeChef',   color: '#5b4638', abbr: 'CC' },
+      'atcoder.jp':      { name: 'AtCoder',    color: '#1f8b00', abbr: 'AT' },
+      'leetcode.com':    { name: 'LeetCode',   color: '#e85d00', abbr: 'LC' },
+      'hackerearth.com': { name: 'HackerEarth',color: '#2c95ff', abbr: 'HE' },
+    };
+    return map[resource] || { name: resource, color: '#143778', abbr: '??' };
+  }
+
+  // ── Codeforces live (official public API, no key required) ────────────────
+  static async _fetchCodeforces() {
+    const r = await fetch('https://codeforces.com/api/contest.list?gym=false', {
+      signal: AbortSignal.timeout(9000)
+    });
+    if (!r.ok) throw new Error('CF HTTP ' + r.status);
+    const { status, result } = await r.json();
+    if (status !== 'OK') throw new Error('CF API status: ' + status);
+    const now = Date.now();
+    return result
+      .filter(c => c.phase === 'BEFORE' || c.phase === 'CODING')
+      .slice(0, 12)
+      .map(c => ({
+        event:    c.name,
+        href:     `https://codeforces.com/contest/${c.id}`,
+        start:    new Date(c.startTimeSeconds * 1000).toISOString(),
+        end:      new Date((c.startTimeSeconds + c.durationSeconds) * 1000).toISOString(),
+        duration: c.durationSeconds,
+        resource: 'codeforces.com',
+        site:     'CodeForces',
+        status:   c.phase === 'CODING' ? 'CODING' : 'BEFORE',
+      }));
+  }
+
+  // ── Generated schedule for platforms without a public API ─────────────────
+  // anchorISO : a known UTC datetime when the contest occurs
+  // intervalDays : repeat every N days (7 = weekly, 14 = biweekly)
+  // durationSecs : contest length in seconds
+  static _recurring(site, name, href, resource, durationSecs, anchorISO, intervalDays, count = 8) {
+    const interval = intervalDays * 86400000;
+    const now      = Date.now();
+    let   t        = new Date(anchorISO).getTime();
+    // Advance anchor to the next occurrence that hasn't fully ended yet
+    while (t + durationSecs * 1000 < now) t += interval;
+    const results = [];
+    for (let i = 0; i < count; i++, t += interval) {
+      if (new Date(t + durationSecs * 1000) <= new Date()) continue;
+      results.push({
+        event:    name,
+        href,
+        start:    new Date(t).toISOString(),
+        end:      new Date(t + durationSecs * 1000).toISOString(),
+        duration: durationSecs,
+        resource,
+        site,
+        status:   now >= t && now < t + durationSecs * 1000 ? 'CODING' : 'BEFORE',
+      });
+    }
+    return results;
+  }
+
+  // ── Main fetch ────────────────────────────────────────────────────────────
+  static async fetch() {
+    const cached = localStorage.getItem(this.CACHE_KEY);
+    if (cached) {
+      try {
+        const d = JSON.parse(cached);
+        if (Date.now() - d.timestamp < this.CACHE_TTL) return d.data;
+      } catch (_) {}
+    }
+
+    // 1. Codeforces — live from their public API
+    let cfContests = [];
+    try { cfContests = await this._fetchCodeforces(); }
+    catch (e) { console.warn('[ContestService] Codeforces fetch failed:', e.message); }
+
+    // 2. CodeChef Starter — every Wednesday 14:30 UTC (8:30 PM BST / 8:00 PM IST)
+    const ccContests = this._recurring(
+      'CodeChef', 'CodeChef Starter Contest',
+      'https://www.codechef.com/contests',
+      'codechef.com', 7200,           // 2 hours
+      '2026-03-04T14:30:00.000Z', 7   // anchor = Wednesday Mar 4 2026
+    );
+
+    // 3. LeetCode Weekly — every Sunday 02:30 UTC (8:30 AM BST)
+    const lcWeekly = this._recurring(
+      'LeetCode', 'LeetCode Weekly Contest',
+      'https://leetcode.com/contest/',
+      'leetcode.com', 5400,           // 1.5 hours
+      '2026-03-08T02:30:00.000Z', 7   // anchor = Sunday Mar 8 2026
+    );
+
+    // 4. LeetCode Biweekly — every other Saturday 14:30 UTC (8:30 PM BST)
+    const lcBiweekly = this._recurring(
+      'LeetCode', 'LeetCode Biweekly Contest',
+      'https://leetcode.com/contest/',
+      'leetcode.com', 5400,
+      '2026-03-14T14:30:00.000Z', 14  // anchor = Saturday Mar 14 2026
+    );
+
+    // 5. AtCoder ABC — every other Saturday 13:00 UTC (7:00 PM BST)
+    const atContests = this._recurring(
+      'AtCoder', 'AtCoder Beginner Contest',
+      'https://atcoder.jp/contests/',
+      'atcoder.jp', 6000,             // 100 minutes
+      '2026-03-07T13:00:00.000Z', 14  // anchor = Saturday Mar 7 2026
+    );
+
+    // ───────────────────────────────────────────────────────────────────────
+
+    const data = [...cfContests, ...ccContests, ...lcWeekly, ...lcBiweekly, ...atContests]
+      .filter(c => new Date(c.end) > new Date())
+      .sort((a, b) => new Date(a.start) - new Date(b.start));
+
+    localStorage.setItem(this.CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+    return data;
+  }
+
+  static getTodayFrom(all) {
+    const today = this.todayStr();
+    return all.filter(c => this.toLocalDateStr(c.start) === today);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DYNAMIC ROUTINE BUILDER — injects contest blocks into the daily schedule
+// ══════════════════════════════════════════════════════════════════════════════
+class DynamicRoutineBuilder {
+  /**
+   * Build a routine that slots ALL of today's contests into the base schedule.
+   * For each contest three blocks are inserted: Prep → Live → Upsolve.
+   * Base blocks that overlap any contest window are trimmed or removed.
+   */
+  static build(baseRoutine, todayContests) {
+    if (!todayContests || todayContests.length === 0) return [...baseRoutine];
+
+    // Sort contests by their local start time
+    const contests = [...todayContests].sort((a, b) =>
+      parseHHMM(ContestService.toLocalHHMM(a.start)) -
+      parseHHMM(ContestService.toLocalHHMM(b.start))
+    );
+
+    // Build a blocked window for each contest: [prepStart, postEnd]
+    const windows = contests.map(c => {
+      const startMins = parseHHMM(ContestService.toLocalHHMM(c.start));
+      const endMins   = parseHHMM(ContestService.toLocalHHMM(c.end));
+      return {
+        prepStart : Math.max(startMins - 60, 0),
+        startMins,
+        endMins,
+        postEnd   : Math.min(endMins + 90, parseHHMM('23:45')),
+        contest   : c,
+      };
+    });
+
+    // -------------------------------------------------------------------
+    // Pass 1: copy base-routine blocks, slicing around every window
+    // -------------------------------------------------------------------
+    const built = [];
+
+    for (const block of baseRoutine) {
+      if (block.ramadanOnly && !window._isRamadan) continue;
+
+      // A block may be split into multiple segments after applying all windows
+      let segments = [{ s: parseHHMM(block.start), e: parseHHMM(block.end) }];
+
+      for (const w of windows) {
+        const out = [];
+        for (const seg of segments) {
+          if (seg.e <= w.prepStart || seg.s >= w.postEnd) {
+            out.push(seg);                                      // entirely outside → keep
+          } else {
+            if (seg.s < w.prepStart)                           // left tail → keep
+              out.push({ s: seg.s, e: w.prepStart });
+            if (seg.e > w.postEnd)                             // right tail → keep
+              out.push({ s: w.postEnd, e: seg.e });
+            // anything inside the window is dropped
+          }
+        }
+        segments = out;
+      }
+
+      for (const seg of segments) {
+        if (seg.e - seg.s >= 5)                                // drop tiny slivers
+          built.push({ ...block, start: minsToHHMM(seg.s), end: minsToHHMM(seg.e) });
+      }
+    }
+
+    // -------------------------------------------------------------------
+    // Pass 2: insert contest blocks for every contest
+    // -------------------------------------------------------------------
+    for (const w of windows) {
+      const { prepStart, startMins, endMins, postEnd, contest: c } = w;
+      const pi           = ContestService.platformInfo(c.resource);
+      const contestStart = ContestService.toLocalHHMM(c.start);
+      const contestEnd   = ContestService.toLocalHHMM(c.end);
+      const slug         = c.resource.replace(/\./g, '_');
+
+      // Prep (only if there's at least 10 minutes before contest)
+      if (startMins - prepStart >= 10) {
+        built.push({
+          id       : `contest_prep_${slug}`,
+          start    : minsToHHMM(prepStart),
+          end      : contestStart,
+          phase    : '⚡ Contest Prep',
+          activity : `⚡ Contest Prep — review templates, mental warmup for <strong>${pi.name}</strong>`,
+          color    : '#fde68a', notify: 'warning', isContestBlock: true,
+        });
+      }
+
+      // Live contest
+      built.push({
+        id       : `contest_live_${slug}`,
+        start    : contestStart,
+        end      : contestEnd,
+        phase    : `🏆 ${pi.name} LIVE`,
+        activity : `🏆 <a href="${c.href}" target="_blank" rel="noopener" class="contest-link-inline">${c.event} ↗</a>
+                    &nbsp;<span class="contest-platform-inline" style="--pcolor:${pi.color}">${pi.name}</span>`,
+        color    : '#fbbf24', notify: 'contest', isContestBlock: true, contestData: c,
+      });
+
+      // Upsolve (only if contest ends before 23:00)
+      if (endMins < parseHHMM('23:00')) {
+        built.push({
+          id       : `contest_upsolve_${slug}`,
+          start    : contestEnd,
+          end      : minsToHHMM(postEnd),
+          phase    : '📓 Upsolve',
+          activity : '📓 Upsolve &amp; Editorial Review — solve missed problems, add contest notes',
+          color    : '#a5b4fc', notify: 'break', isContestBlock: true,
+        });
+      }
+    }
+
+    built.sort((a, b) => parseHHMM(a.start) - parseHHMM(b.start));
+    return built;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CONTEST RENDERER — renders the #contests section and today's banner
+// ══════════════════════════════════════════════════════════════════════════════
+class ContestRenderer {
+  constructor() {
+    this._upcoming    = [];
+    this._today       = [];
+    this._activeFilter = 'all';
+    this._grid        = document.getElementById('contests-grid');
+    this._banner      = document.getElementById('contest-today-banner');
+    this._statusEl    = document.getElementById('contest-status-label');
+    this._refreshBtn  = document.getElementById('contest-refresh-btn');
+    this._filterBar   = document.getElementById('contest-filters');
+
+    this._refreshBtn?.addEventListener('click', () => this.refresh());
+    this._filterBar?.addEventListener('click', e => {
+      const btn = e.target.closest('.contest-filter-btn');
+      if (!btn) return;
+      this._filterBar.querySelectorAll('.contest-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      this._activeFilter = btn.dataset.res;
+      this._renderGrid();
+    });
+    document.addEventListener('clock:tick', e => this._tick(e.detail.now));
+  }
+
+  async load() {
+    this._setStatus('⏳ Loading contest schedule…', false);
+    try {
+      const all = await ContestService.fetch();
+      this._upcoming = all;
+      this._today    = ContestService.getTodayFrom(all);
+      this._renderBanner();
+      this._renderGrid();
+      dispatch('contests:loaded', { today: this._today, upcoming: this._upcoming });
+    } catch (e) {
+      this._setStatus('❌ Failed to load contests. Check your connection.', true);
+    }
+  }
+
+  async refresh() {
+    ContestService.clearCache();
+    await this.load();
+  }
+
+  _setStatus(text, showRefresh) {
+    if (this._statusEl) this._statusEl.textContent = text;
+    if (this._refreshBtn) this._refreshBtn.style.display = showRefresh ? 'inline-flex' : 'none';
+  }
+
+  _renderBanner() {
+    if (!this._banner) return;
+    if (this._today.length === 0) { this._banner.hidden = true; return; }
+    const c   = this._today[0];
+    const pi  = ContestService.platformInfo(c.resource);
+    const startHHMM = ContestService.toLocalHHMM(c.start);
+    const endHHMM   = ContestService.toLocalHHMM(c.end);
+    const dur       = ContestService.formatDuration(c.duration);
+    const now       = zonedNow();
+    const nowSecs   = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+    const startSecs = parseHHMM(startHHMM) * 60;
+    const endSecs   = parseHHMM(endHHMM) * 60;
+    const isLive    = nowSecs >= startSecs && nowSecs < endSecs;
+    this._banner.hidden = false;
+    this._banner.className = 'contest-today-banner' + (isLive ? ' is-live' : '');
+    this._banner.innerHTML = `
+      <div class="contest-today-inner">
+        <div class="contest-today-badge" style="background:${pi.color}">${pi.abbr}</div>
+        <div class="contest-today-info">
+          <div class="contest-today-platform">${isLive ? '🔴 LIVE NOW' : '📅 TODAY'} · ${pi.name}</div>
+          <div class="contest-today-name">${c.event}</div>
+          <div class="contest-today-meta">${startHHMM} – ${endHHMM} &nbsp;·&nbsp; ${dur}</div>
+        </div>
+        <div class="contest-today-actions">
+          <span id="contest-today-countdown" class="contest-today-countdown ${isLive ? 'live' : ''}">--:--:--</span>
+          <a href="${c.href}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Open&nbsp;↗</a>
+        </div>
+      </div>`;
+  }
+
+  _renderGrid() {
+    if (!this._grid) return;
+    this._grid.innerHTML = '';
+    const list = this._activeFilter === 'all'
+      ? this._upcoming
+      : this._upcoming.filter(c => c.resource === this._activeFilter);
+
+    if (list.length === 0) {
+      this._grid.innerHTML = `<p class="contest-empty">No contests found${this._activeFilter !== 'all' ? ' for this platform' : ''} in the next 7 days.</p>`;
+      this._setStatus(`✅ 0 contests (${this._upcoming.length} total)`, true);
+      return;
+    }
+    const today  = ContestService.todayStr();
+    const now    = zonedNow();
+    const days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    const MAX_VISIBLE = 10;
+    const visible = list.slice(0, MAX_VISIBLE);
+    const hidden  = list.slice(MAX_VISIBLE);
+
+    visible.forEach(c => {
+      const pi          = ContestService.platformInfo(c.resource);
+      const startLocal  = ContestService.toLocalDate(c.start);
+      const startHHMM   = ContestService.toLocalHHMM(c.start);
+      const endHHMM     = ContestService.toLocalHHMM(c.end);
+      const dur         = ContestService.formatDuration(c.duration);
+      const startStr    = ContestService.toLocalDateStr(c.start);
+      const isToday     = startStr === today;
+      const nowSecs     = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+      const startSecs   = parseHHMM(startHHMM) * 60;
+      const endSecs     = parseHHMM(endHHMM) * 60;
+      const isLive      = isToday && nowSecs >= startSecs && nowSecs < endSecs;
+      const isOver      = isToday && nowSecs >= endSecs;
+      const dateLabel   = isToday ? 'Today' : `${days[startLocal.getDay()]}, ${startLocal.getDate()} ${months[startLocal.getMonth()]}`;
+      const card = document.createElement('div');
+      card.className = `contest-card${isToday ? ' contest-today-card' : ''}${isLive ? ' contest-live-card' : ''}${isOver ? ' contest-over' : ''}`;
+      card.dataset.contestStart = c.start;
+      card.dataset.contestEnd   = c.end;
+      card.dataset.resource     = c.resource;
+      card.innerHTML = `
+        <div class="contest-card-header">
+          <span class="contest-platform-badge" style="--pcolor:${pi.color}">${pi.name}</span>
+          ${isLive ? '<span class="contest-status-pip live">🔴 LIVE</span>' : ''}
+          ${isToday && !isLive && !isOver ? '<span class="contest-status-pip today">Today</span>' : ''}
+          ${isOver ? '<span class="contest-status-pip over">Ended</span>' : ''}
+        </div>
+        <div class="contest-card-name">${c.event}</div>
+        <div class="contest-card-meta">
+          <span>📅 ${dateLabel}</span>
+          <span>🕐 ${startHHMM} – ${endHHMM}</span>
+          <span>⏱ ${dur}</span>
+        </div>
+        <a href="${c.href}" target="_blank" rel="noopener" class="contest-card-link">Open Contest ↗</a>`;
+      this._grid.appendChild(card);
+    });
+
+    if (hidden.length > 0) {
+      // hidden cards container
+      const moreWrap = document.createElement('div');
+      moreWrap.id = 'contest-more-wrap';
+      moreWrap.style.display = 'none';
+      // render hidden cards into a fragment then append
+      const renderCard = (c) => {
+        const pi          = ContestService.platformInfo(c.resource);
+        const startLocal  = ContestService.toLocalDate(c.start);
+        const startHHMM   = ContestService.toLocalHHMM(c.start);
+        const endHHMM     = ContestService.toLocalHHMM(c.end);
+        const dur         = ContestService.formatDuration(c.duration);
+        const startStr    = ContestService.toLocalDateStr(c.start);
+        const isToday     = startStr === today;
+        const nowSecs     = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        const startSecs   = parseHHMM(startHHMM) * 60;
+        const endSecs     = parseHHMM(endHHMM) * 60;
+        const isLive      = isToday && nowSecs >= startSecs && nowSecs < endSecs;
+        const isOver      = isToday && nowSecs >= endSecs;
+        const dateLabel   = isToday ? 'Today' : `${days[startLocal.getDay()]}, ${startLocal.getDate()} ${months[startLocal.getMonth()]}`;
+        const card = document.createElement('div');
+        card.className = `contest-card${isToday ? ' contest-today-card' : ''}${isLive ? ' contest-live-card' : ''}${isOver ? ' contest-over' : ''}`;
+        card.dataset.contestStart = c.start;
+        card.dataset.contestEnd   = c.end;
+        card.dataset.resource     = c.resource;
+        card.innerHTML = `
+          <div class="contest-card-header">
+            <span class="contest-platform-badge" style="--pcolor:${pi.color}">${pi.name}</span>
+            ${isLive ? '<span class="contest-status-pip live">🔴 LIVE</span>' : ''}
+            ${isToday && !isLive && !isOver ? '<span class="contest-status-pip today">Today</span>' : ''}
+            ${isOver ? '<span class="contest-status-pip over">Ended</span>' : ''}
+          </div>
+          <div class="contest-card-name">${c.event}</div>
+          <div class="contest-card-meta">
+            <span>📅 ${dateLabel}</span>
+            <span>🕐 ${startHHMM} – ${endHHMM}</span>
+            <span>⏱ ${dur}</span>
+          </div>
+          <a href="${c.href}" target="_blank" rel="noopener" class="contest-card-link">Open Contest ↗</a>`;
+        return card;
+      };
+      hidden.forEach(c => moreWrap.appendChild(renderCard(c)));
+      this._grid.appendChild(moreWrap);
+
+      // "Show more / Show less" toggle button spanning full grid width
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = 'btn btn-secondary contest-show-more-btn';
+      toggleBtn.textContent = `Show ${hidden.length} more contest${hidden.length !== 1 ? 's' : ''} ▾`;
+      toggleBtn.addEventListener('click', () => {
+        const expanded = moreWrap.style.display !== 'none';
+        moreWrap.style.display = expanded ? 'none' : 'contents';
+        toggleBtn.textContent = expanded
+          ? `Show ${hidden.length} more contest${hidden.length !== 1 ? 's' : ''} ▾`
+          : 'Show less ▴';
+      });
+      this._grid.appendChild(toggleBtn);
+    }
+
+    this._setStatus(`✅ ${this._upcoming.length} upcoming contest${this._upcoming.length !== 1 ? 's' : ''}`, true);
+  }
+
+  _tick(now) {
+    if (this._today.length === 0) return;
+    const c         = this._today[0];
+    const startHHMM = ContestService.toLocalHHMM(c.start);
+    const endHHMM   = ContestService.toLocalHHMM(c.end);
+    const nowSecs   = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+    const startSecs = parseHHMM(startHHMM) * 60;
+    const endSecs   = parseHHMM(endHHMM) * 60;
+    const cdEl      = document.getElementById('contest-today-countdown');
+    if (!cdEl) return;
+    if (nowSecs < startSecs) {
+      const rem = startSecs - nowSecs;
+      cdEl.textContent = formatHMS(rem);
+      cdEl.title = 'Starts in';
+    } else if (nowSecs < endSecs) {
+      const rem = endSecs - nowSecs;
+      cdEl.textContent = formatHMS(rem);
+      cdEl.classList.add('live');
+      cdEl.title = 'Time remaining';
+    } else {
+      cdEl.textContent = 'Ended';
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // CONTENT RENDERER
 // ══════════════════════════════════════════════════════════════════════════════
 function renderContent() {
@@ -1877,11 +2382,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   _alarms = new AudioAlertService();
   _alarms.scheduleBlockAlarms(window.ROUTINE);
 
-  // 8. Request notification permission
-  if ('Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission();
-  }
-
   // 9. Get prayer times (always — needed for watch widget in both modes)
   const runPrayerFetch = () => PrayerTimeService.fromGeolocation().then(pt => {
     if (isRamadan && !_ramadanCD) {
@@ -1922,9 +2422,93 @@ document.addEventListener('DOMContentLoaded', async () => {
   new Stopwatch();
   new CountdownTimer();
 
+  // 11. Contest Tracker — load from Clist.by and wire up dynamic routine
+  const contestRenderer = new ContestRenderer();
+
+  // When contests load → rebuild routine if there are today contests
+  let _useContestRoutine = true; // user can override back to regular
+  let _baseRoutineBackup = [...(window.ROUTINE || [])];
+
+  function rebuildRoutineForContests(todayContests) {
+    if (!_useContestRoutine || !todayContests || todayContests.length === 0) return;
+    const built = DynamicRoutineBuilder.build(_baseRoutineBackup, todayContests);
+    window.ROUTINE = built;
+    if (_timeline) _timeline.render();
+    // Show badge listing all today's contests
+    const badge    = document.getElementById('contest-routine-badge');
+    const badgeTxt = document.getElementById('contest-routine-badge-text');
+    if (badge && badgeTxt) {
+      const sorted = [...todayContests].sort((a, b) =>
+        parseHHMM(ContestService.toLocalHHMM(a.start)) -
+        parseHHMM(ContestService.toLocalHHMM(b.start))
+      );
+      const summary = sorted.map(c => {
+        const pi = ContestService.platformInfo(c.resource);
+        return `${pi.name} @ ${ContestService.toLocalHHMM(c.start)}`;
+      }).join(' · ');
+      badgeTxt.textContent = `📅 Contest day! Routine adjusted — ${summary}`;
+      badge.hidden = false;
+    }
+    // Reschedule alarms for the new routine
+    _alarms.cancelAll();
+    _alarms.scheduleBlockAlarms(window.ROUTINE);
+    _alarms.scheduleAzanAlarms(window.PRAYER_TIMES || {});
+  }
+
+  document.addEventListener('contests:loaded', e => {
+    rebuildRoutineForContests(e.detail.today);
+
+    // Contest-day nav alert pill
+    const alertBtn  = document.getElementById('contest-nav-alert');
+    const alertText = document.getElementById('contest-nav-alert-text');
+    const navLogo = document.querySelector('.nav-logo');
+    if (navLogo) navLogo.classList.toggle('contest-day', !!(e.detail.today && e.detail.today.length > 0));
+
+    if (alertBtn && alertText && e.detail.today && e.detail.today.length > 0) {
+      const sorted = [...e.detail.today].sort((a, b) =>
+        parseHHMM(ContestService.toLocalHHMM(a.start)) -
+        parseHHMM(ContestService.toLocalHHMM(b.start))
+      );
+      const first = sorted[0];
+      const pi    = ContestService.platformInfo(first.resource);
+      const count = sorted.length;
+      alertText.textContent = count > 1
+        ? `${count} Contests Today`
+        : `${pi.name} @ ${ContestService.toLocalHHMM(first.start)}`;
+      alertBtn.hidden = false;
+      alertBtn.onclick = () => {
+        document.getElementById('contests')?.scrollIntoView({ behavior: 'smooth' });
+      };
+    } else if (alertBtn) {
+      alertBtn.hidden = true;
+    }
+  });
+
+  // "Use Regular Schedule" button
+  document.getElementById('contest-routine-reset-btn')?.addEventListener('click', () => {
+    _useContestRoutine = false;
+    window.ROUTINE = [..._baseRoutineBackup];
+    if (_timeline) _timeline.render();
+    document.getElementById('contest-routine-badge').hidden = true;
+    _alarms.cancelAll();
+    _alarms.scheduleBlockAlarms(window.ROUTINE);
+    _alarms.scheduleAzanAlarms(window.PRAYER_TIMES || {});
+  });
+
+  // Load contests (after a tiny delay to not block first-paint)
+  setTimeout(() => contestRenderer.load(), 800);
+
   // 11. (Theme is fully automatic via detectRamadan() — no manual toggle needed)
 
-  // 12. Dark mode toggle
+  // 12. Dark mode toggle — also request notification permission on first user gesture
+  const _requestNotifOnce = () => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    document.removeEventListener('click', _requestNotifOnce);
+  };
+  document.addEventListener('click', _requestNotifOnce, { once: true });
+
   document.getElementById('dark-toggle')?.addEventListener('click', () => {
     const dark = document.documentElement.getAttribute('data-dark') === 'true';
     document.documentElement.setAttribute('data-dark', dark ? 'false' : 'true');
@@ -1942,12 +2526,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     localStorage.setItem('pw_collapsed', collapsed ? '1' : '0');
   }
 
+  const isMobile = () => window.innerWidth <= 768;
+
   if (pwCollapse && pwCard) {
     const savedCollapsed = localStorage.getItem('pw_collapsed') === '1';
     // Hand off from the pre-paint data attribute to JS class control
     document.documentElement.removeAttribute('data-pw-collapsed');
     setPWCollapsed(savedCollapsed);
-    pwCollapse.addEventListener('click', () => setPWCollapsed(true));
+    pwCollapse.addEventListener('click', () => {
+      if (isMobile()) {
+        // On mobile: just close the card panel; keep fab visible
+        pwCard.classList.remove('mobile-open');
+      } else {
+        // Desktop: toggle — collapse when open, expand when already collapsed
+        const isCollapsed = pwCard.classList.contains('collapsed');
+        setPWCollapsed(!isCollapsed);
+      }
+    });
   }
   if (pwNavPill) {
     pwNavPill.addEventListener('click', () => setPWCollapsed(false));
@@ -1959,13 +2554,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const pillTime = document.getElementById('pw-pill-countdown');
     if (pillName) pillName.textContent = e.detail.name || '—';
     if (pillTime) pillTime.textContent = e.detail.countdown || '--:--:--';
+    // Keep FAB label in sync
+    const fabLabel = document.getElementById('prayer-fab-label');
+    if (fabLabel) fabLabel.textContent = e.detail.name || '';
   });
 
   // 14. Prayer FAB (mobile)
   const fab = document.getElementById('prayer-fab');
   if (fab && pwCard) {
     fab.addEventListener('click', () => {
+      const opening = !pwCard.classList.contains('mobile-open');
+      if (opening) {
+        // Strip the desktop-collapsed state so .collapsed doesn't block display
+        pwCard.classList.remove('collapsed');
+        if (pwNavPill) pwNavPill.hidden = true;
+      }
       pwCard.classList.toggle('mobile-open');
+      // Show × when open, and reset to − when closed (matches desktop default)
+      if (pwCollapse) pwCollapse.textContent = opening ? '×' : '−';
     });
   }
 
@@ -1991,6 +2597,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           // Restore Ramadan routine from ramadan.js
           window.ROUTINE = window._ramadanRoutineBackup || window.ROUTINE;
         }
+        _baseRoutineBackup = [...(window.ROUTINE || [])];  // keep contest builder in sync
+        _useContestRoutine = true;
         applyTheme(nowRamadan);
         if (_bg) _bg.setTheme(nowRamadan ? 'ramadan' : 'general');
         if (nowRamadan && !_ramadanCD) _ramadanCD = new RamadanCountdown();
@@ -2050,6 +2658,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
 
   document.querySelectorAll('.reveal, .reveal-stagger, .section-heading').forEach(el => observer.observe(el));
+
+  // Also observe contest cards when they load (rendered after DOMContentLoaded)
+  document.addEventListener('contests:loaded', () => {
+    document.querySelectorAll('.contest-card, .contest-today-banner').forEach(el => {
+      el.classList.add('reveal', 'scale-in');
+      observer.observe(el);
+    });
+    document.querySelector('#contests-grid')?.classList.add('reveal-stagger');
+    observer.observe(document.querySelector('#contests-grid'));
+  });
 
   // 3. Stagger routine table rows by adding animation-delay inline
   const addRowDelays = () => {

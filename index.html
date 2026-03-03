@@ -40,11 +40,13 @@
 ════════════════════════════════════════════════════════════════════════════ -->
 <nav class="topnav" id="topnav">
   <div class="nav-brand">
-    <span class="nav-logo">⌨</span>
+    <span class="nav-logo"><svg viewBox="0 0 64 64" width="30" height="30" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="nav-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0d2450"/><stop offset="50%" stop-color="#143778"/><stop offset="100%" stop-color="#2D5AAA"/></linearGradient><linearGradient id="nav-bolt" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7eb8ff"/><stop offset="100%" stop-color="#5383DC"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#nav-bg)"/><path d="M18 20 L8 32 L18 44" fill="none" stroke="#7eb8ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M46 20 L56 32 L46 44" fill="none" stroke="#7eb8ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M35 16 L27 33 L33 33 L29 48 L39 30 L33 30 Z" fill="url(#nav-bolt)"/></svg></span>
     <span class="nav-title">CP Routine</span>
+    <span id="mode-badge" class="mode-badge">General Mode</span>
   </div>
   <div class="nav-links">
     <a href="#routine">Routine</a>
+    <a href="#contests">Contests</a>
     <a href="#tools">Tools</a>
     <a href="#techniques">Techniques</a>
     <a href="#growth">Growth</a>
@@ -53,8 +55,12 @@
     <button id="pw-nav-pill" class="pw-nav-pill" title="Expand prayer watch" hidden>
       🕌 <span id="pw-pill-name">—</span> <span id="pw-pill-countdown" class="pw-pill-time">--:--:--</span>
     </button>
+    <button id="contest-nav-alert" class="contest-nav-alert" title="Contest today! Click to view" hidden>
+      🏆 <span id="contest-nav-alert-text">Contest Today</span>
+    </button>
     <button id="dark-toggle" class="btn-icon" title="Toggle Dark Mode">◐</button>
     <button id="alarm-toggle-btn" class="btn-icon" title="Alarm Settings">🔔</button>
+
   </div>
 </nav>
 
@@ -118,6 +124,10 @@
 <section id="routine" class="section">
   <div class="container">
     <h2 class="section-heading">Live Routine</h2>
+    <div id="contest-routine-badge" class="contest-routine-badge" hidden>
+      🏆 <span id="contest-routine-badge-text">Contest day schedule active</span>
+      <button id="contest-routine-reset-btn" class="btn btn-sm" title="Switch back to regular schedule">Use Regular Schedule</button>
+    </div>
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
       <p id="prayer-location" class="prayer-location-label" style="margin:0;">🌐 Fetching prayer times…</p>
       <button id="prayer-refresh-btn" class="btn-icon" title="Refresh prayer times" style="display:none;font-size:0.8rem;">↺</button>
@@ -225,6 +235,35 @@
       </div>
 
     </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     CONTEST TRACKER
+════════════════════════════════════════════════════════════════════════════ -->
+<section id="contests" class="section alt-section">
+  <div class="container">
+    <h2 class="section-heading">Upcoming Contests</h2>
+    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.8rem;">
+      <p id="contest-status-label" class="prayer-location-label" style="margin:0;">Initialising…</p>
+      <button id="contest-refresh-btn" class="btn-icon" title="Refresh contests" style="font-size:0.8rem;display:none;">↺</button>
+    </div>
+
+    <!-- Today's contest highlight banner -->
+    <div id="contest-today-banner" class="contest-today-banner" hidden></div>
+
+    <!-- Platform filter pills -->
+    <div class="contest-filters" id="contest-filters">
+      <button class="contest-filter-btn active" data-res="all">All</button>
+      <button class="contest-filter-btn" data-res="codeforces.com">Codeforces</button>
+      <button class="contest-filter-btn" data-res="codechef.com">CodeChef</button>
+      <button class="contest-filter-btn" data-res="atcoder.jp">AtCoder</button>
+      <button class="contest-filter-btn" data-res="leetcode.com">LeetCode</button>
+      <button class="contest-filter-btn" data-res="hackerearth.com">HackerEarth</button>
+    </div>
+
+    <!-- Upcoming contests grid -->
+    <div class="contests-grid reveal-stagger" id="contests-grid"></div>
   </div>
 </section>
 
@@ -341,7 +380,7 @@
 <div id="prayer-watch-card" class="prayer-watch-card">
   <div class="prayer-watch-header">
     <span class="pw-title">🕌 Next Prayer</span>
-    <button id="pw-collapse" class="btn-icon" title="Collapse">−</button>
+    <button id="pw-collapse" class="btn-icon pw-close-btn" title="Close">−</button>
   </div>
   <canvas id="prayer-watch-canvas" width="200" height="200"></canvas>
   <div class="prayer-digital">
@@ -351,7 +390,10 @@
   </div>
 </div>
 <!-- Mobile FAB to open prayer watch -->
-<button id="prayer-fab" class="prayer-fab" title="Prayer Times">☽</button>
+<button id="prayer-fab" class="prayer-fab" title="Prayer Times">
+  <span class="prayer-fab-icon">🕌</span>
+  <span id="prayer-fab-label" class="prayer-fab-label"></span>
+</button>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
      FOOTER
