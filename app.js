@@ -2760,12 +2760,13 @@ class ProblemTracker {
       const subs = await this.fetcher.fetchAll(handles, msg => {
         if (statusEl) statusEl.textContent = msg;
       });
-      const total = subs.length;
+      // Show unique problem count after dedup
+      this._renderAll();
+      const uniqueCount = this._getAllSubmissions().length - this.problems.length;
       if (statusEl) {
-        statusEl.textContent = `✓ Synced ${total.toLocaleString()} submissions`;
+        statusEl.textContent = `✓ ${uniqueCount.toLocaleString()} unique problems synced`;
         statusEl.className = 'tracker-sync-status success';
       }
-      this._renderAll();
     } catch (e) {
       if (statusEl) {
         statusEl.textContent = `⚠ Sync failed: ${e.message}`;
@@ -2786,13 +2787,25 @@ class ProblemTracker {
     }
   }
 
-  /* ── merge fetched + manual ────────────────────────────────────────────── */
+  /* ── merge fetched + manual, deduplicate ─────────────────────────────── */
   _getAllSubmissions() {
     const fetched = this.fetcher.getCachedData() || [];
-    const all = [
-      ...this.problems.map(p => ({ ...p, timestamp: p.timestamp || p.id })),
-      ...fetched,
-    ];
+    const manual  = this.problems.map(p => ({ ...p, timestamp: p.timestamp || p.id }));
+
+    // Deduplicate auto-fetched: keep best verdict per (platform + problem name)
+    // Priority: AC > Upsolve > everything else (keep highest-priority)
+    const VP = { AC: 3, Upsolve: 2 }; // others default to 1
+    const deduped = new Map();
+    for (const s of fetched) {
+      const key = `${s.platform}::${(s.name || '').toLowerCase()}`;
+      const existing = deduped.get(key);
+      if (!existing || (VP[s.verdict] || 1) > (VP[existing.verdict] || 1)
+          || ((VP[s.verdict] || 1) === (VP[existing.verdict] || 1) && s.timestamp > existing.timestamp)) {
+        deduped.set(key, s);
+      }
+    }
+
+    const all = [...manual, ...deduped.values()];
     all.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
     return all;
   }
