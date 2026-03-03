@@ -2824,13 +2824,13 @@ class ProblemTracker {
     const d = zonedNow(); const wa = new Date(d); wa.setDate(wa.getDate() - 7);
     const weekStr = `${wa.getFullYear()}-${String(wa.getMonth()+1).padStart(2,'0')}-${String(wa.getDate()).padStart(2,'0')}`;
 
-    const todayCount = all.filter(p => p.date === today).length;
-    const weekCount  = all.filter(p => p.date >= weekStr).length;
-    const acCount    = all.filter(p => p.verdict === 'AC').length;
-    const acRate     = all.length ? Math.round((acCount / all.length) * 100) : 0;
+    const solved     = all.filter(p => p.verdict === 'AC');
+    const todayCount = solved.filter(p => p.date === today).length;
+    const weekCount  = solved.filter(p => p.date >= weekStr).length;
+    const acRate     = all.length ? Math.round((solved.length / all.length) * 100) : 0;
 
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    set('ts-total',   all.length.toLocaleString());
+    set('ts-total',   solved.length.toLocaleString());
     set('ts-today',   todayCount);
     set('ts-week',    weekCount);
     set('ts-ac-rate', acRate + '%');
