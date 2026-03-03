@@ -2922,36 +2922,6 @@ class KeyboardShortcuts {
   _hide() { if (this.overlay) this.overlay.hidden = true; }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// CALENDAR EXPORT (.ICS)
-// ══════════════════════════════════════════════════════════════════════════════
-class CalendarExport {
-  constructor() {
-    document.getElementById('export-ics-btn')?.addEventListener('click', () => this._export());
-  }
-  _export() {
-    const routine = window.ROUTINE || [];
-    const today = zonedNow();
-    const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
-    let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//CPRoutine//EN\r\nCALSCALE:GREGORIAN\r\n';
-    routine.forEach(b => {
-      if (b.ramadanOnly && !window._isRamadan) return;
-      const [sh, sm] = b.start.split(':');
-      const [eh, em] = b.end.split(':');
-      const start = `${dateStr}T${sh}${sm}00`;
-      const end = `${dateStr}T${eh}${em}00`;
-      const activity = b.activity.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ');
-      ics += `BEGIN:VEVENT\r\nDTSTART:${start}\r\nDTEND:${end}\r\nSUMMARY:${b.phase} \u2014 ${activity.substring(0, 60)}\r\nDESCRIPTION:${activity}\r\nEND:VEVENT\r\n`;
-    });
-    ics += 'END:VCALENDAR\r\n';
-    const blob = new Blob([ics], { type: 'text/calendar' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `cp-routine-${dateStr}.ics`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  }
-}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // BACK TO TOP
@@ -3267,7 +3237,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   new PomodoroTimer();
   new ProblemTracker();
   new KeyboardShortcuts();
-  new CalendarExport();
   new BackToTop();
   new FaviconBadge();
 
