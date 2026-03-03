@@ -2529,28 +2529,205 @@ class PomodoroTimer {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// PROBLEM TRACKER
+// SUBMISSION FETCHER  — auto-fetch from Codeforces, LeetCode, AtCoder APIs
+// ══════════════════════════════════════════════════════════════════════════════
+class SubmissionFetcher {
+  constructor() {
+    this.CACHE_KEY = 'cp_fetch_cache';
+    this.HANDLES_KEY = 'cp_handles';
+    this.CACHE_TTL = 60 * 60 * 1000; // 1 hour
+  }
+
+  getHandles() {
+    try { return JSON.parse(localStorage.getItem(this.HANDLES_KEY) || '{}'); }
+    catch { return {}; }
+  }
+
+  saveHandles(handles) {
+    localStorage.setItem(this.HANDLES_KEY, JSON.stringify(handles));
+  }
+
+  getCachedData() {
+    try {
+      const raw = localStorage.getItem(this.CACHE_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (Date.now() - data.fetchedAt > this.CACHE_TTL) return null;
+      return data.submissions;
+    } catch { return null; }
+  }
+
+  clearCache() { localStorage.removeItem(this.CACHE_KEY); }
+
+  async fetchAll(handles, onProgress) {
+    const results = [];
+    const platforms = [
+      { key: 'cf', name: 'Codeforces', fn: this._fetchCF.bind(this) },
+      { key: 'lc', name: 'LeetCode',   fn: this._fetchLC.bind(this) },
+      { key: 'ac', name: 'AtCoder',    fn: this._fetchAC.bind(this) },
+    ];
+
+    for (const p of platforms) {
+      const h = handles[p.key]?.trim();
+      if (!h) continue;
+      onProgress?.(`Fetching ${p.name}…`);
+      try {
+        const subs = await p.fn(h);
+        results.push(...subs);
+        onProgress?.(`✓ ${p.name}: ${subs.length.toLocaleString()} submissions`);
+      } catch (e) {
+        console.warn(`[Fetcher] ${p.name}:`, e);
+        onProgress?.(`⚠ ${p.name}: ${e.message}`);
+      }
+    }
+
+    try {
+      localStorage.setItem(this.CACHE_KEY, JSON.stringify({
+        fetchedAt: Date.now(),
+        submissions: results,
+      }));
+    } catch (e) { console.warn('[Fetcher] cache write failed', e); }
+
+    return results;
+  }
+
+  /* ── Codeforces ────────────────────────────────────────────────────────── */
+  async _fetchCF(handle) {
+    const resp = await fetch(
+      `https://codeforces.com/api/user.status?handle=${encodeURIComponent(handle)}&from=1&count=10000`,
+      { signal: AbortSignal.timeout(15000) }
+    );
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    if (data.status !== 'OK') throw new Error(data.comment || 'API error');
+    return data.result.map(s => ({
+      timestamp: s.creationTimeSeconds * 1000,
+      date: this._epochToDate(s.creationTimeSeconds),
+      platform: 'Codeforces',
+      name: s.problem?.name || 'Unknown',
+      rating: s.problem?.rating || null,
+      verdict: this._verdict(s.verdict),
+      link: s.contestId
+        ? `https://codeforces.com/contest/${s.contestId}/problem/${s.problem?.index || ''}`
+        : null,
+      auto: true,
+    }));
+  }
+
+  /* ── AtCoder (kenkoooo API) ────────────────────────────────────────────── */
+  async _fetchAC(handle) {
+    const resp = await fetch(
+      `https://kenkoooo.com/atcoder/atcoder-api/v3/user/submissions?user=${encodeURIComponent(handle)}&from_second=0`,
+      { signal: AbortSignal.timeout(15000) }
+    );
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    if (!Array.isArray(data)) throw new Error('Invalid response');
+    return data.map(s => ({
+      timestamp: s.epoch_second * 1000,
+      date: this._epochToDate(s.epoch_second),
+      platform: 'AtCoder',
+      name: s.problem_id || 'Unknown',
+      rating: null,
+      verdict: this._verdict(s.result),
+      link: s.contest_id && s.problem_id
+        ? `https://atcoder.jp/contests/${s.contest_id}/tasks/${s.problem_id}`
+        : null,
+      auto: true,
+    }));
+  }
+
+  /* ── LeetCode (proxy API — may cold-start for ~30 s) ──────────────────── */
+  async _fetchLC(handle) {
+    const resp = await fetch(
+      `https://alfa-leetcode-api.onrender.com/${encodeURIComponent(handle)}/submission?limit=200`,
+      { signal: AbortSignal.timeout(35000) }
+    );
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const subs = Array.isArray(data) ? data
+      : data.submission ? data.submission
+      : data.acSubmission ? data.acSubmission
+      : [];
+    if (!Array.isArray(subs)) throw new Error('Unexpected format');
+    return subs.filter(s => s.timestamp).map(s => ({
+      timestamp: Number(s.timestamp) * 1000,
+      date: this._epochToDate(Number(s.timestamp)),
+      platform: 'LeetCode',
+      name: s.title || s.titleSlug || 'Unknown',
+      rating: null,
+      verdict: this._verdict(s.statusDisplay || 'Accepted'),
+      link: s.titleSlug
+        ? `https://leetcode.com/problems/${s.titleSlug}/`
+        : null,
+      auto: true,
+    }));
+  }
+
+  /* ── helpers ───────────────────────────────────────────────────────────── */
+  _verdict(v) {
+    if (!v) return '?';
+    const u = v.toUpperCase();
+    if (u === 'OK' || u === 'ACCEPTED' || u === 'AC') return 'AC';
+    if (u === 'WRONG_ANSWER' || u === 'WRONG ANSWER' || u === 'WA') return 'WA';
+    if (u.includes('TIME_LIMIT') || u.includes('TIME LIMIT') || u === 'TLE') return 'TLE';
+    if (u.includes('MEMORY_LIMIT') || u.includes('MEMORY LIMIT') || u === 'MLE') return 'MLE';
+    if (u.includes('RUNTIME') || u === 'RE') return 'RE';
+    if (u.includes('COMPILATION') || u === 'CE') return 'CE';
+    return v.length > 10 ? v.substring(0, 8) + '…' : v;
+  }
+
+  _epochToDate(epoch) {
+    const d = new Date(epoch * 1000);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PROBLEM TRACKER  — merges auto-fetched + manual submissions
 // ══════════════════════════════════════════════════════════════════════════════
 class ProblemTracker {
   constructor() {
     this.KEY = 'cp_problems';
     this.problems = JSON.parse(localStorage.getItem(this.KEY) || '[]');
+    this.fetcher = new SubmissionFetcher();
+    this._setupHandles();
     this._setupForm();
-    this._renderAll();
+    this._loadAndRender();
   }
+
   _save() { localStorage.setItem(this.KEY, JSON.stringify(this.problems)); }
+
+  /* ── handle inputs + sync button ───────────────────────────────────────── */
+  _setupHandles() {
+    const handles = this.fetcher.getHandles();
+    const fill = (id, key, fallback) => {
+      const el = document.getElementById(id);
+      if (el) el.value = handles[key] || fallback || '';
+    };
+    fill('handle-cf', 'cf', 'm0stafa');
+    fill('handle-lc', 'lc', '');
+    fill('handle-ac', 'ac', '');
+
+    document.getElementById('tracker-sync-btn')
+      ?.addEventListener('click', () => this._syncSubmissions());
+  }
+
+  /* ── manual form ───────────────────────────────────────────────────────── */
   _setupForm() {
     document.getElementById('tracker-form')?.addEventListener('submit', e => {
       e.preventDefault();
       const p = {
         id: Date.now(),
+        timestamp: Date.now(),
         date: this._todayStr(),
         platform: document.getElementById('tf-platform').value,
-        link: document.getElementById('tf-link').value,
-        name: document.getElementById('tf-name').value,
-        rating: document.getElementById('tf-rating').value,
-        verdict: document.getElementById('tf-verdict').value,
-        time: document.getElementById('tf-time').value,
+        link:     document.getElementById('tf-link').value,
+        name:     document.getElementById('tf-name').value,
+        rating:   document.getElementById('tf-rating').value,
+        verdict:  document.getElementById('tf-verdict').value,
+        time:     document.getElementById('tf-time').value,
+        auto: false,
       };
       this.problems.unshift(p);
       this._save();
@@ -2558,64 +2735,148 @@ class ProblemTracker {
       e.target.reset();
     });
   }
+
+  /* ── sync from APIs ────────────────────────────────────────────────────── */
+  async _syncSubmissions() {
+    const statusEl = document.getElementById('tracker-sync-status');
+    const syncBtn  = document.getElementById('tracker-sync-btn');
+
+    const handles = {
+      cf: document.getElementById('handle-cf')?.value?.trim() || '',
+      lc: document.getElementById('handle-lc')?.value?.trim() || '',
+      ac: document.getElementById('handle-ac')?.value?.trim() || '',
+    };
+
+    if (!handles.cf && !handles.lc && !handles.ac) {
+      if (statusEl) { statusEl.textContent = '⚠ Enter at least one handle'; statusEl.className = 'tracker-sync-status error'; }
+      return;
+    }
+
+    this.fetcher.saveHandles(handles);
+    if (syncBtn) { syncBtn.disabled = true; syncBtn.classList.add('syncing'); }
+    if (statusEl) { statusEl.className = 'tracker-sync-status'; }
+
+    try {
+      const subs = await this.fetcher.fetchAll(handles, msg => {
+        if (statusEl) statusEl.textContent = msg;
+      });
+      const total = subs.length;
+      if (statusEl) {
+        statusEl.textContent = `✓ Synced ${total.toLocaleString()} submissions`;
+        statusEl.className = 'tracker-sync-status success';
+      }
+      this._renderAll();
+    } catch (e) {
+      if (statusEl) {
+        statusEl.textContent = `⚠ Sync failed: ${e.message}`;
+        statusEl.className = 'tracker-sync-status error';
+      }
+    } finally {
+      if (syncBtn) { syncBtn.disabled = false; syncBtn.classList.remove('syncing'); }
+    }
+  }
+
+  /* ── initial load ──────────────────────────────────────────────────────── */
+  async _loadAndRender() {
+    this._renderAll();                         // render cached/manual data immediately
+    const handles = this.fetcher.getHandles();
+    const cached  = this.fetcher.getCachedData();
+    if ((handles.cf || handles.lc || handles.ac) && !cached) {
+      await this._syncSubmissions();           // auto-sync if cache is stale
+    }
+  }
+
+  /* ── merge fetched + manual ────────────────────────────────────────────── */
+  _getAllSubmissions() {
+    const fetched = this.fetcher.getCachedData() || [];
+    const all = [
+      ...this.problems.map(p => ({ ...p, timestamp: p.timestamp || p.id })),
+      ...fetched,
+    ];
+    all.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    return all;
+  }
+
   _todayStr() {
     const d = zonedNow();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
+
   _renderAll() { this._renderStats(); this._renderHeatmap(); this._renderLog(); }
+
+  /* ── stats cards ───────────────────────────────────────────────────────── */
   _renderStats() {
+    const all   = this._getAllSubmissions();
     const today = this._todayStr();
     const d = zonedNow(); const wa = new Date(d); wa.setDate(wa.getDate() - 7);
     const weekStr = `${wa.getFullYear()}-${String(wa.getMonth()+1).padStart(2,'0')}-${String(wa.getDate()).padStart(2,'0')}`;
-    const todayCount = this.problems.filter(p => p.date === today).length;
-    const weekCount = this.problems.filter(p => p.date >= weekStr).length;
-    const times = this.problems.filter(p => p.time).map(p => +p.time);
-    const avgTime = times.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : 0;
+
+    const todayCount = all.filter(p => p.date === today).length;
+    const weekCount  = all.filter(p => p.date >= weekStr).length;
+    const acCount    = all.filter(p => p.verdict === 'AC').length;
+    const acRate     = all.length ? Math.round((acCount / all.length) * 100) : 0;
+
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    set('ts-total', this.problems.length);
-    set('ts-today', todayCount);
-    set('ts-week', weekCount);
-    set('ts-avg-time', avgTime + 'm');
+    set('ts-total',   all.length.toLocaleString());
+    set('ts-today',   todayCount);
+    set('ts-week',    weekCount);
+    set('ts-ac-rate', acRate + '%');
   }
+
+  /* ── heatmap ───────────────────────────────────────────────────────────── */
   _renderHeatmap() {
     const el = document.getElementById('tracker-heatmap');
     if (!el) return;
+    const all    = this._getAllSubmissions();
     const counts = {};
-    this.problems.forEach(p => { counts[p.date] = (counts[p.date] || 0) + 1; });
+    all.forEach(p => { counts[p.date] = (counts[p.date] || 0) + 1; });
+
     const today = zonedNow();
     const cells = [];
     for (let i = 83; i >= 0; i--) {
       const d = new Date(today); d.setDate(d.getDate() - i);
       const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       const c = counts[ds] || 0;
-      const level = c === 0 ? 0 : c <= 1 ? 1 : c <= 3 ? 2 : c <= 5 ? 3 : 4;
-      cells.push(`<div class="hm-cell hm-${level}" title="${ds}: ${c} problem${c !== 1 ? 's' : ''}"></div>`);
+      const level = c === 0 ? 0 : c <= 2 ? 1 : c <= 5 ? 2 : c <= 10 ? 3 : 4;
+      cells.push(`<div class="hm-cell hm-${level}" title="${ds}: ${c} submission${c !== 1 ? 's' : ''}"></div>`);
     }
     el.innerHTML = cells.join('');
   }
+
+  /* ── log table ─────────────────────────────────────────────────────────── */
   _renderLog() {
     const tbody = document.getElementById('tracker-log-body');
     if (!tbody) return;
-    const recent = this.problems.slice(0, 20);
+    const recent = this._getAllSubmissions().slice(0, 30);
     tbody.innerHTML = recent.map(p => {
-      const vClass = p.verdict === 'AC' ? 'v-ac' : p.verdict === 'Upsolve' ? 'v-up' : 'v-fail';
-      const nameHtml = p.link ? `<a href="${p.link}" target="_blank" rel="noopener">${p.name}</a>` : p.name;
-      return `<tr>
+      const vClass   = p.verdict === 'AC' ? 'v-ac' : p.verdict === 'Upsolve' ? 'v-up' : 'v-fail';
+      const safe     = this._esc(p.name);
+      const nameHtml = p.link ? `<a href="${p.link}" target="_blank" rel="noopener">${safe}</a>` : safe;
+      const delBtn   = p.auto ? '' : `<button class="btn-icon tracker-del" data-id="${p.id}" title="Delete">\u2715</button>`;
+      const plat     = (p.platform || 'Other').toLowerCase();
+      return `<tr${p.auto ? ' class="auto-row"' : ''}>
         <td class="time-tag">${p.date}</td>
-        <td>${p.platform}</td>
-        <td>${nameHtml}</td>
+        <td><span class="platform-pill platform-${plat}">${p.platform || 'Other'}</span></td>
+        <td class="problem-name-cell">${nameHtml}</td>
         <td>${p.rating || '\u2014'}</td>
         <td><span class="verdict-badge ${vClass}">${p.verdict}</span></td>
         <td>${p.time ? p.time + 'm' : '\u2014'}</td>
-        <td><button class="btn-icon tracker-del" data-id="${p.id}" title="Delete">\u2715</button></td>
+        <td>${delBtn}</td>
       </tr>`;
     }).join('');
+
     tbody.querySelectorAll('.tracker-del').forEach(btn => {
       btn.addEventListener('click', () => {
         this.problems = this.problems.filter(p => p.id !== +btn.dataset.id);
         this._save(); this._renderAll();
       });
     });
+  }
+
+  _esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
   }
 }
 

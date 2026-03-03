@@ -311,7 +311,43 @@
 <section id="tracker" class="section">
   <div class="container">
     <h2 class="section-heading">Problem Tracker</h2>
-    <p class="section-desc">Log &amp; track every problem you solve. Build consistency, visualize progress.</p>
+    <p class="section-desc">Connect your profiles to auto-fetch submissions. Track your CP journey in one place.</p>
+
+    <!-- Connected Platforms -->
+    <div class="tracker-handles-wrap">
+      <h3 class="tracker-sub"><span class="tracker-sub-icon">🔗</span> Connected Platforms</h3>
+      <p class="tracker-handles-desc">Enter your handles to auto-fetch submissions from competitive programming platforms.</p>
+      <div class="tracker-handles-grid">
+        <div class="handle-input-group">
+          <div class="handle-input-label">
+            <img src="https://codeforces.com/favicon.ico" alt="" class="handle-platform-icon" onerror="this.style.display='none'" />
+            <span>Codeforces</span>
+          </div>
+          <input id="handle-cf" type="text" class="tracker-input handle-input" placeholder="e.g. m0stafa" autocomplete="off" />
+        </div>
+        <div class="handle-input-group">
+          <div class="handle-input-label">
+            <img src="https://leetcode.com/favicon.ico" alt="" class="handle-platform-icon" onerror="this.style.display='none'" />
+            <span>LeetCode</span>
+          </div>
+          <input id="handle-lc" type="text" class="tracker-input handle-input" placeholder="username" autocomplete="off" />
+        </div>
+        <div class="handle-input-group">
+          <div class="handle-input-label">
+            <img src="https://img.atcoder.jp/assets/favicon.png" alt="" class="handle-platform-icon" onerror="this.style.display='none'" />
+            <span>AtCoder</span>
+          </div>
+          <input id="handle-ac" type="text" class="tracker-input handle-input" placeholder="username" autocomplete="off" />
+        </div>
+      </div>
+      <div class="tracker-handles-footer">
+        <button type="button" class="btn tracker-sync-btn" id="tracker-sync-btn">
+          <span class="sync-icon" id="sync-icon">⟳</span> Sync Submissions
+        </button>
+        <span class="tracker-sync-status" id="tracker-sync-status"></span>
+      </div>
+    </div>
+
     <div class="tracker-top">
       <div class="tracker-stats" id="tracker-stats">
         <div class="tracker-stat">
@@ -330,9 +366,9 @@
           <span class="tracker-stat-lbl">This Week</span>
         </div>
         <div class="tracker-stat">
-          <span class="tracker-stat-icon">⏱️</span>
-          <span class="tracker-stat-num" id="ts-avg-time">0m</span>
-          <span class="tracker-stat-lbl">Avg Time</span>
+          <span class="tracker-stat-icon">✅</span>
+          <span class="tracker-stat-num" id="ts-ac-rate">0%</span>
+          <span class="tracker-stat-lbl">AC Rate</span>
         </div>
       </div>
     </div>
@@ -350,8 +386,9 @@
       </div>
     </div>
     <div class="tracker-form-wrap">
-      <h3 class="tracker-sub"><span class="tracker-sub-icon">✏️</span> Log a Problem</h3>
-      <form id="tracker-form" class="tracker-form">
+      <details class="tracker-manual-details" id="tracker-manual-details">
+        <summary class="tracker-sub tracker-sub-clickable"><span class="tracker-sub-icon">✏️</span> Manual Log <span class="tracker-manual-hint">(for unsupported platforms)</span></summary>
+        <form id="tracker-form" class="tracker-form">
         <select id="tf-platform" class="tracker-input" required>
           <option value="">Platform</option>
           <option value="Codeforces">Codeforces</option>
@@ -372,8 +409,9 @@
           <option value="Upsolve">Upsolve 📖</option>
         </select>
         <input id="tf-time" type="number" class="tracker-input" placeholder="Time (min)" min="1" />
-        <button type="submit" class="btn btn-primary btn-sm">Log Problem</button>
-      </form>
+          <button type="submit" class="btn btn-primary btn-sm">Log Problem</button>
+        </form>
+      </details>
     </div>
     <div class="tracker-log-wrap">
       <h3 class="tracker-sub"><span class="tracker-sub-icon">📋</span> Recent Problems</h3>
