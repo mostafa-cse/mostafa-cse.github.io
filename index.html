@@ -47,6 +47,7 @@
   <div class="nav-links">
     <a href="#routine">Routine</a>
     <a href="#contests">Contests</a>
+    <a href="#tracker">Tracker</a>
     <a href="#tools">Tools</a>
     <a href="#techniques">Techniques</a>
     <a href="#growth">Growth</a>
@@ -84,6 +85,14 @@
         <div class="stat"><span class="stat-num">16</span><span class="stat-lbl">hrs/day</span></div>
         <div class="stat"><span class="stat-num">5</span><span class="stat-lbl">sections</span></div>
         <div class="stat"><span class="stat-num">60</span><span class="stat-lbl">min cycle</span></div>
+      </div>
+      <div class="streak-counter" id="streak-counter">
+        <span class="streak-flame" id="streak-flame">🔥</span>
+        <span class="streak-num" id="streak-num">0</span>
+        <span class="streak-label">day streak</span>
+      </div>
+      <div class="hero-quote" id="hero-quote">
+        <p class="quote-text" id="quote-text">"The only way to learn CP is to practice daily."</p>
       </div>
       <!-- Ramadan-only timing pills: all 5 prayers from live API -->
       <div class="ramadan-only prayer-times-hero" hidden>
@@ -124,6 +133,7 @@
 <section id="routine" class="section">
   <div class="container">
     <h2 class="section-heading">Live Routine</h2>
+    <div style="margin-bottom:0.6rem;"><button id="export-ics-btn" class="btn btn-secondary btn-sm">📅 Export to Calendar</button></div>
     <div id="contest-routine-badge" class="contest-routine-badge" hidden>
       🏆 <span id="contest-routine-badge-text">Contest day schedule active</span>
       <button id="contest-routine-reset-btn" class="btn btn-sm" title="Switch back to regular schedule">Use Regular Schedule</button>
@@ -210,6 +220,26 @@
         </div>
       </div>
 
+      <!-- Pomodoro Focus Timer -->
+      <div class="tool-card" id="pomodoro-card">
+        <div class="tool-header">
+          <div class="tool-header-icon">🍅</div>
+          <h3 class="tool-title">Pomodoro Focus</h3>
+        </div>
+        <div class="tool-body">
+          <div id="pomo-display" class="timer-display">25:00</div>
+          <div class="pomo-session-info">
+            <span id="pomo-session-count">Session 1 of 4</span>
+            <span id="pomo-phase-label" class="pomo-phase-label pomo-work">Work</span>
+          </div>
+          <div class="btn-row">
+            <button id="pomo-start" class="btn btn-primary">Start</button>
+            <button id="pomo-pause" class="btn" disabled>Pause</button>
+            <button id="pomo-reset" class="btn btn-danger">Reset</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Ramadan Countdowns (hidden in General mode) -->
       <div class="tool-card ramadan-only" id="suhoor-card" hidden>
         <div class="tool-header">
@@ -264,6 +294,81 @@
 
     <!-- Upcoming contests grid -->
     <div class="contests-grid reveal-stagger" id="contests-grid"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PROBLEM TRACKER
+════════════════════════════════════════════════════════════════════════════ -->
+<section id="tracker" class="section">
+  <div class="container">
+    <h2 class="section-heading">Problem Tracker</h2>
+    <div class="tracker-top">
+      <div class="tracker-stats" id="tracker-stats">
+        <div class="tracker-stat"><span class="tracker-stat-num" id="ts-total">0</span><span class="tracker-stat-lbl">Total Solved</span></div>
+        <div class="tracker-stat"><span class="tracker-stat-num" id="ts-today">0</span><span class="tracker-stat-lbl">Today</span></div>
+        <div class="tracker-stat"><span class="tracker-stat-num" id="ts-week">0</span><span class="tracker-stat-lbl">This Week</span></div>
+        <div class="tracker-stat"><span class="tracker-stat-num" id="ts-avg-time">0m</span><span class="tracker-stat-lbl">Avg Time</span></div>
+      </div>
+    </div>
+    <div class="tracker-heatmap-wrap">
+      <h3 class="tracker-sub">Activity Heatmap</h3>
+      <div class="tracker-heatmap" id="tracker-heatmap"></div>
+    </div>
+    <div class="tracker-form-wrap">
+      <h3 class="tracker-sub">Log a Problem</h3>
+      <form id="tracker-form" class="tracker-form">
+        <select id="tf-platform" class="tracker-input" required>
+          <option value="">Platform</option>
+          <option value="Codeforces">Codeforces</option>
+          <option value="LeetCode">LeetCode</option>
+          <option value="CodeChef">CodeChef</option>
+          <option value="AtCoder">AtCoder</option>
+          <option value="USACO">USACO</option>
+          <option value="Other">Other</option>
+        </select>
+        <input id="tf-link" type="url" class="tracker-input" placeholder="Problem link (optional)" />
+        <input id="tf-name" type="text" class="tracker-input" placeholder="Problem name" required />
+        <input id="tf-rating" type="number" class="tracker-input" placeholder="Rating" />
+        <select id="tf-verdict" class="tracker-input" required>
+          <option value="">Verdict</option>
+          <option value="AC">AC ✅</option>
+          <option value="WA">WA ❌</option>
+          <option value="TLE">TLE ⏰</option>
+          <option value="Upsolve">Upsolve 📖</option>
+        </select>
+        <input id="tf-time" type="number" class="tracker-input" placeholder="Time (min)" min="1" />
+        <button type="submit" class="btn btn-primary btn-sm">Log Problem</button>
+      </form>
+    </div>
+    <div class="tracker-log-wrap">
+      <h3 class="tracker-sub">Recent Problems</h3>
+      <div class="table-wrap">
+        <table class="routine-table tracker-table">
+          <thead><tr><th>Date</th><th>Platform</th><th>Problem</th><th>Rating</th><th>Verdict</th><th>Time</th><th></th></tr></thead>
+          <tbody id="tracker-log-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     CF RATING GRAPH
+════════════════════════════════════════════════════════════════════════════ -->
+<section id="cf-rating" class="section alt-section">
+  <div class="container">
+    <h2 class="section-heading">Codeforces Rating</h2>
+    <div class="cf-rating-top" id="cf-rating-stats">
+      <div class="cf-stat"><span class="cf-stat-num" id="cf-current">—</span><span class="cf-stat-lbl">Current</span></div>
+      <div class="cf-stat"><span class="cf-stat-num" id="cf-max">—</span><span class="cf-stat-lbl">Max</span></div>
+      <div class="cf-stat"><span class="cf-stat-num" id="cf-contests">—</span><span class="cf-stat-lbl">Contests</span></div>
+      <div class="cf-stat"><span class="cf-stat-num" id="cf-rank">—</span><span class="cf-stat-lbl">Rank</span></div>
+    </div>
+    <div class="cf-chart-wrap" id="cf-chart-wrap">
+      <p class="cf-loading" id="cf-loading">Loading rating data…</p>
+      <svg id="cf-chart" class="cf-chart" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
   </div>
 </section>
 
@@ -394,6 +499,41 @@
   <span class="prayer-fab-icon">🕌</span>
   <span id="prayer-fab-label" class="prayer-fab-label"></span>
 </button>
+
+<!-- Pomodoro Focus Overlay -->
+<div id="pomo-overlay" class="pomo-overlay" hidden>
+  <div class="pomo-overlay-inner">
+    <div id="pomo-overlay-phase" class="pomo-overlay-phase">🎯 Focus Time</div>
+    <div id="pomo-overlay-time" class="pomo-overlay-time">25:00</div>
+    <p class="pomo-overlay-msg">Stay focused. Minimize to keep working.</p>
+    <button id="pomo-overlay-close" class="btn btn-primary">Minimize</button>
+  </div>
+</div>
+
+<!-- Keyboard Shortcuts Overlay -->
+<div id="kb-overlay" class="kb-overlay" hidden>
+  <div class="kb-inner">
+    <div class="kb-header">
+      <h3>⌨ Keyboard Shortcuts</h3>
+      <button id="kb-close" class="btn-icon">✕</button>
+    </div>
+    <div class="kb-grid">
+      <div class="kb-row"><kbd>?</kbd><span>Toggle this help</span></div>
+      <div class="kb-row"><kbd>D</kbd><span>Toggle dark mode</span></div>
+      <div class="kb-row"><kbd>T</kbd><span>Scroll to top</span></div>
+      <div class="kb-row"><kbd>1</kbd><span>Go to Routine</span></div>
+      <div class="kb-row"><kbd>2</kbd><span>Go to Contests</span></div>
+      <div class="kb-row"><kbd>3</kbd><span>Go to Tools</span></div>
+      <div class="kb-row"><kbd>4</kbd><span>Go to Techniques</span></div>
+      <div class="kb-row"><kbd>5</kbd><span>Go to Growth</span></div>
+      <div class="kb-row"><kbd>6</kbd><span>Go to Tracker</span></div>
+      <div class="kb-row"><kbd>Esc</kbd><span>Close overlay</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Back to Top Button -->
+<button id="back-to-top" class="back-to-top" title="Back to top">↑</button>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
      FOOTER

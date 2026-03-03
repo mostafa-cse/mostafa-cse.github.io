@@ -2334,6 +2334,450 @@ function applyTheme(isRamadan) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// STREAK TRACKER
+// ══════════════════════════════════════════════════════════════════════════════
+class StreakTracker {
+  constructor() {
+    this._load();
+    this._checkIn();
+    this._render();
+  }
+  _load() {
+    const d = JSON.parse(localStorage.getItem('cp_streak') || '{"count":0,"lastDate":""}');
+    this.count = d.count || 0;
+    this.lastDate = d.lastDate || '';
+  }
+  _save() { localStorage.setItem('cp_streak', JSON.stringify({ count: this.count, lastDate: this.lastDate })); }
+  _todayStr() {
+    const d = zonedNow();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  _checkIn() {
+    const today = this._todayStr();
+    if (this.lastDate === today) return;
+    const y = new Date(zonedNow()); y.setDate(y.getDate() - 1);
+    const yStr = `${y.getFullYear()}-${String(y.getMonth()+1).padStart(2,'0')}-${String(y.getDate()).padStart(2,'0')}`;
+    this.count = this.lastDate === yStr ? this.count + 1 : 1;
+    this.lastDate = today;
+    this._save();
+  }
+  _render() {
+    const el = document.getElementById('streak-num');
+    const flame = document.getElementById('streak-flame');
+    if (el) el.textContent = this.count;
+    if (flame && this.count >= 7) flame.classList.add('streak-hot');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// QUOTE ROTATOR
+// ══════════════════════════════════════════════════════════════════════════════
+class QuoteRotator {
+  constructor() {
+    this.quotes = [
+      '"The only way to learn CP is to practice daily." \u2014 Tourist',
+      '"Competitive programming is about thinking, not just coding."',
+      '"Don\'t just solve problems, understand them deeply."',
+      '"Consistency beats talent when talent doesn\'t show up."',
+      '"Every unsolved problem teaches more than an easy AC."',
+      '"Think on paper first, code second."',
+      '"Rating is a byproduct of learning, not the goal."',
+      '"One hour of focused practice beats five hours of random solving."',
+      '"Read editorials. Re-solve. That\'s how you grow."',
+      '"The best time to start was yesterday. The next best time is now."',
+      '"Upsolving is where the real learning happens."',
+      '"Focus on understanding, not on the number of problems solved."',
+      '"Every contest is a learning opportunity, win or lose."',
+      '"Build a strong foundation before chasing hard problems."',
+      '"Discipline is the bridge between goals and accomplishments."',
+    ];
+    this.el = document.getElementById('quote-text');
+    this._show();
+    setInterval(() => this._show(), 30000);
+  }
+  _show() {
+    if (!this.el) return;
+    const idx = Math.floor(Math.random() * this.quotes.length);
+    this.el.style.opacity = '0';
+    setTimeout(() => { this.el.textContent = this.quotes[idx]; this.el.style.opacity = '1'; }, 400);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// POMODORO TIMER
+// ══════════════════════════════════════════════════════════════════════════════
+class PomodoroTimer {
+  constructor() {
+    this.WORK = 25 * 60; this.SHORT_BREAK = 5 * 60; this.LONG_BREAK = 15 * 60;
+    this.session = 1; this.maxSessions = 4; this.isWork = true;
+    this.remaining = this.WORK; this.total = this.WORK;
+    this.running = false; this.raf = null; this.lastFrame = 0;
+    this.display = document.getElementById('pomo-display');
+    this.sessionLabel = document.getElementById('pomo-session-count');
+    this.phaseLabel = document.getElementById('pomo-phase-label');
+    this.overlay = document.getElementById('pomo-overlay');
+    this.overlayTime = document.getElementById('pomo-overlay-time');
+    this.overlayPhase = document.getElementById('pomo-overlay-phase');
+    document.getElementById('pomo-start')?.addEventListener('click', () => this.start());
+    document.getElementById('pomo-pause')?.addEventListener('click', () => this.pause());
+    document.getElementById('pomo-reset')?.addEventListener('click', () => this.reset());
+    document.getElementById('pomo-overlay-close')?.addEventListener('click', () => this._hideOverlay());
+    this._render();
+  }
+  start() {
+    if (this.remaining <= 0) return;
+    this.running = true; this.lastFrame = performance.now();
+    this.display?.classList.add('running');
+    document.getElementById('pomo-start').disabled = true;
+    document.getElementById('pomo-pause').disabled = false;
+    if (this.isWork) this._showOverlay();
+    this._tick();
+    dispatch('pomo:start');
+  }
+  pause() {
+    this.running = false; cancelAnimationFrame(this.raf);
+    this.display?.classList.remove('running');
+    document.getElementById('pomo-start').disabled = false;
+    document.getElementById('pomo-pause').disabled = true;
+    dispatch('pomo:pause');
+  }
+  reset() {
+    this.running = false; cancelAnimationFrame(this.raf);
+    this.session = 1; this.isWork = true;
+    this.remaining = this.WORK; this.total = this.WORK;
+    this.display?.classList.remove('running');
+    document.getElementById('pomo-start').disabled = false;
+    document.getElementById('pomo-pause').disabled = true;
+    this._hideOverlay(); this._render();
+    dispatch('pomo:reset');
+  }
+  _tick() {
+    if (!this.running) return;
+    const now = performance.now();
+    this.remaining -= (now - this.lastFrame) / 1000;
+    this.lastFrame = now;
+    if (this.remaining <= 0) {
+      this.remaining = 0; this.running = false;
+      this._beep(); this._hideOverlay();
+      if (this.isWork) {
+        this.isWork = false;
+        if (this.session >= this.maxSessions) {
+          this.remaining = this.LONG_BREAK; this.total = this.LONG_BREAK; this.session = 1;
+        } else {
+          this.remaining = this.SHORT_BREAK; this.total = this.SHORT_BREAK;
+        }
+      } else {
+        this.isWork = true; this.session++;
+        this.remaining = this.WORK; this.total = this.WORK;
+      }
+      this.display?.classList.remove('running');
+      document.getElementById('pomo-start').disabled = false;
+      document.getElementById('pomo-pause').disabled = true;
+      this._render(); return;
+    }
+    this._render();
+    this.raf = requestAnimationFrame(() => this._tick());
+  }
+  _render() {
+    const r = Math.max(0, Math.ceil(this.remaining));
+    const m = Math.floor(r / 60), s = r % 60;
+    const text = pad(m) + ':' + pad(s);
+    if (this.display) this.display.textContent = text;
+    if (this.overlayTime) this.overlayTime.textContent = text;
+    if (this.sessionLabel) this.sessionLabel.textContent = `Session ${this.session} of ${this.maxSessions}`;
+    if (this.phaseLabel) {
+      this.phaseLabel.textContent = this.isWork ? 'Work' : 'Break';
+      this.phaseLabel.className = 'pomo-phase-label ' + (this.isWork ? 'pomo-work' : 'pomo-break');
+    }
+    if (this.overlayPhase) this.overlayPhase.textContent = this.isWork ? '\ud83c\udfaf Focus Time' : '\u2615 Break Time';
+  }
+  _showOverlay() { if (this.overlay) this.overlay.hidden = false; }
+  _hideOverlay() { if (this.overlay) this.overlay.hidden = true; }
+  _beep() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [523.3, 659.3, 784.0].forEach((freq, i) => {
+        const osc = ctx.createOscillator(), g = ctx.createGain();
+        osc.frequency.value = freq;
+        g.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.2);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.2 + 0.3);
+        osc.connect(g); g.connect(ctx.destination);
+        osc.start(ctx.currentTime + i * 0.2); osc.stop(ctx.currentTime + i * 0.2 + 0.35);
+      });
+    } catch (e) {}
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PROBLEM TRACKER
+// ══════════════════════════════════════════════════════════════════════════════
+class ProblemTracker {
+  constructor() {
+    this.KEY = 'cp_problems';
+    this.problems = JSON.parse(localStorage.getItem(this.KEY) || '[]');
+    this._setupForm();
+    this._renderAll();
+  }
+  _save() { localStorage.setItem(this.KEY, JSON.stringify(this.problems)); }
+  _setupForm() {
+    document.getElementById('tracker-form')?.addEventListener('submit', e => {
+      e.preventDefault();
+      const p = {
+        id: Date.now(),
+        date: this._todayStr(),
+        platform: document.getElementById('tf-platform').value,
+        link: document.getElementById('tf-link').value,
+        name: document.getElementById('tf-name').value,
+        rating: document.getElementById('tf-rating').value,
+        verdict: document.getElementById('tf-verdict').value,
+        time: document.getElementById('tf-time').value,
+      };
+      this.problems.unshift(p);
+      this._save();
+      this._renderAll();
+      e.target.reset();
+    });
+  }
+  _todayStr() {
+    const d = zonedNow();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  _renderAll() { this._renderStats(); this._renderHeatmap(); this._renderLog(); }
+  _renderStats() {
+    const today = this._todayStr();
+    const d = zonedNow(); const wa = new Date(d); wa.setDate(wa.getDate() - 7);
+    const weekStr = `${wa.getFullYear()}-${String(wa.getMonth()+1).padStart(2,'0')}-${String(wa.getDate()).padStart(2,'0')}`;
+    const todayCount = this.problems.filter(p => p.date === today).length;
+    const weekCount = this.problems.filter(p => p.date >= weekStr).length;
+    const times = this.problems.filter(p => p.time).map(p => +p.time);
+    const avgTime = times.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : 0;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('ts-total', this.problems.length);
+    set('ts-today', todayCount);
+    set('ts-week', weekCount);
+    set('ts-avg-time', avgTime + 'm');
+  }
+  _renderHeatmap() {
+    const el = document.getElementById('tracker-heatmap');
+    if (!el) return;
+    const counts = {};
+    this.problems.forEach(p => { counts[p.date] = (counts[p.date] || 0) + 1; });
+    const today = zonedNow();
+    const cells = [];
+    for (let i = 83; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const c = counts[ds] || 0;
+      const level = c === 0 ? 0 : c <= 1 ? 1 : c <= 3 ? 2 : c <= 5 ? 3 : 4;
+      cells.push(`<div class="hm-cell hm-${level}" title="${ds}: ${c} problem${c !== 1 ? 's' : ''}"></div>`);
+    }
+    el.innerHTML = cells.join('');
+  }
+  _renderLog() {
+    const tbody = document.getElementById('tracker-log-body');
+    if (!tbody) return;
+    const recent = this.problems.slice(0, 20);
+    tbody.innerHTML = recent.map(p => {
+      const vClass = p.verdict === 'AC' ? 'v-ac' : p.verdict === 'Upsolve' ? 'v-up' : 'v-fail';
+      const nameHtml = p.link ? `<a href="${p.link}" target="_blank" rel="noopener">${p.name}</a>` : p.name;
+      return `<tr>
+        <td class="time-tag">${p.date}</td>
+        <td>${p.platform}</td>
+        <td>${nameHtml}</td>
+        <td>${p.rating || '\u2014'}</td>
+        <td><span class="verdict-badge ${vClass}">${p.verdict}</span></td>
+        <td>${p.time ? p.time + 'm' : '\u2014'}</td>
+        <td><button class="btn-icon tracker-del" data-id="${p.id}" title="Delete">\u2715</button></td>
+      </tr>`;
+    }).join('');
+    tbody.querySelectorAll('.tracker-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.problems = this.problems.filter(p => p.id !== +btn.dataset.id);
+        this._save(); this._renderAll();
+      });
+    });
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CODEFORCES RATING CHART
+// ══════════════════════════════════════════════════════════════════════════════
+class CFRatingChart {
+  constructor(handle = 'm0stafa') {
+    this.handle = handle;
+    this._load();
+  }
+  async _load() {
+    const loadingEl = document.getElementById('cf-loading');
+    const svg = document.getElementById('cf-chart');
+    try {
+      const infoResp = await fetch(`https://codeforces.com/api/user.info?handles=${this.handle}`, { signal: AbortSignal.timeout(8000) });
+      const infoData = await infoResp.json();
+      if (infoData.status === 'OK' && infoData.result.length) {
+        const u = infoData.result[0];
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        set('cf-current', u.rating || '\u2014');
+        set('cf-max', u.maxRating || '\u2014');
+        set('cf-rank', u.rank || '\u2014');
+      }
+      const resp = await fetch(`https://codeforces.com/api/user.rating?handle=${this.handle}`, { signal: AbortSignal.timeout(8000) });
+      const data = await resp.json();
+      if (data.status !== 'OK' || !data.result.length) {
+        if (loadingEl) loadingEl.textContent = 'No rating data found.';
+        return;
+      }
+      const ratings = data.result;
+      const set2 = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+      set2('cf-contests', ratings.length);
+      if (loadingEl) loadingEl.style.display = 'none';
+      this._renderChart(svg, ratings);
+    } catch (e) {
+      if (loadingEl) loadingEl.textContent = 'Failed to load rating data.';
+    }
+  }
+  _renderChart(svg, ratings) {
+    if (!svg || ratings.length < 2) return;
+    const W = 800, H = 300, PAD = 45;
+    const minR = Math.min(...ratings.map(r => r.newRating)) - 50;
+    const maxR = Math.max(...ratings.map(r => r.newRating)) + 50;
+    const xScale = i => PAD + (i / (ratings.length - 1)) * (W - PAD * 2);
+    const yScale = r => H - PAD - ((r - minR) / (maxR - minR)) * (H - PAD * 2);
+
+    // Rating tier bands
+    const tiers = [
+      { min: 0, max: 1200, color: 'rgba(128,128,128,0.08)' },
+      { min: 1200, max: 1400, color: 'rgba(0,128,0,0.08)' },
+      { min: 1400, max: 1600, color: 'rgba(3,168,158,0.08)' },
+      { min: 1600, max: 1900, color: 'rgba(0,0,255,0.08)' },
+      { min: 1900, max: 2100, color: 'rgba(170,0,170,0.08)' },
+      { min: 2100, max: 2400, color: 'rgba(255,140,0,0.08)' },
+      { min: 2400, max: 4000, color: 'rgba(255,0,0,0.08)' },
+    ];
+    let bandsSvg = '';
+    tiers.forEach(t => {
+      const y1 = Math.max(yScale(Math.min(t.max, maxR)), PAD);
+      const y2 = Math.min(yScale(Math.max(t.min, minR)), H - PAD);
+      if (y2 > y1) bandsSvg += `<rect x="${PAD}" y="${y1}" width="${W - PAD * 2}" height="${y2 - y1}" fill="${t.color}"/>`;
+    });
+
+    // Y axis
+    let axisHtml = '';
+    const step = Math.ceil((maxR - minR) / 5 / 100) * 100;
+    for (let r = Math.ceil(minR / step) * step; r <= maxR; r += step) {
+      const y = yScale(r);
+      axisHtml += `<text x="${PAD - 8}" y="${y + 4}" text-anchor="end" fill="var(--text-muted)" font-size="10">${r}</text>`;
+      axisHtml += `<line x1="${PAD}" y1="${y}" x2="${W - PAD}" y2="${y}" stroke="var(--border)" stroke-width="0.5"/>`;
+    }
+
+    // Line + area
+    const points = ratings.map((r, i) => `${xScale(i)},${yScale(r.newRating)}`);
+    const linePath = `M${points.join(' L')}`;
+    const areaPath = `M${PAD},${H - PAD} L${points.join(' L')} L${xScale(ratings.length - 1)},${H - PAD} Z`;
+
+    // Dots
+    const dotsHtml = ratings.map((r, i) =>
+      `<circle cx="${xScale(i)}" cy="${yScale(r.newRating)}" r="3" fill="var(--accent)" opacity="0.7"><title>${r.contestName}\nRating: ${r.newRating} (${r.newRating >= r.oldRating ? '+' : ''}${r.newRating - r.oldRating})</title></circle>`
+    ).join('');
+
+    svg.innerHTML = `
+      <defs><linearGradient id="cf-grad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.4"/>
+        <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+      </linearGradient></defs>
+      ${bandsSvg}${axisHtml}
+      <path d="${areaPath}" fill="url(#cf-grad)" opacity="0.3"/>
+      <path d="${linePath}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
+      ${dotsHtml}`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ══════════════════════════════════════════════════════════════════════════════
+class KeyboardShortcuts {
+  constructor() {
+    this.overlay = document.getElementById('kb-overlay');
+    document.addEventListener('keydown', e => this._handle(e));
+    document.getElementById('kb-close')?.addEventListener('click', () => this._hide());
+  }
+  _handle(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    switch (e.key) {
+      case '?': this._toggle(); break;
+      case 'Escape': this._hide(); break;
+      case 'd': case 'D': document.getElementById('dark-toggle')?.click(); break;
+      case '1': document.getElementById('routine')?.scrollIntoView({ behavior: 'smooth' }); break;
+      case '2': document.getElementById('contests')?.scrollIntoView({ behavior: 'smooth' }); break;
+      case '3': document.getElementById('tools')?.scrollIntoView({ behavior: 'smooth' }); break;
+      case '4': document.getElementById('techniques')?.scrollIntoView({ behavior: 'smooth' }); break;
+      case '5': document.getElementById('growth')?.scrollIntoView({ behavior: 'smooth' }); break;
+      case '6': document.getElementById('tracker')?.scrollIntoView({ behavior: 'smooth' }); break;
+      case 't': case 'T': window.scrollTo({ top: 0, behavior: 'smooth' }); break;
+    }
+  }
+  _toggle() { if (this.overlay) this.overlay.hidden = !this.overlay.hidden; }
+  _hide() { if (this.overlay) this.overlay.hidden = true; }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CALENDAR EXPORT (.ICS)
+// ══════════════════════════════════════════════════════════════════════════════
+class CalendarExport {
+  constructor() {
+    document.getElementById('export-ics-btn')?.addEventListener('click', () => this._export());
+  }
+  _export() {
+    const routine = window.ROUTINE || [];
+    const today = zonedNow();
+    const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+    let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//CPRoutine//EN\r\nCALSCALE:GREGORIAN\r\n';
+    routine.forEach(b => {
+      if (b.ramadanOnly && !window._isRamadan) return;
+      const [sh, sm] = b.start.split(':');
+      const [eh, em] = b.end.split(':');
+      const start = `${dateStr}T${sh}${sm}00`;
+      const end = `${dateStr}T${eh}${em}00`;
+      const activity = b.activity.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ');
+      ics += `BEGIN:VEVENT\r\nDTSTART:${start}\r\nDTEND:${end}\r\nSUMMARY:${b.phase} \u2014 ${activity.substring(0, 60)}\r\nDESCRIPTION:${activity}\r\nEND:VEVENT\r\n`;
+    });
+    ics += 'END:VCALENDAR\r\n';
+    const blob = new Blob([ics], { type: 'text/calendar' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `cp-routine-${dateStr}.ics`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// BACK TO TOP
+// ══════════════════════════════════════════════════════════════════════════════
+class BackToTop {
+  constructor() {
+    this.btn = document.getElementById('back-to-top');
+    if (!this.btn) return;
+    this.btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    window.addEventListener('scroll', () => {
+      this.btn.classList.toggle('visible', window.scrollY > 400);
+    }, { passive: true });
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FAVICON BADGE (title prefix when Pomodoro is running)
+// ══════════════════════════════════════════════════════════════════════════════
+class FaviconBadge {
+  constructor() {
+    this._title = document.title;
+    document.addEventListener('pomo:start', () => this._set(true));
+    document.addEventListener('pomo:pause', () => this._set(false));
+    document.addEventListener('pomo:reset', () => this._set(false));
+  }
+  _set(active) { document.title = active ? '\ud83c\udf45 ' + this._title : this._title; }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // MAIN ENTRY
 // ══════════════════════════════════════════════════════════════════════════════
 let _bg = null, _alarms = null, _timeline = null, _ramadanCD = null;
@@ -2614,6 +3058,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   window._ramadanRoutineBackup = [...(window.ROUTINE || [])];
   schedMidnightCheck();
 
+  // ── New Features ──────────────────────────────────────────────────────────
+  new StreakTracker();
+  new QuoteRotator();
+  new PomodoroTimer();
+  new ProblemTracker();
+  new CFRatingChart('m0stafa');
+  new KeyboardShortcuts();
+  new CalendarExport();
+  new BackToTop();
+  new FaviconBadge();
+
   // ══════════════════════════════════════════════════════════════════════════
   // ANIMATION ENGINE
   // ══════════════════════════════════════════════════════════════════════════
@@ -2644,6 +3099,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.querySelector('#growth-list')?.classList.add('reveal-stagger');
   // Keywords grid stagger
   document.querySelector('#keywords-grid')?.classList.add('reveal-stagger');
+  // New feature sections
+  markReveal('.tracker-stat', 'scale-in');
+  markReveal('.tracker-heatmap-wrap');
+  markReveal('.tracker-form-wrap');
+  markReveal('.tracker-log-wrap');
+  markReveal('.cf-stat', 'scale-in');
+  markReveal('.cf-chart-wrap');
+  document.querySelector('#tracker-stats')?.classList.add('reveal-stagger');
+  document.querySelector('#cf-rating-stats')?.classList.add('reveal-stagger');
 
   // 2. Intersection Observer — fires once per element
   const observer = new IntersectionObserver((entries) => {
