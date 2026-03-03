@@ -2364,7 +2364,12 @@ class StreakTracker {
   _render() {
     const el = document.getElementById('streak-num');
     const flame = document.getElementById('streak-flame');
-    if (el) el.textContent = this.count;
+    if (el) {
+      el.textContent = this.count;
+      // animate number on first render
+      el.classList.add('animate');
+      setTimeout(() => el.classList.remove('animate'), 600);
+    }
     if (flame && this.count >= 7) flame.classList.add('streak-hot');
   }
 }
@@ -2375,21 +2380,21 @@ class StreakTracker {
 class QuoteRotator {
   constructor() {
     this.quotes = [
-      '"The only way to learn CP is to practice daily." \u2014 Tourist',
-      '"Competitive programming is about thinking, not just coding."',
-      '"Don\'t just solve problems, understand them deeply."',
-      '"Consistency beats talent when talent doesn\'t show up."',
-      '"Every unsolved problem teaches more than an easy AC."',
-      '"Think on paper first, code second."',
-      '"Rating is a byproduct of learning, not the goal."',
-      '"One hour of focused practice beats five hours of random solving."',
-      '"Read editorials. Re-solve. That\'s how you grow."',
-      '"The best time to start was yesterday. The next best time is now."',
-      '"Upsolving is where the real learning happens."',
-      '"Focus on understanding, not on the number of problems solved."',
-      '"Every contest is a learning opportunity, win or lose."',
-      '"Build a strong foundation before chasing hard problems."',
-      '"Discipline is the bridge between goals and accomplishments."',
+      'The only way to learn CP is to practice daily. \u2014 Tourist',
+      'Competitive programming is about thinking, not just coding.',
+      'Don\'t just solve problems, understand them deeply.',
+      'Consistency beats talent when talent doesn\'t show up.',
+      'Every unsolved problem teaches more than an easy AC.',
+      'Think on paper first, code second.',
+      'Rating is a byproduct of learning, not the goal.',
+      'One hour of focused practice beats five hours of random solving.',
+      'Read editorials. Re-solve. That\'s how you grow.',
+      'The best time to start was yesterday. The next best time is now.',
+      'Upsolving is where the real learning happens.',
+      'Focus on understanding, not on the number of problems solved.',
+      'Every contest is a learning opportunity, win or lose.',
+      'Build a strong foundation before chasing hard problems.',
+      'Discipline is the bridge between goals and accomplishments.',
     ];
     this.el = document.getElementById('quote-text');
     this._show();
@@ -2412,12 +2417,19 @@ class PomodoroTimer {
     this.session = 1; this.maxSessions = 4; this.isWork = true;
     this.remaining = this.WORK; this.total = this.WORK;
     this.running = false; this.raf = null; this.lastFrame = 0;
+    this.CIRCUMFERENCE = 2 * Math.PI * 54; // matches ring radius
     this.display = document.getElementById('pomo-display');
+    this.ringProgress = document.getElementById('pomo-ring-progress');
     this.sessionLabel = document.getElementById('pomo-session-count');
     this.phaseLabel = document.getElementById('pomo-phase-label');
     this.overlay = document.getElementById('pomo-overlay');
     this.overlayTime = document.getElementById('pomo-overlay-time');
     this.overlayPhase = document.getElementById('pomo-overlay-phase');
+    // Setup ring
+    if (this.ringProgress) {
+      this.ringProgress.style.strokeDasharray = this.CIRCUMFERENCE;
+      this.ringProgress.style.strokeDashoffset = '0';
+    }
     document.getElementById('pomo-start')?.addEventListener('click', () => this.start());
     document.getElementById('pomo-pause')?.addEventListener('click', () => this.pause());
     document.getElementById('pomo-reset')?.addEventListener('click', () => this.reset());
@@ -2490,6 +2502,14 @@ class PomodoroTimer {
       this.phaseLabel.className = 'pomo-phase-label ' + (this.isWork ? 'pomo-work' : 'pomo-break');
     }
     if (this.overlayPhase) this.overlayPhase.textContent = this.isWork ? '\ud83c\udfaf Focus Time' : '\u2615 Break Time';
+    // Update ring progress
+    if (this.ringProgress) {
+      const fraction = this.total > 0 ? (this.total - this.remaining) / this.total : 0;
+      const offset = this.CIRCUMFERENCE * (1 - fraction);
+      this.ringProgress.style.strokeDashoffset = offset;
+      // Change ring color based on phase
+      this.ringProgress.style.stroke = this.isWork ? 'var(--accent)' : '#16a34a';
+    }
   }
   _showOverlay() { if (this.overlay) this.overlay.hidden = false; }
   _hideOverlay() { if (this.overlay) this.overlay.hidden = true; }

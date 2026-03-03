@@ -92,7 +92,9 @@
         <span class="streak-label">day streak</span>
       </div>
       <div class="hero-quote" id="hero-quote">
-        <p class="quote-text" id="quote-text">"The only way to learn CP is to practice daily."</p>
+        <span class="hero-quote-mark">&ldquo;</span>
+        <p class="quote-text" id="quote-text">The only way to learn CP is to practice daily.</p>
+        <span class="hero-quote-mark hero-quote-mark--end">&rdquo;</span>
       </div>
       <!-- Ramadan-only timing pills: all 5 prayers from live API -->
       <div class="ramadan-only prayer-times-hero" hidden>
@@ -227,7 +229,13 @@
           <h3 class="tool-title">Pomodoro Focus</h3>
         </div>
         <div class="tool-body">
-          <div id="pomo-display" class="timer-display">25:00</div>
+          <div class="pomo-ring-wrap">
+            <svg class="pomo-ring" viewBox="0 0 120 120" width="140" height="140">
+              <circle cx="60" cy="60" r="54" class="ring-track"/>
+              <circle cx="60" cy="60" r="54" class="ring-progress" id="pomo-ring-progress"/>
+            </svg>
+            <div id="pomo-display" class="timer-display pomo-center">25:00</div>
+          </div>
           <div class="pomo-session-info">
             <span id="pomo-session-count">Session 1 of 4</span>
             <span id="pomo-phase-label" class="pomo-phase-label pomo-work">Work</span>
@@ -303,20 +311,46 @@
 <section id="tracker" class="section">
   <div class="container">
     <h2 class="section-heading">Problem Tracker</h2>
+    <p class="section-desc">Log &amp; track every problem you solve. Build consistency, visualize progress.</p>
     <div class="tracker-top">
       <div class="tracker-stats" id="tracker-stats">
-        <div class="tracker-stat"><span class="tracker-stat-num" id="ts-total">0</span><span class="tracker-stat-lbl">Total Solved</span></div>
-        <div class="tracker-stat"><span class="tracker-stat-num" id="ts-today">0</span><span class="tracker-stat-lbl">Today</span></div>
-        <div class="tracker-stat"><span class="tracker-stat-num" id="ts-week">0</span><span class="tracker-stat-lbl">This Week</span></div>
-        <div class="tracker-stat"><span class="tracker-stat-num" id="ts-avg-time">0m</span><span class="tracker-stat-lbl">Avg Time</span></div>
+        <div class="tracker-stat">
+          <span class="tracker-stat-icon">📊</span>
+          <span class="tracker-stat-num" id="ts-total">0</span>
+          <span class="tracker-stat-lbl">Total Solved</span>
+        </div>
+        <div class="tracker-stat">
+          <span class="tracker-stat-icon">📅</span>
+          <span class="tracker-stat-num" id="ts-today">0</span>
+          <span class="tracker-stat-lbl">Today</span>
+        </div>
+        <div class="tracker-stat">
+          <span class="tracker-stat-icon">🗓️</span>
+          <span class="tracker-stat-num" id="ts-week">0</span>
+          <span class="tracker-stat-lbl">This Week</span>
+        </div>
+        <div class="tracker-stat">
+          <span class="tracker-stat-icon">⏱️</span>
+          <span class="tracker-stat-num" id="ts-avg-time">0m</span>
+          <span class="tracker-stat-lbl">Avg Time</span>
+        </div>
       </div>
     </div>
     <div class="tracker-heatmap-wrap">
-      <h3 class="tracker-sub">Activity Heatmap</h3>
+      <h3 class="tracker-sub"><span class="tracker-sub-icon">🟩</span> Activity Heatmap</h3>
       <div class="tracker-heatmap" id="tracker-heatmap"></div>
+      <div class="heatmap-legend">
+        <span class="heatmap-legend-label">Less</span>
+        <div class="hm-cell hm-0"></div>
+        <div class="hm-cell hm-1"></div>
+        <div class="hm-cell hm-2"></div>
+        <div class="hm-cell hm-3"></div>
+        <div class="hm-cell hm-4"></div>
+        <span class="heatmap-legend-label">More</span>
+      </div>
     </div>
     <div class="tracker-form-wrap">
-      <h3 class="tracker-sub">Log a Problem</h3>
+      <h3 class="tracker-sub"><span class="tracker-sub-icon">✏️</span> Log a Problem</h3>
       <form id="tracker-form" class="tracker-form">
         <select id="tf-platform" class="tracker-input" required>
           <option value="">Platform</option>
@@ -342,7 +376,7 @@
       </form>
     </div>
     <div class="tracker-log-wrap">
-      <h3 class="tracker-sub">Recent Problems</h3>
+      <h3 class="tracker-sub"><span class="tracker-sub-icon">📋</span> Recent Problems</h3>
       <div class="table-wrap">
         <table class="routine-table tracker-table">
           <thead><tr><th>Date</th><th>Platform</th><th>Problem</th><th>Rating</th><th>Verdict</th><th>Time</th><th></th></tr></thead>
@@ -359,11 +393,31 @@
 <section id="cf-rating" class="section alt-section">
   <div class="container">
     <h2 class="section-heading">Codeforces Rating</h2>
+    <div class="cf-handle-badge">
+      <img src="https://codeforces.com/favicon.ico" alt="" class="cf-handle-icon" onerror="this.style.display='none'" />
+      <a href="https://codeforces.com/profile/m0stafa" target="_blank" rel="noopener" class="cf-handle-link">m0stafa</a>
+    </div>
     <div class="cf-rating-top" id="cf-rating-stats">
-      <div class="cf-stat"><span class="cf-stat-num" id="cf-current">—</span><span class="cf-stat-lbl">Current</span></div>
-      <div class="cf-stat"><span class="cf-stat-num" id="cf-max">—</span><span class="cf-stat-lbl">Max</span></div>
-      <div class="cf-stat"><span class="cf-stat-num" id="cf-contests">—</span><span class="cf-stat-lbl">Contests</span></div>
-      <div class="cf-stat"><span class="cf-stat-num" id="cf-rank">—</span><span class="cf-stat-lbl">Rank</span></div>
+      <div class="cf-stat">
+        <span class="cf-stat-icon">📈</span>
+        <span class="cf-stat-num" id="cf-current">—</span>
+        <span class="cf-stat-lbl">Current</span>
+      </div>
+      <div class="cf-stat">
+        <span class="cf-stat-icon">🏆</span>
+        <span class="cf-stat-num" id="cf-max">—</span>
+        <span class="cf-stat-lbl">Max</span>
+      </div>
+      <div class="cf-stat">
+        <span class="cf-stat-icon">🎯</span>
+        <span class="cf-stat-num" id="cf-contests">—</span>
+        <span class="cf-stat-lbl">Contests</span>
+      </div>
+      <div class="cf-stat">
+        <span class="cf-stat-icon">⭐</span>
+        <span class="cf-stat-num" id="cf-rank">—</span>
+        <span class="cf-stat-lbl">Rank</span>
+      </div>
     </div>
     <div class="cf-chart-wrap" id="cf-chart-wrap">
       <p class="cf-loading" id="cf-loading">Loading rating data…</p>
@@ -514,7 +568,7 @@
 <div id="kb-overlay" class="kb-overlay" hidden>
   <div class="kb-inner">
     <div class="kb-header">
-      <h3>⌨ Keyboard Shortcuts</h3>
+      <h3>⌨️ Keyboard Shortcuts</h3>
       <button id="kb-close" class="btn-icon">✕</button>
     </div>
     <div class="kb-grid">
@@ -529,11 +583,16 @@
       <div class="kb-row"><kbd>6</kbd><span>Go to Tracker</span></div>
       <div class="kb-row"><kbd>Esc</kbd><span>Close overlay</span></div>
     </div>
+    <div class="kb-footer">
+      <span>Press <kbd>?</kbd> anywhere to toggle</span>
+    </div>
   </div>
 </div>
 
 <!-- Back to Top Button -->
-<button id="back-to-top" class="back-to-top" title="Back to top">↑</button>
+<button id="back-to-top" class="back-to-top" title="Back to top">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
      FOOTER
