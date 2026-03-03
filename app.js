@@ -2893,97 +2893,6 @@ class ProblemTracker {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// CODEFORCES RATING CHART
-// ══════════════════════════════════════════════════════════════════════════════
-class CFRatingChart {
-  constructor(handle = 'm0stafa') {
-    this.handle = handle;
-    this._load();
-  }
-  async _load() {
-    const loadingEl = document.getElementById('cf-loading');
-    const svg = document.getElementById('cf-chart');
-    try {
-      const infoResp = await fetch(`https://codeforces.com/api/user.info?handles=${this.handle}`, { signal: AbortSignal.timeout(8000) });
-      const infoData = await infoResp.json();
-      if (infoData.status === 'OK' && infoData.result.length) {
-        const u = infoData.result[0];
-        const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-        set('cf-current', u.rating || '\u2014');
-        set('cf-max', u.maxRating || '\u2014');
-        set('cf-rank', u.rank || '\u2014');
-      }
-      const resp = await fetch(`https://codeforces.com/api/user.rating?handle=${this.handle}`, { signal: AbortSignal.timeout(8000) });
-      const data = await resp.json();
-      if (data.status !== 'OK' || !data.result.length) {
-        if (loadingEl) loadingEl.textContent = 'No rating data found.';
-        return;
-      }
-      const ratings = data.result;
-      const set2 = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-      set2('cf-contests', ratings.length);
-      if (loadingEl) loadingEl.style.display = 'none';
-      this._renderChart(svg, ratings);
-    } catch (e) {
-      if (loadingEl) loadingEl.textContent = 'Failed to load rating data.';
-    }
-  }
-  _renderChart(svg, ratings) {
-    if (!svg || ratings.length < 2) return;
-    const W = 800, H = 300, PAD = 45;
-    const minR = Math.min(...ratings.map(r => r.newRating)) - 50;
-    const maxR = Math.max(...ratings.map(r => r.newRating)) + 50;
-    const xScale = i => PAD + (i / (ratings.length - 1)) * (W - PAD * 2);
-    const yScale = r => H - PAD - ((r - minR) / (maxR - minR)) * (H - PAD * 2);
-
-    // Rating tier bands
-    const tiers = [
-      { min: 0, max: 1200, color: 'rgba(128,128,128,0.08)' },
-      { min: 1200, max: 1400, color: 'rgba(0,128,0,0.08)' },
-      { min: 1400, max: 1600, color: 'rgba(3,168,158,0.08)' },
-      { min: 1600, max: 1900, color: 'rgba(0,0,255,0.08)' },
-      { min: 1900, max: 2100, color: 'rgba(170,0,170,0.08)' },
-      { min: 2100, max: 2400, color: 'rgba(255,140,0,0.08)' },
-      { min: 2400, max: 4000, color: 'rgba(255,0,0,0.08)' },
-    ];
-    let bandsSvg = '';
-    tiers.forEach(t => {
-      const y1 = Math.max(yScale(Math.min(t.max, maxR)), PAD);
-      const y2 = Math.min(yScale(Math.max(t.min, minR)), H - PAD);
-      if (y2 > y1) bandsSvg += `<rect x="${PAD}" y="${y1}" width="${W - PAD * 2}" height="${y2 - y1}" fill="${t.color}"/>`;
-    });
-
-    // Y axis
-    let axisHtml = '';
-    const step = Math.ceil((maxR - minR) / 5 / 100) * 100;
-    for (let r = Math.ceil(minR / step) * step; r <= maxR; r += step) {
-      const y = yScale(r);
-      axisHtml += `<text x="${PAD - 8}" y="${y + 4}" text-anchor="end" fill="var(--text-muted)" font-size="10">${r}</text>`;
-      axisHtml += `<line x1="${PAD}" y1="${y}" x2="${W - PAD}" y2="${y}" stroke="var(--border)" stroke-width="0.5"/>`;
-    }
-
-    // Line + area
-    const points = ratings.map((r, i) => `${xScale(i)},${yScale(r.newRating)}`);
-    const linePath = `M${points.join(' L')}`;
-    const areaPath = `M${PAD},${H - PAD} L${points.join(' L')} L${xScale(ratings.length - 1)},${H - PAD} Z`;
-
-    // Dots
-    const dotsHtml = ratings.map((r, i) =>
-      `<circle cx="${xScale(i)}" cy="${yScale(r.newRating)}" r="3" fill="var(--accent)" opacity="0.7"><title>${r.contestName}\nRating: ${r.newRating} (${r.newRating >= r.oldRating ? '+' : ''}${r.newRating - r.oldRating})</title></circle>`
-    ).join('');
-
-    svg.innerHTML = `
-      <defs><linearGradient id="cf-grad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.4"/>
-        <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
-      </linearGradient></defs>
-      ${bandsSvg}${axisHtml}
-      <path d="${areaPath}" fill="url(#cf-grad)" opacity="0.3"/>
-      <path d="${linePath}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
-      ${dotsHtml}`;
-  }
-}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // KEYBOARD SHORTCUTS
@@ -3357,7 +3266,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   new QuoteRotator();
   new PomodoroTimer();
   new ProblemTracker();
-  new CFRatingChart('m0stafa');
   new KeyboardShortcuts();
   new CalendarExport();
   new BackToTop();
