@@ -2565,18 +2565,23 @@ class SubmissionFetcher {
       { key: 'cf', name: 'Codeforces', fn: this._fetchCF.bind(this) },
       { key: 'lc', name: 'LeetCode',   fn: this._fetchLC.bind(this) },
       { key: 'ac', name: 'AtCoder',    fn: this._fetchAC.bind(this) },
+      { key: 'vj', name: 'VJudge',     fn: this._fetchVJ.bind(this) },
     ];
 
     for (const p of platforms) {
       const h = handles[p.key]?.trim();
-      if (!h) continue;
+      const dot = document.getElementById(`status-${p.key}`);
+      if (!h) { if (dot) dot.className = 'handle-card-status'; continue; }
+      if (dot) { dot.className = 'handle-card-status loading'; }
       onProgress?.(`Fetching ${p.name}…`);
       try {
         const subs = await p.fn(h);
         results.push(...subs);
+        if (dot) { dot.className = 'handle-card-status connected'; }
         onProgress?.(`✓ ${p.name}: ${subs.length.toLocaleString()} submissions`);
       } catch (e) {
         console.warn(`[Fetcher] ${p.name}:`, e);
+        if (dot) { dot.className = 'handle-card-status error'; }
         onProgress?.(`⚠ ${p.name}: ${e.message}`);
       }
     }
@@ -2664,6 +2669,55 @@ class SubmissionFetcher {
     }));
   }
 
+  /* ── VJudge (solveDetail — public, no auth) ────────────────────────────── */
+  async _fetchVJ(handle) {
+    const resp = await fetch(
+      `https://vjudge.net/user/solveDetail/${encodeURIComponent(handle)}`,
+      { signal: AbortSignal.timeout(15000) }
+    );
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const results = [];
+    const now = Date.now();
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    // acRecords: { "POJ": ["1000","1001"], "CodeForces": ["71A"], ... }
+    if (data.acRecords) {
+      for (const [oj, problems] of Object.entries(data.acRecords)) {
+        for (const pid of problems) {
+          results.push({
+            timestamp: now,
+            date: dateStr,
+            platform: 'VJudge',
+            name: `${oj}-${pid}`,
+            rating: null,
+            verdict: 'AC',
+            link: `https://vjudge.net/user/${encodeURIComponent(handle)}`,
+            auto: true,
+          });
+        }
+      }
+    }
+    // failRecords: same structure but non-AC
+    if (data.failRecords) {
+      for (const [oj, problems] of Object.entries(data.failRecords)) {
+        for (const pid of problems) {
+          results.push({
+            timestamp: now,
+            date: dateStr,
+            platform: 'VJudge',
+            name: `${oj}-${pid}`,
+            rating: null,
+            verdict: 'WA',
+            link: `https://vjudge.net/user/${encodeURIComponent(handle)}`,
+            auto: true,
+          });
+        }
+      }
+    }
+    return results;
+  }
+
   /* ── helpers ───────────────────────────────────────────────────────────── */
   _verdict(v) {
     if (!v) return '?';
@@ -2708,6 +2762,7 @@ class ProblemTracker {
     fill('handle-cf', 'cf', 'm0stafa');
     fill('handle-lc', 'lc', '');
     fill('handle-ac', 'ac', '');
+    fill('handle-vj', 'vj', '');
 
     document.getElementById('tracker-sync-btn')
       ?.addEventListener('click', () => this._syncSubmissions());
@@ -2745,9 +2800,10 @@ class ProblemTracker {
       cf: document.getElementById('handle-cf')?.value?.trim() || '',
       lc: document.getElementById('handle-lc')?.value?.trim() || '',
       ac: document.getElementById('handle-ac')?.value?.trim() || '',
+      vj: document.getElementById('handle-vj')?.value?.trim() || '',
     };
 
-    if (!handles.cf && !handles.lc && !handles.ac) {
+    if (!handles.cf && !handles.lc && !handles.ac && !handles.vj) {
       if (statusEl) { statusEl.textContent = '⚠ Enter at least one handle'; statusEl.className = 'tracker-sync-status error'; }
       return;
     }
@@ -2782,7 +2838,7 @@ class ProblemTracker {
     this._renderAll();                         // render cached/manual data immediately
     const handles = this.fetcher.getHandles();
     const cached  = this.fetcher.getCachedData();
-    if ((handles.cf || handles.lc || handles.ac) && !cached) {
+    if ((handles.cf || handles.lc || handles.ac || handles.vj) && !cached) {
       await this._syncSubmissions();           // auto-sync if cache is stale
     }
   }

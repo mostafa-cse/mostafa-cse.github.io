@@ -311,35 +311,47 @@
 
     <!-- Connected Platforms -->
     <div class="tracker-handles-wrap">
-      <h3 class="tracker-sub"><span class="tracker-sub-icon">🔗</span> Connected Platforms</h3>
-      <p class="tracker-handles-desc">Enter your handles to auto-fetch submissions from competitive programming platforms.</p>
+      <div class="tracker-handles-header">
+        <h3 class="tracker-sub"><span class="tracker-sub-icon">🔗</span> Connected Platforms</h3>
+        <button type="button" class="tracker-sync-btn" id="tracker-sync-btn">
+          <span class="sync-icon" id="sync-icon">⟳</span> Sync All
+        </button>
+      </div>
       <div class="tracker-handles-grid">
-        <div class="handle-input-group">
-          <div class="handle-input-label">
+        <div class="handle-card" data-platform="cf">
+          <div class="handle-card-head">
             <img src="https://codeforces.com/favicon.ico" alt="" class="handle-platform-icon" onerror="this.style.display='none'" />
-            <span>Codeforces</span>
+            <span class="handle-card-name">Codeforces</span>
+            <span class="handle-card-status" id="status-cf"></span>
           </div>
-          <input id="handle-cf" type="text" class="tracker-input handle-input" placeholder="e.g. m0stafa" autocomplete="off" />
+          <input id="handle-cf" type="text" class="handle-input" placeholder="handle" autocomplete="off" spellcheck="false" />
         </div>
-        <div class="handle-input-group">
-          <div class="handle-input-label">
+        <div class="handle-card" data-platform="lc">
+          <div class="handle-card-head">
             <img src="https://leetcode.com/favicon.ico" alt="" class="handle-platform-icon" onerror="this.style.display='none'" />
-            <span>LeetCode</span>
+            <span class="handle-card-name">LeetCode</span>
+            <span class="handle-card-status" id="status-lc"></span>
           </div>
-          <input id="handle-lc" type="text" class="tracker-input handle-input" placeholder="username" autocomplete="off" />
+          <input id="handle-lc" type="text" class="handle-input" placeholder="handle" autocomplete="off" spellcheck="false" />
         </div>
-        <div class="handle-input-group">
-          <div class="handle-input-label">
+        <div class="handle-card" data-platform="ac">
+          <div class="handle-card-head">
             <img src="https://img.atcoder.jp/assets/favicon.png" alt="" class="handle-platform-icon" onerror="this.style.display='none'" />
-            <span>AtCoder</span>
+            <span class="handle-card-name">AtCoder</span>
+            <span class="handle-card-status" id="status-ac"></span>
           </div>
-          <input id="handle-ac" type="text" class="tracker-input handle-input" placeholder="username" autocomplete="off" />
+          <input id="handle-ac" type="text" class="handle-input" placeholder="handle" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="handle-card" data-platform="vj">
+          <div class="handle-card-head">
+            <img src="https://vjudge.net/favicon.ico" alt="" class="handle-platform-icon" onerror="this.style.display='none'" />
+            <span class="handle-card-name">VJudge</span>
+            <span class="handle-card-status" id="status-vj"></span>
+          </div>
+          <input id="handle-vj" type="text" class="handle-input" placeholder="handle" autocomplete="off" spellcheck="false" />
         </div>
       </div>
-      <div class="tracker-handles-footer">
-        <button type="button" class="btn tracker-sync-btn" id="tracker-sync-btn">
-          <span class="sync-icon" id="sync-icon">⟳</span> Sync Submissions
-        </button>
+      <div class="tracker-sync-footer">
         <span class="tracker-sync-status" id="tracker-sync-status"></span>
       </div>
     </div>
