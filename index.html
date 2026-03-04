@@ -35,6 +35,47 @@
 </head>
 <body>
 
+<!-- Scroll progress bar -->
+<div id="scroll-progress" class="scroll-progress" aria-hidden="true"></div>
+<svg class="svg-noise-filter" aria-hidden="true">
+  <defs>
+    <!-- noiseFilter: coarse speckled starfield — used for dark / Ramadan-dark -->
+    <filter id="noiseFilter" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.72 0.68" numOctaves="5"
+                    seed="3" stitchTiles="stitch" result="noise" />
+      <feColorMatrix type="saturate" values="0" in="noise" result="mono" />
+      <feComponentTransfer in="mono" result="thresh">
+        <!-- Sparse bright specks on dark: most values map to black, a few to white -->
+        <feFuncR type="discrete" tableValues="0 0 0 0 0 0 0 0.03 0.07 0.15 0.28 0.50 0.80 1" />
+        <feFuncG type="discrete" tableValues="0 0 0 0 0 0 0 0.03 0.07 0.15 0.28 0.50 0.80 1" />
+        <feFuncB type="discrete" tableValues="0 0 0 0 0 0 0 0.03 0.07 0.15 0.28 0.50 0.80 1" />
+        <feFuncA type="linear" slope="1" />
+      </feComponentTransfer>
+    </filter>
+    <!-- grainFilter: fine woven fabric grain — used for light / Ramadan-light -->
+    <filter id="grainFilter" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85 0.80" numOctaves="4"
+                    seed="7" stitchTiles="stitch" result="grain" />
+      <feColorMatrix type="saturate" values="0" in="grain" result="grainMono" />
+      <feComponentTransfer in="grainMono">
+        <!-- Subtle uniform grain: mid-level values slightly raised -->
+        <feFuncR type="gamma" amplitude="1" exponent="1.4" offset="-0.05" />
+        <feFuncG type="gamma" amplitude="1" exponent="1.4" offset="-0.05" />
+        <feFuncB type="gamma" amplitude="1" exponent="1.4" offset="-0.05" />
+        <feFuncA type="linear" slope="1" />
+      </feComponentTransfer>
+    </filter>
+  </defs>
+</svg>
+
+<!-- Loading overlay — fades out after DOMContentLoaded -->
+<div id="loading-overlay" class="loading-overlay">
+  <div class="loading-spinner">
+    <div class="loading-ring"></div>
+    <span class="loading-text">Loading CP Routine…</span>
+  </div>
+</div>
+
 <!-- ═══════════════════════════════════════════════════════════════════════════
      NAV BAR
 ════════════════════════════════════════════════════════════════════════════ -->
@@ -61,8 +102,13 @@
     </button>
     <button id="dark-toggle" class="btn-icon" title="Toggle Dark Mode">◐</button>
     <button id="alarm-toggle-btn" class="btn-icon" title="Alarm Settings">🔔</button>
-
+    <button id="nav-menu-btn" class="nav-menu-btn" title="Menu" aria-label="Toggle navigation menu" aria-expanded="false">
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+    </button>
   </div>
+  <div class="nav-backdrop" id="nav-backdrop" aria-hidden="true"></div>
 </nav>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
@@ -304,7 +350,8 @@
 <!-- ═══════════════════════════════════════════════════════════════════════════
      PROBLEM TRACKER
 ════════════════════════════════════════════════════════════════════════════ -->
-<section id="tracker" class="section">
+<section id="tracker" class="section section-with-particles">
+  <canvas class="section-bg-canvas" id="tracker-bg-canvas"></canvas>
   <div class="container">
     <h2 class="section-heading">Problem Tracker</h2>
     <p class="section-desc">Connect your profiles to auto-fetch submissions. Track your CP journey in one place.</p>
@@ -341,6 +388,14 @@
             <span class="handle-card-status" id="status-ac"></span>
           </div>
           <input id="handle-ac" type="text" class="handle-input" placeholder="handle" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="handle-card" data-platform="cc">
+          <div class="handle-card-head">
+            <img src="https://www.codechef.com/favicon.ico" alt="" class="handle-platform-icon" onerror="this.style.display='none'" />
+            <span class="handle-card-name">CodeChef</span>
+            <span class="handle-card-status" id="status-cc"></span>
+          </div>
+          <input id="handle-cc" type="text" class="handle-input" placeholder="handle" autocomplete="off" spellcheck="false" />
         </div>
         <div class="handle-card" data-platform="vj">
           <div class="handle-card-head">
@@ -394,7 +449,7 @@
       </div>
     </div>
     <div class="tracker-form-wrap">
-      <details class="tracker-manual-details" id="tracker-manual-details">
+      <!-- <details class="tracker-manual-details" id="tracker-manual-details">
         <summary class="tracker-sub tracker-sub-clickable"><span class="tracker-sub-icon">✏️</span> Manual Log <span class="tracker-manual-hint">(for unsupported platforms)</span></summary>
         <form id="tracker-form" class="tracker-form">
         <select id="tf-platform" class="tracker-input" required>
@@ -419,7 +474,7 @@
         <input id="tf-time" type="number" class="tracker-input" placeholder="Time (min)" min="1" />
           <button type="submit" class="btn btn-primary btn-sm">Log Problem</button>
         </form>
-      </details>
+      </details> -->
     </div>
     <div class="tracker-log-wrap">
       <h3 class="tracker-sub"><span class="tracker-sub-icon">📋</span> Recent Problems</h3>
@@ -437,7 +492,8 @@
 <!-- ═══════════════════════════════════════════════════════════════════════════
      TECHNIQUES
 ════════════════════════════════════════════════════════════════════════════ -->
-<section id="techniques" class="section alt-section">
+<section id="techniques" class="section alt-section section-with-particles">
+  <canvas class="section-bg-canvas" id="techniques-bg-canvas"></canvas>
   <div class="container">
     <h2 class="section-heading">The Harsh Truths &amp; Core Techniques</h2>
 

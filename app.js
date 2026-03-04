@@ -281,149 +281,507 @@ class AuroraWaves {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// THREE.JS HERO BACKGROUND
+// THREE.JS HERO BACKGROUND — Enhanced with connected particle network,
+// morphing geometry, interactive depth, and volumetric glow
 // ══════════════════════════════════════════════════════════════════════════════
 class ThreeJSBackground {
   constructor(canvasId, theme) {
-    if (typeof THREE === 'undefined') return; // graceful if offline
+    if (typeof THREE === 'undefined') return;
     this.canvas = document.getElementById(canvasId);
     if (!this.canvas) return;
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, alpha: true, antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setClearColor(0x000000, 0);
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(60, 1, 0.1, 200);
-    this.camera.position.z = 30;
-    this._mouse = { x: 0, y: 0 };
+    // Add subtle fog for depth
+    this.scene.fog = new THREE.FogExp2(0x060e24, 0.012);
+    this.camera = new THREE.PerspectiveCamera(60, 1, 0.1, 250);
+    this.camera.position.z = 35;
+    this._mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
     this._objects = [];
+    this._connections = null;
+    this._nodePositions = null;
+    this._nodeSpeeds = null;
+    this._glowMeshes = [];
     this._resize();
     this.buildScene(theme);
     window.addEventListener('resize', () => this._resize());
-    document.addEventListener('mousemove', e => {
-      this._mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
-      this._mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
-    });
+    const hero = this.canvas.closest('.hero') || this.canvas.parentElement;
+    if (hero) {
+      hero.addEventListener('mousemove', e => {
+        const r = this.canvas.getBoundingClientRect();
+        this._mouse.targetX = ((e.clientX - r.left) / r.width - 0.5) * 2;
+        this._mouse.targetY = ((e.clientY - r.top) / r.height - 0.5) * 2;
+      });
+    }
     this.renderer.setAnimationLoop(() => this._animate());
   }
 
   _resize() {
     if (!this.canvas) return;
-    const w = window.innerWidth, h = window.innerHeight;
+    const parent = this.canvas.parentElement;
+    const w = parent ? parent.offsetWidth : window.innerWidth;
+    const h = parent ? parent.offsetHeight : window.innerHeight;
     this.renderer.setSize(w, h);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
+    this._width = w;
+    this._height = h;
   }
 
   buildScene(theme) {
     if (!this.scene) return;
-    // Dispose old objects
     this._objects.forEach(o => {
       if (o.geometry) o.geometry.dispose();
-      if (o.material) o.material.dispose();
+      if (o.material) {
+        if (o.material.map) o.material.map.dispose();
+        o.material.dispose();
+      }
       this.scene.remove(o);
     });
     this._objects = [];
-
-    if (theme === 'ramadan') {
-      this._buildRamadanScene();
-    } else {
-      this._buildGeneralScene();
-    }
+    this._glowMeshes = [];
+    this._connections = null;
+    this._nodePositions = null;
+    if (theme === 'ramadan') this._buildRamadanScene();
+    else this._buildGeneralScene();
   }
 
+  /* ── GENERAL SCENE: Connected particle network + morphing geometry ────── */
+  _buildGeneralScene() {
+    const PARTICLE_COUNT = 180;
+    const CONNECT_DIST = 12;
+
+    // 1. Interactive particle network (nodes)
+    const nodeGeo = new THREE.BufferGeometry();
+    const nodePos = new Float32Array(PARTICLE_COUNT * 3);
+    const nodeSizes = new Float32Array(PARTICLE_COUNT);
+    const nodeColors = new Float32Array(PARTICLE_COUNT * 3);
+    const speeds = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      nodePos[i * 3]     = (Math.random() - 0.5) * 80;
+      nodePos[i * 3 + 1] = (Math.random() - 0.5) * 50;
+      nodePos[i * 3 + 2] = (Math.random() - 0.5) * 40 - 5;
+      nodeSizes[i] = 0.6 + Math.random() * 1.4;
+      // Blue gradient colors
+      const t = Math.random();
+      nodeColors[i * 3]     = 0.18 + t * 0.15;  // R
+      nodeColors[i * 3 + 1] = 0.35 + t * 0.25;  // G
+      nodeColors[i * 3 + 2] = 0.7 + t * 0.3;    // B
+      speeds.push({
+        vx: (Math.random() - 0.5) * 0.015,
+        vy: (Math.random() - 0.5) * 0.012,
+        vz: (Math.random() - 0.5) * 0.008,
+        phase: Math.random() * Math.PI * 2,
+      });
+    }
+    nodeGeo.setAttribute('position', new THREE.BufferAttribute(nodePos, 3));
+    nodeGeo.setAttribute('size', new THREE.BufferAttribute(nodeSizes, 1));
+    nodeGeo.setAttribute('color', new THREE.BufferAttribute(nodeColors, 3));
+
+    // Custom shader for soft glowing particles
+    const nodeMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+      },
+      vertexShader: `
+        attribute float size;
+        attribute vec3 color;
+        varying vec3 vColor;
+        varying float vAlpha;
+        uniform float uTime;
+        uniform float uPixelRatio;
+        void main() {
+          vColor = color;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          float pulse = 0.8 + 0.2 * sin(uTime * 1.5 + position.x * 0.3 + position.y * 0.2);
+          gl_PointSize = size * uPixelRatio * (28.0 / -mvPosition.z) * pulse;
+          vAlpha = smoothstep(80.0, 10.0, -mvPosition.z) * pulse;
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        varying float vAlpha;
+        void main() {
+          float d = length(gl_PointCoord - vec2(0.5));
+          if (d > 0.5) discard;
+          float glow = exp(-d * 4.0) * 0.8 + smoothstep(0.5, 0.0, d) * 0.3;
+          gl_FragColor = vec4(vColor, vAlpha * glow * 0.85);
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const nodes = new THREE.Points(nodeGeo, nodeMat);
+    nodes._isNetwork = true;
+    this.scene.add(nodes);
+    this._objects.push(nodes);
+    this._nodePositions = nodePos;
+    this._nodeSpeeds = speeds;
+
+    // 2. Connection lines between nearby particles
+    const maxConnections = PARTICLE_COUNT * 6;
+    const lineGeo = new THREE.BufferGeometry();
+    const linePos = new Float32Array(maxConnections * 2 * 3);
+    const lineAlpha = new Float32Array(maxConnections * 2);
+    lineGeo.setAttribute('position', new THREE.BufferAttribute(linePos, 3));
+    lineGeo.setAttribute('alpha', new THREE.BufferAttribute(lineAlpha, 1));
+    const lineMat = new THREE.ShaderMaterial({
+      vertexShader: `
+        attribute float alpha;
+        varying float vAlpha;
+        void main() {
+          vAlpha = alpha;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying float vAlpha;
+        void main() {
+          gl_FragColor = vec4(0.33, 0.52, 0.86, vAlpha * 0.35);
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const lines = new THREE.LineSegments(lineGeo, lineMat);
+    lines._isConnections = true;
+    this.scene.add(lines);
+    this._objects.push(lines);
+    this._connections = { geo: lineGeo, count: PARTICLE_COUNT, maxConn: maxConnections, dist: CONNECT_DIST };
+
+    // 3. Central morphing icosahedron with glow
+    const icoGeo = new THREE.IcosahedronGeometry(5, 2);
+    const icoWire = new THREE.WireframeGeometry(icoGeo);
+    const icoMesh = new THREE.LineSegments(icoWire, new THREE.LineBasicMaterial({
+      color: 0x4477cc, transparent: true, opacity: 0.18,
+    }));
+    icoMesh._isCentralGeo = true;
+    icoMesh._origPositions = new Float32Array(icoWire.attributes.position.array);
+    this.scene.add(icoMesh);
+    this._objects.push(icoMesh);
+    icoGeo.dispose();
+
+    // Outer glow sphere
+    const glowGeo = new THREE.SphereGeometry(6.5, 32, 32);
+    const glowMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 } },
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        uniform float uTime;
+        void main() {
+          float intensity = pow(0.65 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
+          float pulse = 0.8 + 0.2 * sin(uTime * 0.8);
+          gl_FragColor = vec4(0.2, 0.4, 0.85, intensity * 0.12 * pulse);
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+    });
+    const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+    glowMesh._isGlow = true;
+    this.scene.add(glowMesh);
+    this._objects.push(glowMesh);
+    this._glowMeshes.push(glowMesh);
+
+    // 4. Secondary orbiting torus knot (wireframe)
+    const tkGeo = new THREE.TorusKnotGeometry(3, 0.4, 80, 16, 2, 3);
+    const tkWire = new THREE.WireframeGeometry(tkGeo);
+    const tkMesh = new THREE.LineSegments(tkWire, new THREE.LineBasicMaterial({
+      color: 0x5383DC, transparent: true, opacity: 0.12,
+    }));
+    tkMesh._isOrbitGeo = true;
+    tkMesh.position.set(15, -5, -10);
+    this.scene.add(tkMesh);
+    this._objects.push(tkMesh);
+    tkGeo.dispose();
+
+    // 5. Floating code glyphs (enhanced with glow)
+    const glyphs = ['{','}','<','>','∑','∀','∩','∈','≤','≥','→','⊆','λ','π','∞','⊕'];
+    for (let i = 0; i < 16; i++) {
+      const cnv = document.createElement('canvas');
+      cnv.width = 128; cnv.height = 128;
+      const ctx = cnv.getContext('2d');
+      // Glow effect
+      ctx.shadowColor = 'rgba(83,131,220,0.8)';
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = 'rgba(83,131,220,0.55)';
+      ctx.font = 'bold 64px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(glyphs[i % glyphs.length], 64, 64);
+      const tex = new THREE.CanvasTexture(cnv);
+      const plane = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.2, 2.2),
+        new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })
+      );
+      plane.position.set(
+        (Math.random() - 0.5) * 60,
+        (Math.random() - 0.5) * 35,
+        (Math.random() - 0.5) * 15 - 8
+      );
+      plane._glyph = true;
+      plane._driftSpeed = 0.003 + Math.random() * 0.008;
+      plane._baseY = plane.position.y;
+      this.scene.add(plane);
+      this._objects.push(plane);
+    }
+
+    // 6. Ambient light particles (tiny background stars)
+    const bgGeo = new THREE.BufferGeometry();
+    const bgPos = new Float32Array(600 * 3);
+    for (let i = 0; i < 600 * 3; i++) bgPos[i] = (Math.random() - 0.5) * 200;
+    bgGeo.setAttribute('position', new THREE.BufferAttribute(bgPos, 3));
+    const bgStars = new THREE.Points(bgGeo, new THREE.PointsMaterial({
+      color: 0x8ab4f8, size: 0.08, transparent: true, opacity: 0.4
+    }));
+    bgStars._isBgStars = true;
+    this.scene.add(bgStars);
+    this._objects.push(bgStars);
+  }
+
+  /* ── RAMADAN SCENE: Gold + blue spiritual atmosphere ─────────────────── */
   _buildRamadanScene() {
-    // 1. Gold star field
-    const geo = new THREE.BufferGeometry();
-    const positions = new Float32Array(1200 * 3);
-    for (let i = 0; i < 1200 * 3; i++) positions[i] = (Math.random() - 0.5) * 160;
-    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    const stars = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x5383DC, size: 0.15, transparent: true, opacity: 0.8 }));
+    // 1. Gold + blue star field
+    const STAR_COUNT = 300;
+    const starGeo = new THREE.BufferGeometry();
+    const starPos = new Float32Array(STAR_COUNT * 3);
+    const starColors = new Float32Array(STAR_COUNT * 3);
+    const starSizes = new Float32Array(STAR_COUNT);
+    for (let i = 0; i < STAR_COUNT; i++) {
+      starPos[i * 3]     = (Math.random() - 0.5) * 160;
+      starPos[i * 3 + 1] = (Math.random() - 0.5) * 100;
+      starPos[i * 3 + 2] = (Math.random() - 0.5) * 80 - 10;
+      starSizes[i] = 0.4 + Math.random() * 1.8;
+      const gold = Math.random() > 0.4;
+      starColors[i * 3]     = gold ? 0.9 + Math.random() * 0.1 : 0.3;
+      starColors[i * 3 + 1] = gold ? 0.75 + Math.random() * 0.15 : 0.5;
+      starColors[i * 3 + 2] = gold ? 0.2 + Math.random() * 0.2 : 0.85;
+    }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+    starGeo.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
+    const starMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 }, uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) } },
+      vertexShader: `
+        attribute float size; varying vec3 vColor; varying float vAlpha;
+        uniform float uTime; uniform float uPixelRatio;
+        void main() {
+          vColor = color;
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          float twinkle = 0.6 + 0.4 * sin(uTime * 2.0 + position.x * 0.5 + position.y * 0.3);
+          gl_PointSize = size * uPixelRatio * (25.0 / -mv.z) * twinkle;
+          vAlpha = smoothstep(90.0, 15.0, -mv.z) * twinkle;
+          gl_Position = projectionMatrix * mv;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor; varying float vAlpha;
+        void main() {
+          float d = length(gl_PointCoord - vec2(0.5));
+          if (d > 0.5) discard;
+          float glow = exp(-d * 5.0) * 0.9 + smoothstep(0.5, 0.0, d) * 0.2;
+          gl_FragColor = vec4(vColor, vAlpha * glow * 0.8);
+        }
+      `,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true,
+    });
+    const stars = new THREE.Points(starGeo, starMat);
+    stars._isRamadanStars = true;
     this.scene.add(stars); this._objects.push(stars);
 
-    // 2. Octagram rings (3 sizes)
-    [6, 9, 12].forEach((r, i) => {
+    // 2. Octagram rings with glow
+    [6, 10, 14].forEach((r, i) => {
       const icoGeo = new THREE.IcosahedronGeometry(r, 1);
       const edges = new THREE.EdgesGeometry(icoGeo);
       const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
-        color: 0x5383DC, transparent: true, opacity: 0.22 - i * 0.04
+        color: i === 1 ? 0xd4a843 : 0x5383DC, transparent: true, opacity: 0.18 - i * 0.03
       }));
-      line._speed = [0.001 + i * 0.0005, 0.0007 + i * 0.0004, 0.0003 + i * 0.0006];
+      line._speed = [0.001 + i * 0.0004, 0.0006 + i * 0.0003, 0.0002 + i * 0.0005];
       this.scene.add(line); this._objects.push(line);
       icoGeo.dispose();
     });
 
-    // 3. Crescent moon (torus arc)
-    const torusGeo = new THREE.TorusGeometry(4, 0.55, 16, 60, Math.PI * 1.3);
-    const moon = new THREE.Mesh(torusGeo, new THREE.MeshBasicMaterial({ color: 0x7eb8ff, transparent: true, opacity: 0.7 }));
-    moon.position.set(10, 5, -5);
-    moon._isMoon = true; moon._baseY = 5;
-    this.scene.add(moon); this._objects.push(moon);
-  }
-
-  _buildGeneralScene() {
-    // 1. Particle cloud
-    const geo = new THREE.BufferGeometry();
-    const pos = new Float32Array(800 * 3);
-    for (let i = 0; i < 800 * 3; i++) pos[i] = (Math.random() - 0.5) * 120;
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const cloud = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x5383DC, size: 0.12, transparent: true, opacity: 0.65 }));
-    this.scene.add(cloud); this._objects.push(cloud);
-
-    // 2. Two wireframe icosahedra
-    [5, 8].forEach((r, i) => {
-      const iGeo = new THREE.IcosahedronGeometry(r, 0);
-      const wire = new THREE.WireframeGeometry(iGeo);
-      const mesh = new THREE.LineSegments(wire, new THREE.LineBasicMaterial({
-        color: 0x2D5AAA, transparent: true, opacity: 0.28
-      }));
-      mesh._speed = [(i === 0 ? 1 : -1) * 0.003, (i === 0 ? -1 : 1) * 0.002, 0.001];
-      this.scene.add(mesh); this._objects.push(mesh);
-      iGeo.dispose();
+    // 3. Glowing crescent moon
+    const torusGeo = new THREE.TorusGeometry(4.5, 0.6, 24, 80, Math.PI * 1.3);
+    const moonMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 } },
+      vertexShader: `varying vec3 vNormal; void main() { vNormal = normal; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: `varying vec3 vNormal; uniform float uTime; void main() {
+        float glow = 0.4 + 0.15 * sin(uTime * 0.5);
+        gl_FragColor = vec4(0.5, 0.75, 1.0, glow);
+      }`,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
     });
+    const moon = new THREE.Mesh(torusGeo, moonMat);
+    moon.position.set(12, 6, -8);
+    moon._isMoon = true; moon._baseY = 6;
+    this.scene.add(moon); this._objects.push(moon);
 
-    // 3. Floating code glyphs
-    const glyphs = ['{','}','<','>','∑','∀','∩','∈','≤','≥','→','⊆','λ','π','∞','⊕','∧','∨','⊗','≡'];
-    for (let i = 0; i < 20; i++) {
-      const cnv = document.createElement('canvas');
-      cnv.width = 64; cnv.height = 64;
-      const ctx = cnv.getContext('2d');
-      ctx.fillStyle = 'rgba(83,131,220,0.75)';
-      ctx.font = 'bold 38px monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(glyphs[i % glyphs.length], 32, 32);
-      const tex = new THREE.CanvasTexture(cnv);
-      const plane = new THREE.Mesh(
-        new THREE.PlaneGeometry(1.5, 1.5),
-        new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false })
-      );
-      plane.position.set((Math.random() - 0.5) * 50, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 10);
-      plane._glyph = true;
-      plane._driftSpeed = 0.005 + Math.random() * 0.01;
-      this.scene.add(plane); this._objects.push(plane);
-    }
+    // Moon outer glow
+    const moonGlowGeo = new THREE.SphereGeometry(6, 32, 32);
+    const moonGlowMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 } },
+      vertexShader: `varying vec3 vNormal; void main() { vNormal = normalize(normalMatrix * normal); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: `varying vec3 vNormal; uniform float uTime; void main() {
+        float intensity = pow(0.6 - dot(vNormal, vec3(0,0,1)), 2.0) * (0.7 + 0.3 * sin(uTime * 0.4));
+        gl_FragColor = vec4(0.4, 0.6, 1.0, intensity * 0.08);
+      }`,
+      transparent: true, depthWrite: false, side: THREE.BackSide, blending: THREE.AdditiveBlending,
+    });
+    const moonGlow = new THREE.Mesh(moonGlowGeo, moonGlowMat);
+    moonGlow.position.copy(moon.position);
+    moonGlow._isMoonGlow = true;
+    this.scene.add(moonGlow); this._objects.push(moonGlow);
+    this._glowMeshes.push(moonGlow);
   }
 
   _animate() {
     const t = performance.now() * 0.001;
-    // Parallax camera
-    this.camera.rotation.y += (this._mouse.x * 0.04 - this.camera.rotation.y) * 0.05;
-    this.camera.rotation.x += (-this._mouse.y * 0.04 - this.camera.rotation.x) * 0.05;
+
+    // Smooth mouse follow
+    this._mouse.x += (this._mouse.targetX - this._mouse.x) * 0.04;
+    this._mouse.y += (this._mouse.targetY - this._mouse.y) * 0.04;
+
+    // Camera parallax with gentle bobbing
+    this.camera.position.x += (this._mouse.x * 3 - this.camera.position.x) * 0.02;
+    this.camera.position.y += (-this._mouse.y * 2 - this.camera.position.y) * 0.02;
+    this.camera.lookAt(0, 0, 0);
+
+    // Update particle network positions
+    if (this._nodePositions && this._nodeSpeeds) {
+      const pos = this._nodePositions;
+      const speeds = this._nodeSpeeds;
+      for (let i = 0; i < speeds.length; i++) {
+        const s = speeds[i];
+        pos[i * 3]     += s.vx + Math.sin(t * 0.3 + s.phase) * 0.005;
+        pos[i * 3 + 1] += s.vy + Math.cos(t * 0.2 + s.phase) * 0.004;
+        pos[i * 3 + 2] += s.vz;
+        // Bounce in bounds
+        if (Math.abs(pos[i * 3]) > 42) s.vx *= -1;
+        if (Math.abs(pos[i * 3 + 1]) > 27) s.vy *= -1;
+        if (Math.abs(pos[i * 3 + 2] + 5) > 22) s.vz *= -1;
+        // Subtle mouse repulsion
+        const dx = pos[i * 3] - this._mouse.x * 20;
+        const dy = pos[i * 3 + 1] - (-this._mouse.y * 12);
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 10) {
+          const force = (10 - dist) * 0.002;
+          pos[i * 3] += dx / dist * force;
+          pos[i * 3 + 1] += dy / dist * force;
+        }
+      }
+    }
+
+    // Update connection lines
+    if (this._connections && this._nodePositions) {
+      const { geo, count, maxConn, dist } = this._connections;
+      const pos = this._nodePositions;
+      const linePos = geo.attributes.position.array;
+      const lineAlpha = geo.attributes.alpha.array;
+      let lineIdx = 0;
+      const dist2 = dist * dist;
+      for (let i = 0; i < count && lineIdx < maxConn; i++) {
+        for (let j = i + 1; j < count && lineIdx < maxConn; j++) {
+          const dx = pos[i * 3] - pos[j * 3];
+          const dy = pos[i * 3 + 1] - pos[j * 3 + 1];
+          const dz = pos[i * 3 + 2] - pos[j * 3 + 2];
+          const d2 = dx * dx + dy * dy + dz * dz;
+          if (d2 < dist2) {
+            const a = 1 - Math.sqrt(d2) / dist;
+            const idx = lineIdx * 6;
+            linePos[idx]     = pos[i * 3];
+            linePos[idx + 1] = pos[i * 3 + 1];
+            linePos[idx + 2] = pos[i * 3 + 2];
+            linePos[idx + 3] = pos[j * 3];
+            linePos[idx + 4] = pos[j * 3 + 1];
+            linePos[idx + 5] = pos[j * 3 + 2];
+            lineAlpha[lineIdx * 2] = a;
+            lineAlpha[lineIdx * 2 + 1] = a;
+            lineIdx++;
+          }
+        }
+      }
+      // Clear unused
+      for (let i = lineIdx * 6; i < linePos.length; i++) linePos[i] = 0;
+      for (let i = lineIdx * 2; i < lineAlpha.length; i++) lineAlpha[i] = 0;
+      geo.attributes.position.needsUpdate = true;
+      geo.attributes.alpha.needsUpdate = true;
+      geo.setDrawRange(0, lineIdx * 2);
+    }
 
     this._objects.forEach(o => {
+      // Network nodes
+      if (o._isNetwork && o.geometry) {
+        o.geometry.attributes.position.needsUpdate = true;
+        if (o.material.uniforms) o.material.uniforms.uTime.value = t;
+      }
+      // Ramadan stars
+      if (o._isRamadanStars && o.material.uniforms) o.material.uniforms.uTime.value = t;
+      // Glow spheres
+      if (o._isGlow && o.material.uniforms) o.material.uniforms.uTime.value = t;
+      if (o._isMoonGlow && o.material.uniforms) o.material.uniforms.uTime.value = t;
+      // Central morphing geometry
+      if (o._isCentralGeo) {
+        o.rotation.x = t * 0.15;
+        o.rotation.y = t * 0.1;
+        // Morph vertices
+        const attr = o.geometry.attributes.position;
+        const orig = o._origPositions;
+        for (let i = 0; i < attr.count; i++) {
+          const ox = orig[i * 3], oy = orig[i * 3 + 1], oz = orig[i * 3 + 2];
+          const morph = 1 + Math.sin(t * 0.8 + ox * 0.5) * 0.08 + Math.cos(t * 0.6 + oy * 0.4) * 0.06;
+          attr.array[i * 3]     = ox * morph;
+          attr.array[i * 3 + 1] = oy * morph;
+          attr.array[i * 3 + 2] = oz * morph;
+        }
+        attr.needsUpdate = true;
+      }
+      // Orbit geometry
+      if (o._isOrbitGeo) {
+        o.rotation.x = t * 0.2;
+        o.rotation.y = t * 0.15;
+        o.position.x = 15 * Math.cos(t * 0.08);
+        o.position.z = -10 + 8 * Math.sin(t * 0.08);
+      }
+      // Rotating rings
       if (o._speed) {
         o.rotation.x += o._speed[0];
         o.rotation.y += o._speed[1];
         o.rotation.z += o._speed[2];
       }
+      // Moon float
       if (o._isMoon) {
-        o.position.y = o._baseY + Math.sin(t * 0.4) * 0.6;
+        o.position.y = o._baseY + Math.sin(t * 0.35) * 0.8;
+        o.rotation.z = Math.sin(t * 0.2) * 0.05;
+        if (o.material.uniforms) o.material.uniforms.uTime.value = t;
       }
+      // Glyphs
       if (o._glyph) {
-        o.position.y += o._driftSpeed;
-        if (o.position.y > 20) o.position.y = -20;
-        o.rotation.z = Math.sin(t * 0.3 + o.position.x) * 0.1;
+        o.position.y = o._baseY + Math.sin(t * 0.5 + o.position.x * 0.1) * 2;
+        o.rotation.z = Math.sin(t * 0.3 + o.position.x) * 0.08;
+        o.material.opacity = 0.3 + Math.sin(t * 0.8 + o._baseY) * 0.15;
+      }
+      // Background stars slow rotation
+      if (o._isBgStars) {
+        o.rotation.y = t * 0.005;
+        o.rotation.x = t * 0.003;
       }
     });
+
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -2566,8 +2924,9 @@ class SubmissionFetcher {
     const results = [];
     const platforms = [
       { key: 'cf', name: 'Codeforces', fn: this._fetchCF.bind(this) },
-      { key: 'lc', name: 'LeetCode',   fn: this._fetchLC.bind(this) },
+      { key: 'cc', name: 'CodeChef',   fn: this._fetchCC.bind(this) },
       { key: 'ac', name: 'AtCoder',    fn: this._fetchAC.bind(this) },
+      { key: 'lc', name: 'LeetCode',   fn: this._fetchLC.bind(this) },
       { key: 'vj', name: 'VJudge',     fn: this._fetchVJ.bind(this) },
     ];
 
@@ -2621,6 +2980,108 @@ class SubmissionFetcher {
         : null,
       auto: true,
     }));
+  }
+
+  /* ── CodeChef ──────────────────────────────────────────────────────────── */
+  async _fetchCC(handle) {
+    // CodeChef's own /recent/user endpoint — paginated, returns HTML-in-JSON
+    // Row format: date in title attr e.g. "11:32 PM 17/12/25" (h:mm am/pm DD/MM/YY)
+    // Problem code in 2nd <td title='CODE'>, verdict from span title attr
+    const results = [];
+    const pageSize = 20; // CodeChef returns 20 per page
+
+    // Fetch first page to discover max_page
+    const firstResp = await fetch(
+      `https://www.codechef.com/recent/user?page=0&user_handle=${encodeURIComponent(handle)}`,
+      { signal: AbortSignal.timeout(20000), headers: { 'Accept': 'application/json' } }
+    );
+    if (!firstResp.ok) throw new Error(`HTTP ${firstResp.status}`);
+    const firstData = await firstResp.json();
+    const maxPage = Math.min(firstData.max_page || 1, 50); // cap at 50 pages = 1000 submissions
+    if (!firstData.content) throw new Error('Empty response from CodeChef');
+
+    const parsePageContent = (html) => {
+      // Match all <tr> rows (skip header)
+      const rows = html.match(/<tr\s*>([\s\S]*?)<\/tr>/g) || [];
+      for (const row of rows) {
+        // 1) Extract date from first <td title='...'>
+        const dateMatch = row.match(/<td[^>]+title='([^']*?\d{2}\/\d{2}\/\d{2}[^']*?)'/);
+        if (!dateMatch) continue; // skip header rows
+        const rawDate = dateMatch[1].trim(); // e.g. "11:32 PM 17/12/25"
+
+        // Parse DD/MM/YY from end of string
+        const dmyMatch = rawDate.match(/(\d{2})\/(\d{2})\/(\d{2})$/);
+        let dateStr = null, ts = 0;
+        if (dmyMatch) {
+          const [, dd, mm, yy] = dmyMatch;
+          const year = 2000 + parseInt(yy, 10);
+          // Parse time portion (e.g. "11:32 PM")
+          const timeMatch = rawDate.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+          let hh = 12, min = 0;
+          if (timeMatch) {
+            hh = parseInt(timeMatch[1], 10);
+            min = parseInt(timeMatch[2], 10);
+            if (timeMatch[3].toUpperCase() === 'PM' && hh !== 12) hh += 12;
+            if (timeMatch[3].toUpperCase() === 'AM' && hh === 12) hh = 0;
+          }
+          dateStr = `${year}-${mm}-${dd}`;
+          ts = new Date(year, parseInt(mm,10)-1, parseInt(dd,10), hh, min).getTime();
+        }
+        if (!dateStr) continue;
+
+        // 2) Extract problem code from second <td title='PROBCODE'>
+        const tdTitles = [...row.matchAll(/<td[^>]+title='([^']+)'/g)].map(m => m[1]);
+        const probCode = tdTitles[1] || 'Unknown';
+
+        // 3) Verdict: span title contains 'accepted' or 'wrong answer' etc.
+        const verdictMatch = row.match(/span\s+title='([^']+)'\s*style/);
+        const verdictRaw = verdictMatch ? verdictMatch[1].toLowerCase() : '';
+        let verdict = 'WA';
+        if (verdictRaw.includes('accepted'))       verdict = 'AC';
+        else if (verdictRaw.includes('time limit'))   verdict = 'TLE';
+        else if (verdictRaw.includes('memory limit')) verdict = 'MLE';
+        else if (verdictRaw.includes('runtime'))      verdict = 'RE';
+        else if (verdictRaw.includes('compil'))       verdict = 'CE';
+
+        // 4) Problem link: from href in second column
+        const linkMatch = row.match(/href='(\/[^']*?)'[^>]*?target='_blank'/);
+        const link = linkMatch
+          ? `https://www.codechef.com${linkMatch[1]}`
+          : `https://www.codechef.com/users/${encodeURIComponent(handle)}`;
+
+        results.push({ timestamp: ts, date: dateStr, platform: 'CodeChef',
+          name: probCode, rating: null, verdict,
+          link, auto: true });
+      }
+    };
+
+    parsePageContent(firstData.content);
+
+    // Fetch remaining pages in parallel (batches of 5)
+    const remainingPages = Array.from({ length: maxPage - 1 }, (_, i) => i + 1);
+    const BATCH = 5;
+    for (let b = 0; b < remainingPages.length; b += BATCH) {
+      const batch = remainingPages.slice(b, b + BATCH);
+      const responses = await Promise.allSettled(
+        batch.map(pg => fetch(
+          `https://www.codechef.com/recent/user?page=${pg}&user_handle=${encodeURIComponent(handle)}`,
+          { signal: AbortSignal.timeout(20000), headers: { 'Accept': 'application/json' } }
+        ).then(r => r.ok ? r.json() : null))
+      );
+      for (const r of responses) {
+        if (r.status === 'fulfilled' && r.value?.content) {
+          parsePageContent(r.value.content);
+        }
+      }
+    }
+
+    if (results.length === 0) throw new Error('No submissions found for this CodeChef handle');
+    return results;
+  }
+
+  _msToDate(ms) {
+    const d = new Date(ms);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
 
   /* ── AtCoder (kenkoooo API) ────────────────────────────────────────────── */
@@ -2716,61 +3177,12 @@ class SubmissionFetcher {
     }
   }
 
-  /* ── VJudge — try timestamped status API, fall back to solveDetail ────── */
+  /* ── VJudge — solveDetail API (status/data blocked by Cloudflare) ──────── */
   async _fetchVJ(handle) {
-    // Try status/data API first (has real timestamps)
-    try {
-      return await this._fetchVJStatus(handle);
-    } catch (e) {
-      console.warn('[VJudge] status API failed, falling back to solveDetail:', e.message);
-      return await this._fetchVJSolveDetail(handle);
-    }
+    return await this._fetchVJSolveDetail(handle);
   }
 
-  /* VJudge status/data — paginated, has timestamps */
-  async _fetchVJStatus(handle) {
-    const results = [];
-    const pageSize = 500;
-    let start = 0;
-    let total = Infinity;
-
-    while (start < total && start < 50000) {
-      const url = `https://vjudge.net/status/data/?un=${encodeURIComponent(handle)}&num=${pageSize}&start=${start}`;
-      const resp = await fetch(url, { signal: AbortSignal.timeout(20000) });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const json = await resp.json();
-      total = json.recordsTotal || 0;
-      const rows = json.data || [];
-      if (rows.length === 0) break;
-
-      for (const row of rows) {
-        // row format: [runId, OJ, probNum, result, runtime, memory, codeLen, lang, authorId, time, ...]
-        const oj        = row[1] || '';
-        const probNum   = row[2] || '';
-        const result    = row[3] || 0;
-        const epochMs   = row[9] || 0;
-        const verdict   = result === 1 ? 'AC' : 'WA';
-        const d         = new Date(epochMs);
-        const dateStr   = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-
-        results.push({
-          timestamp: epochMs,
-          date: dateStr,
-          platform: 'VJudge',
-          name: `${oj}-${probNum}`,
-          rating: null,
-          verdict,
-          link: `https://vjudge.net/problem/${oj}-${probNum}`,
-          auto: true,
-        });
-      }
-      start += rows.length;
-    }
-    if (results.length === 0) throw new Error('No data from status API');
-    return results;
-  }
-
-  /* VJudge solveDetail fallback — no timestamps, mark with noDate flag */
+  /* VJudge solveDetail — returns all AC + fail records with OJ/problem info */
   async _fetchVJSolveDetail(handle) {
     const resp = await fetch(
       `https://vjudge.net/user/solveDetail/${encodeURIComponent(handle)}`,
@@ -2859,8 +3271,9 @@ class ProblemTracker {
       if (el) el.value = handles[key] || fallback || '';
     };
     fill('handle-cf', 'cf', 'm0stafa');
-    fill('handle-lc', 'lc', 'm0stafa_kamal');
+    fill('handle-cc', 'cc', 'i_iove_subnaj');
     fill('handle-ac', 'ac', 'i_love_sabnaj');
+    fill('handle-lc', 'lc', 'm0stafa_kamal');
     fill('handle-vj', 'vj', 'ilovesabnaj');
 
     document.getElementById('tracker-sync-btn')
@@ -2897,17 +3310,19 @@ class ProblemTracker {
 
     const handles = {
       cf: document.getElementById('handle-cf')?.value?.trim() || '',
-      lc: document.getElementById('handle-lc')?.value?.trim() || '',
+      cc: document.getElementById('handle-cc')?.value?.trim() || '',
       ac: document.getElementById('handle-ac')?.value?.trim() || '',
+      lc: document.getElementById('handle-lc')?.value?.trim() || '',
       vj: document.getElementById('handle-vj')?.value?.trim() || '',
     };
 
-    if (!handles.cf && !handles.lc && !handles.ac && !handles.vj) {
+    if (!handles.cf && !handles.cc && !handles.ac && !handles.lc && !handles.vj) {
       if (statusEl) { statusEl.textContent = '⚠ Enter at least one handle'; statusEl.className = 'tracker-sync-status error'; }
       return;
     }
 
     this.fetcher.saveHandles(handles);
+    this.fetcher.clearCache(); // always re-fetch fresh on manual sync
     if (syncBtn) { syncBtn.disabled = true; syncBtn.classList.add('syncing'); }
     if (statusEl) { statusEl.className = 'tracker-sync-status'; }
 
@@ -2939,16 +3354,17 @@ class ProblemTracker {
     // Read handles from inputs (which have defaults) and save them
     const handles = {
       cf: document.getElementById('handle-cf')?.value?.trim() || '',
-      lc: document.getElementById('handle-lc')?.value?.trim() || '',
+      cc: document.getElementById('handle-cc')?.value?.trim() || '',
       ac: document.getElementById('handle-ac')?.value?.trim() || '',
+      lc: document.getElementById('handle-lc')?.value?.trim() || '',
       vj: document.getElementById('handle-vj')?.value?.trim() || '',
     };
-    if (handles.cf || handles.lc || handles.ac || handles.vj) {
+    if (handles.cf || handles.cc || handles.ac || handles.lc || handles.vj) {
       this.fetcher.saveHandles(handles);
     }
 
     const cached  = this.fetcher.getCachedData();
-    if ((handles.cf || handles.lc || handles.ac || handles.vj) && !cached) {
+    if ((handles.cf || handles.cc || handles.ac || handles.lc || handles.vj) && !cached) {
       await this._syncSubmissions();           // auto-sync if cache is stale
     }
   }
@@ -3173,6 +3589,97 @@ class FaviconBadge {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// SECTION BACKGROUND PARTICLES (Lightweight Canvas 2D)
+// ══════════════════════════════════════════════════════════════════════════════
+class SectionParticles {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    if (!this.canvas) return;
+    this.ctx = this.canvas.getContext('2d');
+    this.particles = [];
+    this.time = 0;
+    this._resize();
+    window.addEventListener('resize', () => this._resize());
+
+    // Create floating particles
+    for (let i = 0; i < 40; i++) {
+      this.particles.push({
+        x: Math.random(),
+        y: Math.random(),
+        size: 1 + Math.random() * 3,
+        speedX: (Math.random() - 0.5) * 0.0004,
+        speedY: -0.0001 - Math.random() * 0.0003,
+        alpha: 0.08 + Math.random() * 0.18,
+        phase: Math.random() * Math.PI * 2,
+        pulseSpeed: 0.01 + Math.random() * 0.02,
+      });
+    }
+    this._loop();
+  }
+
+  _resize() {
+    const parent = this.canvas.parentElement;
+    this.W = parent.offsetWidth;
+    this.H = parent.offsetHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.canvas.width = this.W * dpr;
+    this.canvas.height = this.H * dpr;
+    this.ctx.scale(dpr, dpr);
+  }
+
+  _loop() {
+    requestAnimationFrame(() => this._loop());
+    this.time++;
+    const { ctx, W, H } = this;
+    ctx.clearRect(0, 0, W, H);
+
+    // Draw connection lines between close particles
+    for (let i = 0; i < this.particles.length; i++) {
+      for (let j = i + 1; j < this.particles.length; j++) {
+        const a = this.particles[i], b = this.particles[j];
+        const dx = (a.x - b.x) * W, dy = (a.y - b.y) * H;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 120) {
+          const opacity = (1 - dist / 120) * 0.06;
+          ctx.beginPath();
+          ctx.moveTo(a.x * W, a.y * H);
+          ctx.lineTo(b.x * W, b.y * H);
+          ctx.strokeStyle = `rgba(83,131,220,${opacity})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Draw particles
+    for (const p of this.particles) {
+      p.x += p.speedX;
+      p.y += p.speedY;
+      if (p.y < -0.05) { p.y = 1.05; p.x = Math.random(); }
+      if (p.x < -0.05) p.x = 1.05;
+      if (p.x > 1.05) p.x = -0.05;
+
+      const pulse = 0.7 + Math.sin(this.time * p.pulseSpeed + p.phase) * 0.3;
+      const a = p.alpha * pulse;
+      const sx = p.x * W, sy = p.y * H;
+
+      // Glow
+      const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, p.size * 4);
+      glow.addColorStop(0, `rgba(83,131,220,${(a * 0.3).toFixed(3)})`);
+      glow.addColorStop(1, 'rgba(83,131,220,0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(sx - p.size * 4, sy - p.size * 4, p.size * 8, p.size * 8);
+
+      // Core
+      ctx.beginPath();
+      ctx.arc(sx, sy, p.size * pulse, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(130,180,255,${a.toFixed(3)})`;
+      ctx.fill();
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // MAIN ENTRY
 // ══════════════════════════════════════════════════════════════════════════════
 let _bg = null, _alarms = null, _timeline = null, _ramadanCD = null;
@@ -3183,6 +3690,13 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 document.addEventListener('DOMContentLoaded', async () => {
   // Always land at the top of the page (hero section)
   window.scrollTo({ top: 0, behavior: 'instant' });
+
+  // Dismiss loading overlay with fade
+  const loadingOverlay = document.getElementById('loading-overlay');
+  if (loadingOverlay) {
+    loadingOverlay.classList.add('fade-out');
+    setTimeout(() => loadingOverlay.remove(), 600);
+  }
 
   // Footer year
   const yearEl = document.getElementById('footer-year');
@@ -3205,8 +3719,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 3. Render content sections
   renderContent();
 
-  // 4. Aurora waves animation (smooth continuous flowing background)
-  _bg = new AuroraWaves('hero-canvas');
+  // 4. Three.js hero background (connected particle network + morphing geometry)
+  //    Falls back to AuroraWaves (Canvas 2D) if Three.js fails to load
+  try {
+    if (typeof THREE !== 'undefined') {
+      _bg = new ThreeJSBackground('hero-canvas', isRamadan ? 'ramadan' : 'general');
+    } else {
+      _bg = new AuroraWaves('hero-canvas');
+    }
+  } catch (e) {
+    console.warn('[Hero BG] Three.js failed, using Canvas 2D fallback:', e);
+    _bg = new AuroraWaves('hero-canvas');
+  }
   new AnalogClock('analog-clock');
 
   // 5. Prayer watch widget
@@ -3414,11 +3938,70 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // 16. Nav scroll effect
+  // 16. Nav scroll effect + mobile menu
   window.addEventListener('scroll', () => {
     const nav = document.getElementById('topnav');
     if (nav) nav.style.boxShadow = window.scrollY > 10 ? '0 2px 20px rgba(0,0,0,0.3)' : '';
   });
+
+  // Mobile hamburger menu
+  const navMenuBtn  = document.getElementById('nav-menu-btn');
+  const navLinks    = document.querySelector('.nav-links');
+  const navBackdrop = document.getElementById('nav-backdrop');
+
+  const closeNavMenu = () => {
+    navLinks?.classList.remove('mobile-open');
+    navMenuBtn?.classList.remove('is-open');
+    navMenuBtn?.setAttribute('aria-expanded', 'false');
+    navBackdrop?.classList.remove('active');
+  };
+  const openNavMenu = () => {
+    navLinks?.classList.add('mobile-open');
+    navMenuBtn?.classList.add('is-open');
+    navMenuBtn?.setAttribute('aria-expanded', 'true');
+    navBackdrop?.classList.add('active');
+  };
+
+  if (navMenuBtn && navLinks) {
+    navMenuBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      navLinks.classList.contains('mobile-open') ? closeNavMenu() : openNavMenu();
+    });
+    // Close on any nav link click
+    navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', closeNavMenu));
+    // Close on outside click
+    document.addEventListener('click', e => {
+      if (!navLinks.contains(e.target) && !navMenuBtn.contains(e.target)) {
+        closeNavMenu();
+      }
+    });
+    // Close on backdrop tap
+    navBackdrop?.addEventListener('click', closeNavMenu);
+    // Close on Escape
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNavMenu(); });
+  }
+
+  // Scroll-spy: highlight nav link for the current visible section
+  (function initScrollSpy() {
+    const SECTION_IDS = ['routine','contests','tracker','tools','techniques','growth'];
+    const spyEntries = SECTION_IDS.map(id => ({
+      id,
+      el: document.getElementById(id),
+      a:  document.querySelector(`.nav-links a[href="#${id}"]`),
+    })).filter(e => e.el && e.a);
+
+    const updateSpy = () => {
+      const fold = window.innerHeight * 0.4;
+      let activeId = null;
+      for (const entry of spyEntries) {
+        if (entry.el.getBoundingClientRect().top <= fold) activeId = entry.id;
+      }
+      spyEntries.forEach(e => e.a.classList.toggle('nav-active', e.id === activeId));
+    };
+
+    window.addEventListener('scroll', updateSpy, { passive: true });
+    updateSpy();
+  })();
 
   // 17. Auto-switch mode at midnight (Ramadan start/end transitions without reload)
   const schedMidnightCheck = () => {
@@ -3461,6 +4044,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   new KeyboardShortcuts();
   new BackToTop();
   new FaviconBadge();
+
+  // ── Section background particle canvases ────────────────────────────────
+  new SectionParticles('tracker-bg-canvas');
+  new SectionParticles('techniques-bg-canvas');
 
   // ══════════════════════════════════════════════════════════════════════════
   // ANIMATION ENGINE
@@ -3662,29 +4249,84 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // 11. Smooth section progress indicator (blue line at top of viewport)
-  const progressBar = document.createElement('div');
-  progressBar.style.cssText = 'position:fixed;top:0;left:0;height:3px;z-index:1001;' +
-    'background:linear-gradient(90deg,#143778,#5383DC,#2D5AAA);' +
-    'transition:width 0.15s linear;width:0;pointer-events:none;border-radius:0 2px 2px 0;' +
-    'box-shadow:0 0 8px rgba(83,131,220,0.4);';
-  document.body.appendChild(progressBar);
-  window.addEventListener('scroll', () => {
-    const scrollTop = window.scrollY;
-    const docH = document.documentElement.scrollHeight - window.innerHeight;
-    progressBar.style.width = docH > 0 ? (scrollTop / docH * 100) + '%' : '0%';
-  }, { passive: true });
+  // 11. Scroll progress bar — uses the HTML #scroll-progress div (scaleX)
+  const _spEl = document.getElementById('scroll-progress');
+  if (_spEl) {
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docH = document.documentElement.scrollHeight - window.innerHeight;
+      _spEl.style.transform = `scaleX(${docH > 0 ? scrollTop / docH : 0})`;
+    }, { passive: true });
+  } else {
+    // Fallback dynamic bar (no HTML div found)
+    const progressBar = document.createElement('div');
+    progressBar.style.cssText = 'position:fixed;top:0;left:0;height:3px;z-index:9999;' +
+      'background:linear-gradient(90deg,#143778,#5383DC,#c084fc);' +
+      'transform-origin:left;transform:scaleX(0);pointer-events:none;' +
+      'box-shadow:0 0 8px rgba(83,131,220,0.5);';
+    document.body.appendChild(progressBar);
+    window.addEventListener('scroll', () => {
+      const docH = document.documentElement.scrollHeight - window.innerHeight;
+      progressBar.style.transform = `scaleX(${docH > 0 ? window.scrollY / docH : 0})`;
+    }, { passive: true });
+  }
 
-  // 12. Animated section dividers — add wave SVGs between sections
-  document.querySelectorAll('.section + .section').forEach(section => {
-    const divider = document.createElement('div');
-    divider.className = 'wave-divider';
-    divider.innerHTML = `<svg viewBox="0 0 1440 60" preserveAspectRatio="none" style="display:block;width:100%;height:40px;">
-      <path d="M0,30 C180,60 360,0 540,30 C720,60 900,0 1080,30 C1260,60 1440,0 1440,30 L1440,60 L0,60 Z" fill="var(--primary-light)" opacity="0.5"/>
-      <path d="M0,35 C240,10 480,55 720,35 C960,15 1200,50 1440,35 L1440,60 L0,60 Z" fill="var(--bg)" opacity="0.3"/>
-    </svg>`;
-    divider.style.cssText = 'margin:-1px 0;position:relative;z-index:1;overflow:hidden;line-height:0;';
-    section.parentNode.insertBefore(divider, section);
+  // 11b. 3D card tilt + neobrutalist translate on hover (desktop only)
+  if (!('ontouchstart' in window)) {
+    const TILT_CARDS = '.tool-card, .handle-card, .contest-card, .truth-card, .keyword-card';
+    document.querySelectorAll(TILT_CARDS).forEach(card => {
+      card.addEventListener('mousemove', function(e) {
+        const rect = this.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top)  / rect.height - 0.5;
+        this.style.transition = 'none';
+        this.style.transform = `perspective(700px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translate(-3px,-4px) translateZ(4px)`;
+        this.style.boxShadow = `${8 - x*4}px ${8 - y*4}px 0 var(--accent)`;
+        this.style.borderColor = 'var(--accent)';
+      });
+      card.addEventListener('mouseleave', function() {
+        this.style.transition = 'transform 0.4s cubic-bezier(0.22,1,0.36,1), box-shadow 0.4s ease, border-color 0.2s ease';
+        this.style.transform = '';
+        this.style.boxShadow = '';
+        this.style.borderColor = '';
+      });
+    });
+  }
+
+  // 11c. Ripple click effect on all btn / sync / filter buttons
+  document.addEventListener('click', ev => {
+    const btn = ev.target.closest('.btn, .tracker-sync-btn, .contest-filter-btn, .back-to-top');
+    if (!btn || btn.disabled) return;
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height) * 1.5;
+    const r = document.createElement('span');
+    r.className = 'ripple-effect';
+    r.style.cssText = `width:${size}px;height:${size}px;left:${ev.clientX - rect.left - size/2}px;top:${ev.clientY - rect.top - size/2}px;position:absolute;border-radius:50%;background:rgba(255,255,255,0.30);transform:scale(0);animation:rippleAnim 0.55s ease-out forwards;pointer-events:none;`;
+    btn.style.position = 'relative';
+    btn.style.overflow = 'hidden';
+    btn.appendChild(r);
+    r.addEventListener('animationend', () => r.remove(), { once: true });
   });
+
+  // 11d. Magnetic button effect (desktop only)
+  if (!('ontouchstart' in window)) {
+    document.querySelectorAll('.btn-primary, .tracker-sync-btn').forEach(btn => {
+      btn.addEventListener('mousemove', function(e) {
+        const rect = this.getBoundingClientRect();
+        const x = (e.clientX - rect.left - rect.width  / 2) * 0.18;
+        const y = (e.clientY - rect.top  - rect.height / 2) * 0.18;
+        this.style.transform = `translate(${x}px,${y}px) translateY(-2px) scale(1.04)`;
+      });
+      btn.addEventListener('mouseleave', function() {
+        this.style.transition = 'transform 0.4s cubic-bezier(0.22,1,0.36,1)';
+        this.style.transform = '';
+      });
+      btn.addEventListener('mouseenter', function() {
+        this.style.transition = 'none';
+      });
+    });
+  }
+
+
 
 });
