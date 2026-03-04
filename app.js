@@ -2536,6 +2536,7 @@ class SubmissionFetcher {
     this.CACHE_KEY = 'cp_fetch_cache';
     this.HANDLES_KEY = 'cp_handles';
     this.CACHE_TTL = 60 * 60 * 1000; // 1 hour
+    this._lcCalendar = null; // LeetCode calendar data for heatmap
   }
 
   getHandles() {
@@ -2553,6 +2554,8 @@ class SubmissionFetcher {
       if (!raw) return null;
       const data = JSON.parse(raw);
       if (Date.now() - data.fetchedAt > this.CACHE_TTL) return null;
+      // Restore LeetCode calendar from cache
+      if (data.lcCalendar) this._lcCalendar = data.lcCalendar;
       return data.submissions;
     } catch { return null; }
   }
@@ -2590,6 +2593,7 @@ class SubmissionFetcher {
       localStorage.setItem(this.CACHE_KEY, JSON.stringify({
         fetchedAt: Date.now(),
         submissions: results,
+        lcCalendar: this._lcCalendar || null,
       }));
     } catch (e) { console.warn('[Fetcher] cache write failed', e); }
 
@@ -2644,16 +2648,31 @@ class SubmissionFetcher {
 
   /* ── LeetCode (proxy API — may cold-start for ~30 s) ──────────────────── */
   async _fetchLC(handle) {
+    // Fetch AC submissions (more data) + calendar for heatmap
+    const [subs, calendar] = await Promise.allSettled([
+      this._fetchLCSubs(handle),
+      this._fetchLCCalendar(handle),
+    ]);
+
+    const submissions = subs.status === 'fulfilled' ? subs.value : [];
+    if (calendar.status === 'fulfilled' && calendar.value) {
+      this._lcCalendar = calendar.value; // store for heatmap use
+    }
+    return submissions;
+  }
+
+  async _fetchLCSubs(handle) {
+    // Try acSubmission endpoint first (AC only, more complete)
     const resp = await fetch(
-      `https://alfa-leetcode-api.onrender.com/${encodeURIComponent(handle)}/submission?limit=200`,
-      { signal: AbortSignal.timeout(35000) }
+      `https://alfa-leetcode-api.onrender.com/${encodeURIComponent(handle)}/acSubmission?limit=5000`,
+      { signal: AbortSignal.timeout(45000) }
     );
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     const subs = Array.isArray(data) ? data
       : data.submission ? data.submission
       : data.acSubmission ? data.acSubmission
-      : [];
+      : data.count ? [] : [];
     if (!Array.isArray(subs)) throw new Error('Unexpected format');
     return subs.filter(s => s.timestamp).map(s => ({
       timestamp: Number(s.timestamp) * 1000,
@@ -2661,7 +2680,7 @@ class SubmissionFetcher {
       platform: 'LeetCode',
       name: s.title || s.titleSlug || 'Unknown',
       rating: null,
-      verdict: this._verdict(s.statusDisplay || 'Accepted'),
+      verdict: 'AC',
       link: s.titleSlug
         ? `https://leetcode.com/problems/${s.titleSlug}/`
         : null,
@@ -2669,8 +2688,90 @@ class SubmissionFetcher {
     }));
   }
 
-  /* ── VJudge (solveDetail — public, no auth) ────────────────────────────── */
+  async _fetchLCCalendar(handle) {
+    try {
+      const resp = await fetch(
+        `https://alfa-leetcode-api.onrender.com/${encodeURIComponent(handle)}/calendar`,
+        { signal: AbortSignal.timeout(30000) }
+      );
+      if (!resp.ok) return null;
+      const data = await resp.json();
+      // data.submissionCalendar is a JSON string: {"timestamp": count, ...}
+      const calStr = data.submissionCalendar || data.calendar;
+      if (!calStr) return null;
+      const cal = typeof calStr === 'string' ? JSON.parse(calStr) : calStr;
+      // Convert to {date: count} format
+      const result = {};
+      for (const [epoch, count] of Object.entries(cal)) {
+        if (count > 0) {
+          const d = new Date(Number(epoch) * 1000);
+          const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+          result[ds] = (result[ds] || 0) + count;
+        }
+      }
+      return result;
+    } catch (e) {
+      console.warn('[LC Calendar]', e.message);
+      return null;
+    }
+  }
+
+  /* ── VJudge — try timestamped status API, fall back to solveDetail ────── */
   async _fetchVJ(handle) {
+    // Try status/data API first (has real timestamps)
+    try {
+      return await this._fetchVJStatus(handle);
+    } catch (e) {
+      console.warn('[VJudge] status API failed, falling back to solveDetail:', e.message);
+      return await this._fetchVJSolveDetail(handle);
+    }
+  }
+
+  /* VJudge status/data — paginated, has timestamps */
+  async _fetchVJStatus(handle) {
+    const results = [];
+    const pageSize = 500;
+    let start = 0;
+    let total = Infinity;
+
+    while (start < total && start < 50000) {
+      const url = `https://vjudge.net/status/data/?un=${encodeURIComponent(handle)}&num=${pageSize}&start=${start}`;
+      const resp = await fetch(url, { signal: AbortSignal.timeout(20000) });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const json = await resp.json();
+      total = json.recordsTotal || 0;
+      const rows = json.data || [];
+      if (rows.length === 0) break;
+
+      for (const row of rows) {
+        // row format: [runId, OJ, probNum, result, runtime, memory, codeLen, lang, authorId, time, ...]
+        const oj        = row[1] || '';
+        const probNum   = row[2] || '';
+        const result    = row[3] || 0;
+        const epochMs   = row[9] || 0;
+        const verdict   = result === 1 ? 'AC' : 'WA';
+        const d         = new Date(epochMs);
+        const dateStr   = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+        results.push({
+          timestamp: epochMs,
+          date: dateStr,
+          platform: 'VJudge',
+          name: `${oj}-${probNum}`,
+          rating: null,
+          verdict,
+          link: `https://vjudge.net/problem/${oj}-${probNum}`,
+          auto: true,
+        });
+      }
+      start += rows.length;
+    }
+    if (results.length === 0) throw new Error('No data from status API');
+    return results;
+  }
+
+  /* VJudge solveDetail fallback — no timestamps, mark with noDate flag */
+  async _fetchVJSolveDetail(handle) {
     const resp = await fetch(
       `https://vjudge.net/user/solveDetail/${encodeURIComponent(handle)}`,
       { signal: AbortSignal.timeout(15000) }
@@ -2678,39 +2779,37 @@ class SubmissionFetcher {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     const results = [];
-    const now = Date.now();
-    const today = new Date();
-    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     // acRecords: { "POJ": ["1000","1001"], "CodeForces": ["71A"], ... }
     if (data.acRecords) {
       for (const [oj, problems] of Object.entries(data.acRecords)) {
         for (const pid of problems) {
           results.push({
-            timestamp: now,
-            date: dateStr,
+            timestamp: 0,
+            date: null,  // no real date available
             platform: 'VJudge',
             name: `${oj}-${pid}`,
             rating: null,
             verdict: 'AC',
-            link: `https://vjudge.net/user/${encodeURIComponent(handle)}`,
+            link: `https://vjudge.net/problem/${oj}-${pid}`,
             auto: true,
+            noDate: true,
           });
         }
       }
     }
-    // failRecords: same structure but non-AC
     if (data.failRecords) {
       for (const [oj, problems] of Object.entries(data.failRecords)) {
         for (const pid of problems) {
           results.push({
-            timestamp: now,
-            date: dateStr,
+            timestamp: 0,
+            date: null,
             platform: 'VJudge',
             name: `${oj}-${pid}`,
             rating: null,
             verdict: 'WA',
-            link: `https://vjudge.net/user/${encodeURIComponent(handle)}`,
+            link: `https://vjudge.net/problem/${oj}-${pid}`,
             auto: true,
+            noDate: true,
           });
         }
       }
@@ -2760,9 +2859,9 @@ class ProblemTracker {
       if (el) el.value = handles[key] || fallback || '';
     };
     fill('handle-cf', 'cf', 'm0stafa');
-    fill('handle-lc', 'lc', '');
-    fill('handle-ac', 'ac', '');
-    fill('handle-vj', 'vj', '');
+    fill('handle-lc', 'lc', 'm0stafa_kamal');
+    fill('handle-ac', 'ac', 'i_love_sabnaj');
+    fill('handle-vj', 'vj', 'ilovesabnaj');
 
     document.getElementById('tracker-sync-btn')
       ?.addEventListener('click', () => this._syncSubmissions());
@@ -2836,7 +2935,18 @@ class ProblemTracker {
   /* ── initial load ──────────────────────────────────────────────────────── */
   async _loadAndRender() {
     this._renderAll();                         // render cached/manual data immediately
-    const handles = this.fetcher.getHandles();
+
+    // Read handles from inputs (which have defaults) and save them
+    const handles = {
+      cf: document.getElementById('handle-cf')?.value?.trim() || '',
+      lc: document.getElementById('handle-lc')?.value?.trim() || '',
+      ac: document.getElementById('handle-ac')?.value?.trim() || '',
+      vj: document.getElementById('handle-vj')?.value?.trim() || '',
+    };
+    if (handles.cf || handles.lc || handles.ac || handles.vj) {
+      this.fetcher.saveHandles(handles);
+    }
+
     const cached  = this.fetcher.getCachedData();
     if ((handles.cf || handles.lc || handles.ac || handles.vj) && !cached) {
       await this._syncSubmissions();           // auto-sync if cache is stale
@@ -2881,8 +2991,9 @@ class ProblemTracker {
     const weekStr = `${wa.getFullYear()}-${String(wa.getMonth()+1).padStart(2,'0')}-${String(wa.getDate()).padStart(2,'0')}`;
 
     const solved     = all.filter(p => p.verdict === 'AC');
-    const todayCount = solved.filter(p => p.date === today).length;
-    const weekCount  = solved.filter(p => p.date >= weekStr).length;
+    const datedSolved = solved.filter(p => p.date && !p.noDate);
+    const todayCount = datedSolved.filter(p => p.date === today).length;
+    const weekCount  = datedSolved.filter(p => p.date >= weekStr).length;
     const acRate     = all.length ? Math.round((solved.length / all.length) * 100) : 0;
 
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
@@ -2898,18 +3009,73 @@ class ProblemTracker {
     if (!el) return;
     const all    = this._getAllSubmissions();
     const counts = {};
-    all.forEach(p => { counts[p.date] = (counts[p.date] || 0) + 1; });
 
+    // Count submissions per date (skip entries with no real date)
+    all.forEach(p => {
+      if (p.date && p.date !== '1970-01-01' && !p.noDate) {
+        counts[p.date] = (counts[p.date] || 0) + 1;
+      }
+    });
+
+    // Merge LeetCode calendar data (provides historical heatmap coverage)
+    const lcCal = this.fetcher._lcCalendar;
+    if (lcCal) {
+      for (const [date, count] of Object.entries(lcCal)) {
+        counts[date] = Math.max(counts[date] || 0, count);
+      }
+    }
+
+    // 365 days = full year heatmap
     const today = zonedNow();
+    // Align start to a Sunday for proper week columns
+    const daysBack = 364;
+    const startDate = new Date(today);
+    startDate.setDate(startDate.getDate() - daysBack);
+    // Adjust to previous Sunday
+    const startDay = startDate.getDay(); // 0=Sun
+    startDate.setDate(startDate.getDate() - startDay);
+    const totalDays = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
+
+    // Build month labels
+    const months = [];
+    let lastMonth = -1;
+
     const cells = [];
-    for (let i = 83; i >= 0; i--) {
-      const d = new Date(today); d.setDate(d.getDate() - i);
+    for (let i = 0; i < totalDays; i++) {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + i);
       const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       const c = counts[ds] || 0;
       const level = c === 0 ? 0 : c <= 2 ? 1 : c <= 5 ? 2 : c <= 10 ? 3 : 4;
-      cells.push(`<div class="hm-cell hm-${level}" title="${ds}: ${c} submission${c !== 1 ? 's' : ''}"></div>`);
+
+      // Track month changes for labels
+      const weekCol = Math.floor(i / 7);
+      if (d.getMonth() !== lastMonth) {
+        lastMonth = d.getMonth();
+        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        months.push({ col: weekCol, name: monthNames[d.getMonth()] });
+      }
+
+      const isToday = ds === this._todayStr();
+      const todayClass = isToday ? ' hm-today' : '';
+      cells.push(`<div class="hm-cell hm-${level}${todayClass}" title="${ds}: ${c} submission${c !== 1 ? 's' : ''}" data-date="${ds}"></div>`);
     }
-    el.innerHTML = cells.join('');
+
+    // Build month labels row
+    const totalWeeks = Math.ceil(totalDays / 7);
+    let monthLabelsHtml = '<div class="hm-month-labels">';
+    for (const m of months) {
+      const leftPct = ((m.col / totalWeeks) * 100).toFixed(1);
+      monthLabelsHtml += `<span class="hm-month-label" style="left:${leftPct}%">${m.name}</span>`;
+    }
+    monthLabelsHtml += '</div>';
+
+    // Day labels
+    const dayLabelsHtml = `<div class="hm-day-labels">
+      <span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span>
+    </div>`;
+
+    el.innerHTML = monthLabelsHtml + '<div class="hm-grid-wrap">' + dayLabelsHtml + '<div class="hm-grid">' + cells.join('') + '</div></div>';
   }
 
   /* ── log table ─────────────────────────────────────────────────────────── */
