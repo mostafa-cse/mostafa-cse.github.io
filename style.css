@@ -4419,3 +4419,31 @@ html   { counter-reset: sections; }
 [data-dark="true"] .geo-banner{background:rgba(255,193,7,.12);color:#ffc107;border-color:rgba(255,193,7,.3)}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.skip-link,.prayer-watch-card,.ham-bar,.nav-links,.footer-link,.footer-cp-badge{transition:none}}
+
+/* MOBILE MENU */
+.nav-mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 998;
+}
+.nav-mobile-overlay.open { display: block; }
+.nav-links.mobile-open {
+  display: flex !important;
+  flex-direction: column;
+  position: fixed;
+  top: var(--nav-h);
+  left: 0; right: 0;
+  background: rgba(10,22,50,0.97);
+  backdrop-filter: blur(20px);
+  padding: 1rem;
+  z-index: 999;
+  gap: 0.3rem;
+  border-bottom: 1px solid rgba(83,131,220,0.2);
+}
+.nav-links.mobile-open a {
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
