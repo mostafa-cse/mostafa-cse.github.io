@@ -4506,3 +4506,9 @@ html   { counter-reset: sections; }
   color: var(--accent);
   font-weight: 700;
 }
+
+/* Show hamburger only on mobile */
+@media (max-width: 768px) {
+  #nav-hamburger { display: flex !important; }
+  .nav-links { display: none; }
+}
