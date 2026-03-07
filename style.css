@@ -4450,3 +4450,20 @@ html   { counter-reset: sections; }
   border-radius: 10px;
   font-size: 0.95rem;
 }
+
+/* ── UNIFIED CARD ── */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+[data-dark="true"] .card {
+  border-color: rgba(255,255,255,0.07);
+}
