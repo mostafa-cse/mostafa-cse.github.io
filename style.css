@@ -4512,3 +4512,59 @@ html   { counter-reset: sections; }
   #nav-hamburger { display: flex !important; }
   .nav-links { display: none; }
 }
+
+/* ── CONTEST REMINDER CARD ── */
+.contest-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--accent);
+  box-shadow: var(--shadow);
+  padding: 1.5rem 1.8rem;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  transition: transform var(--transition), box-shadow var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.contest-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+.contest-card-icon {
+  font-size: 2.2rem;
+  flex-shrink: 0;
+}
+.contest-card-body { flex: 1; }
+.contest-card-title {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.25rem;
+}
+.contest-card-meta {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+.contest-countdown {
+  font-family: monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.contest-countdown.urgent { color: #e63300; animation: flash-countdown 0.8s infinite; }
+.contest-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--badge-bg);
+  color: var(--primary);
+  width: fit-content;
+}
+.contest-section { padding-top: 0; }
