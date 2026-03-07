@@ -4474,3 +4474,8 @@ html   { counter-reset: sections; }
   .footer-inner { gap: 1.4rem; padding: 1.5rem 1rem; }
   .footer-name { font-size: 1.2rem; }
 }
+
+@media (max-width: 360px) {
+  .tools-grid { grid-template-columns: 1fr; }
+  .timer-display { font-size: 1.4rem; }
+}
