@@ -1,0 +1,19 @@
+{
+  // Exclude the massive minified Three.js file from search, file watching,
+  // and editor processing to prevent VS Code crashes.
+  "files.exclude": {
+    "three.min.js": true
+  },
+  "search.exclude": {
+    "three.min.js": true
+  },
+  "files.watcherExclude": {
+    "three.min.js": true
+  },
+
+  // Prevent large-file tokenization from freezing the editor
+  "editor.largeFileOptimizations": true,
+
+  // Cap the max tokenization length per line  (default 20 000)
+  "editor.maxTokenizationLineLength": 20000
+}

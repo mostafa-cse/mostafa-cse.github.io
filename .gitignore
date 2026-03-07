@@ -2,7 +2,8 @@
 .DS_Store
 
 # Editor
-.vscode/
+.vscode/*
+!.vscode/settings.json
 *.swp
 
 # Local dev only

@@ -1,5 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#143778"/>
-  <text x="50%" y="54%" font-family="Georgia,serif" font-size="38" font-weight="700"
-        fill="#ffffff" text-anchor="middle" dominant-baseline="middle">CP</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d2450"/>
+      <stop offset="50%" stop-color="#143778"/>
+      <stop offset="100%" stop-color="#2D5AAA"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7eb8ff"/>
+      <stop offset="100%" stop-color="#5383DC"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="64" height="64" rx="16" fill="url(#bg)"/>
+  <!-- Subtle inner ring -->
+  <rect x="3" y="3" width="58" height="58" rx="13" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <!-- Left bracket < -->
+  <path d="M18 20 L8 32 L18 44" fill="none" stroke="#7eb8ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+  <!-- Right bracket > -->
+  <path d="M46 20 L56 32 L46 44" fill="none" stroke="#7eb8ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+  <!-- Lightning bolt in center -->
+  <path d="M35 16 L27 33 L33 33 L29 48 L39 30 L33 30 Z" fill="url(#bolt)" filter="url(#glow)"/>
+  <!-- Bottom accent line -->
+  <rect x="16" y="52" width="32" height="2" rx="1" fill="#5383DC" opacity="0.5"/>
 </svg>

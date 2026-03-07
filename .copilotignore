@@ -1,0 +1,5 @@
+# Minified vendor libraries — extremely long single lines crash the AI agent
+three.min.js
+
+# Background images
+BackGround/
