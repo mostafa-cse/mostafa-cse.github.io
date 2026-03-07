@@ -2269,3 +2269,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   // -- Footer year --
   (function() { var el = document.getElementById('footer-year'); if (el) el.textContent = new Date().getFullYear(); })();
 });
+
+/* ── Mobile menu toggle ── */
+(function () {
+  const hamburger = document.getElementById('nav-hamburger');
+  const links     = document.getElementById('nav-links');
+  const overlay   = document.getElementById('nav-mobile-overlay');
+  if (!hamburger || !links) return;
+
+  function closeMenu() {
+    links.classList.remove('mobile-open');
+    if (overlay) overlay.classList.remove('open');
+  }
+  hamburger.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = links.classList.toggle('mobile-open');
+    if (overlay) overlay.classList.toggle('open', open);
+  });
+  links.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+  if (overlay) overlay.addEventListener('click', closeMenu);
+  document.addEventListener('keydown', e => e.key === 'Escape' && closeMenu());
+})();
