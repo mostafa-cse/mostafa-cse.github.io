@@ -2189,7 +2189,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 11. Smooth section progress indicator (blue line at top of viewport)
   const progressBar = document.createElement('div');
-  progressBar.style.cssText = 'position:fixed;top:0;left:0;height:3px;z-index:1001;' +
+  progressBar.style.cssText = 'position:fixed;top:0;left:0;height:3px;z-index:1002;' +
     'background:linear-gradient(90deg,#143778,#5383DC,#2D5AAA);' +
     'transition:width 0.15s linear;width:0;pointer-events:none;border-radius:0 2px 2px 0;' +
     'box-shadow:0 0 8px rgba(83,131,220,0.4);';
