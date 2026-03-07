@@ -2302,3 +2302,84 @@ document.addEventListener('DOMContentLoaded', async () => {
   const closePanel = () => panel && panel.classList.remove('open');
   document.addEventListener('keydown', e => e.key === 'Escape' && closePanel());
 })();
+
+/* ── CONTEST REMINDER ── */
+(function () {
+  const titleEl    = document.getElementById('contest-title');
+  const metaEl     = document.getElementById('contest-meta');
+  const cdEl       = document.getElementById('contest-countdown');
+  const badgeEl    = document.getElementById('contest-badge');
+  const cardEl     = document.getElementById('contest-card');
+  if (!titleEl || !cdEl) return;
+
+  let contestStart = null;
+  let timerInterval = null;
+
+  async function fetchContest() {
+    try {
+      const r = await fetch('https://codeforces.com/api/contest.list?gym=false',
+                            { signal: AbortSignal.timeout(8000) });
+      const j = await r.json();
+      if (j.status !== 'OK') throw new Error('CF API error');
+
+      const now = Date.now();
+      // Find nearest upcoming or running contest
+      const upcoming = j.result
+        .filter(c => c.phase === 'BEFORE' || c.phase === 'CODING')
+        .sort((a, b) => a.startTimeSeconds - b.startTimeSeconds);
+
+      if (!upcoming.length) {
+        titleEl.textContent = 'No upcoming contests found';
+        return;
+      }
+
+      const c = upcoming[0];
+      contestStart = c.startTimeSeconds * 1000;
+      const durH = Math.floor(c.durationSeconds / 3600);
+      const durM = Math.floor((c.durationSeconds % 3600) / 60);
+
+      if (titleEl) titleEl.textContent = c.name;
+      if (badgeEl) badgeEl.textContent = c.phase === 'CODING' ? '🔴 Live Now' : 'Codeforces';
+      if (metaEl)  metaEl.textContent  =
+        c.phase === 'CODING'
+          ? `Running — ${durH}h ${durM}m total`
+          : `Starts: ${new Date(contestStart).toLocaleString('en-BD',
+              { timeZone: 'Asia/Dhaka', weekday:'short', month:'short',
+                day:'numeric', hour:'2-digit', minute:'2-digit' })}  •  ${durH}h ${durM}m`;
+
+      startCountdown(c);
+    } catch (e) {
+      if (titleEl) titleEl.textContent = 'Could not load contest data';
+      if (metaEl)  metaEl.textContent  = 'Check codeforces.com manually';
+      console.warn('Contest fetch failed:', e.message);
+    }
+  }
+
+  function startCountdown(c) {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      const now  = Date.now();
+      const end  = c.phase === 'CODING'
+        ? (c.startTimeSeconds + c.durationSeconds) * 1000
+        : c.startTimeSeconds * 1000;
+      const diff = Math.max(0, Math.floor((end - now) / 1000));
+
+      const h  = Math.floor(diff / 3600);
+      const m  = Math.floor((diff % 3600) / 60);
+      const s  = diff % 60;
+      const str = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+      if (cdEl) {
+        cdEl.textContent = diff === 0
+          ? (c.phase === 'CODING' ? 'Contest ended' : 'Starting now!')
+          : (c.phase === 'CODING' ? `⏱ Ends in ${str}` : `⏳ Starts in ${str}`);
+        cdEl.classList.toggle('urgent', diff < 600 && diff > 0);
+      }
+      if (diff === 0) { clearInterval(timerInterval); setTimeout(fetchContest, 5000); }
+    }, 1000);
+  }
+
+  // Fetch on load, refresh every 10 minutes
+  fetchContest();
+  setInterval(fetchContest, 600000);
+})();
