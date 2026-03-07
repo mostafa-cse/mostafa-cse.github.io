@@ -2290,3 +2290,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (overlay) overlay.addEventListener('click', closeMenu);
   document.addEventListener('keydown', e => e.key === 'Escape' && closeMenu());
 })();
+
+/* ── Alarm panel: Escape key + backdrop ── */
+(function () {
+  const panel   = document.getElementById('alarm-panel');
+  const closePanel = () => panel && panel.classList.remove('open');
+  document.addEventListener('keydown', e => e.key === 'Escape' && closePanel());
+})();
