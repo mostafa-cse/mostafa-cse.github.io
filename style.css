@@ -4479,3 +4479,30 @@ html   { counter-reset: sections; }
   .tools-grid { grid-template-columns: 1fr; }
   .timer-display { font-size: 1.4rem; }
 }
+
+/* ── NEXT PRAYER CARD (dedicated section) ── */
+.next-prayer-section {
+  padding: 1.5rem 0 0;
+}
+.next-prayer-card {
+  max-width: 360px;
+  margin: 0 auto;
+  text-align: center;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  padding: 1.5rem 2rem;
+}
+.next-prayer-card .pn-name {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  color: var(--primary);
+  font-weight: 700;
+}
+.next-prayer-card .pn-countdown {
+  font-size: 2rem;
+  font-family: monospace;
+  color: var(--accent);
+  font-weight: 700;
+}
