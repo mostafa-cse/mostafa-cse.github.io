@@ -782,6 +782,7 @@ class RoutineEngine {
     let found = null;
     for (const block of routine) {
       if (block.ramadanOnly && !window._isRamadan) continue;
+      if (block.generalOnly && window._isRamadan) continue;
       const s = parseHHMM(block.start);
       const e = parseHHMM(block.end);
       if (mins >= s && mins < e) { found = block; break; }
@@ -831,6 +832,7 @@ class TimelineView {
     const nowMins = nowMinutes(zonedNow());
     for (const b of routine) {
       if (b.ramadanOnly && !window._isRamadan) continue;
+      if (b.generalOnly && window._isRamadan) continue;
       const blockEnd = parseHHMM(b.end);
       const isPast   = nowMins >= blockEnd;
       const statusHtml = isPast
@@ -1347,6 +1349,7 @@ class AudioAlertService {
   scheduleBlockAlarms(routine) {
     (routine || []).forEach(b => {
       if (b.ramadanOnly && !window._isRamadan) return;
+      if (b.generalOnly && window._isRamadan) return;
       // Block start alarm
       if (b.notify) {
         const ms = secondsUntil(b.start) * 1000;
