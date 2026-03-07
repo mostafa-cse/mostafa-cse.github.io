@@ -84,6 +84,7 @@ class AuroraWaves {
     this._resize();
 
     window.addEventListener('resize', () => this._resize());
+    window.addEventListener('orientationchange', () => this._resize());
 
     const hero = this.canvas.closest('.hero') || this.canvas.parentElement;
     if (hero) {
@@ -296,6 +297,7 @@ class ThreeJSBackground {
     this._resize();
     this.buildScene(theme);
     window.addEventListener('resize', () => this._resize());
+    window.addEventListener('orientationchange', () => this._resize());
     document.addEventListener('mousemove', e => {
       this._mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
       this._mouse.y = (e.clientY / window.innerHeight - 0.5) * 2;
