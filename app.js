@@ -2212,4 +2212,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     section.parentNode.insertBefore(divider, section);
   });
 
+
+  // -- Mobile hamburger --
+  (function() {
+    var hamburger = document.getElementById('nav-hamburger');
+    var navLinks  = document.getElementById('nav-links');
+    if (!hamburger || !navLinks) return;
+    hamburger.addEventListener('click', function() {
+      var isOpen = navLinks.classList.toggle('open');
+      hamburger.classList.toggle('open', isOpen);
+      hamburger.setAttribute('aria-expanded', String(isOpen));
+    });
+    navLinks.querySelectorAll('a').forEach(function(link) {
+      link.addEventListener('click', function() {
+        navLinks.classList.remove('open');
+        hamburger.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+      });
+    });
+    document.addEventListener('click', function(e) {
+      if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
+        navLinks.classList.remove('open');
+        hamburger.classList.remove('open');
+        hamburger.setAttribute('aria-expanded', 'false');
+      }
+    });
+  })();
+
+  // -- Alarm panel backdrop --
+  (function() {
+    var panel    = document.getElementById('alarm-panel');
+    var backdrop = document.getElementById('alarm-backdrop');
+    var openBtn  = document.getElementById('alarm-toggle-btn');
+    var closeBtn = document.getElementById('alarm-panel-close');
+    function openPanel()  { if (!panel) return; panel.classList.add('open');    panel.setAttribute('aria-hidden','false'); if (backdrop) backdrop.classList.add('active'); }
+    function closePanel() { if (!panel) return; panel.classList.remove('open'); panel.setAttribute('aria-hidden','true');  if (backdrop) backdrop.classList.remove('active'); }
+    if (openBtn)  openBtn.addEventListener('click',  openPanel);
+    if (closeBtn) closeBtn.addEventListener('click', closePanel);
+    if (backdrop) backdrop.addEventListener('click', closePanel);
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closePanel(); });
+  })();
+
+  // -- Mode badge --
+  (function() {
+    function updateModeBadge() {
+      var badge = document.getElementById('mode-badge');
+      if (!badge) return;
+      var theme = document.documentElement.getAttribute('data-theme') || 'general';
+      badge.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+      badge.style.background = theme === 'ramadan' ? 'rgba(255,200,100,0.25)' : 'rgba(255,255,255,0.18)';
+    }
+    updateModeBadge();
+    new MutationObserver(updateModeBadge).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  })();
+
+  // -- Footer year --
+  (function() { var el = document.getElementById('footer-year'); if (el) el.textContent = new Date().getFullYear(); })();
 });
