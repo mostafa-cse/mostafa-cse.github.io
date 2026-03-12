@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Problem Notes — Md. Mostafa Kamal</title>
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="navbar.css">
+  <link rel="stylesheet" href="pages/notes/notes.css">
+</head>
+<body>
+<nav class="navbar" id="navbar">
+  <div class="nav-progress" id="nav-progress"></div>
+  <div class="nav-inner container">
+    <a href="index.html" class="nav-logo">
+      <svg viewBox="0 0 36 36" fill="none" width="36" height="36"><rect x="2" y="2" width="32" height="32" rx="8" fill="url(#nLogo)"/><text x="18" y="24" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="14" fill="#fff">&lt;/&gt;</text><defs><linearGradient id="nLogo" x1="0" y1="0" x2="36" y2="36"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#f97316"/></linearGradient></defs></svg>
+      <span class="nav-logo-text">Mostafa<span class="nav-logo-accent">.cp</span></span>
+    </a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html" class="nav-link">Portfolio</a></li>
+      <li><a href="routine.html" class="nav-link">Routine</a></li>
+      <li><a href="cf-filter.html" class="nav-link">CF Filter</a></li>
+      <li><a href="sixty-min.html" class="nav-link">60+ Rule</a></li>
+      <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+      <li><a href="resources.html" class="nav-link">Resources</a></li>
+      <li><a href="contests.html" class="nav-link">Contests</a></li>
+      <li><a href="notes.html" class="nav-link active">Notes</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="theme-toggle" id="theme-toggle" data-theme-toggle aria-label="Toggle theme"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+<!-- ─── Mobile Nav Drawer ─────────────────────────────────── -->
+<div class="nav-mobile-overlay" id="nav-mobile-overlay"></div>
+<div class="nav-mobile-drawer" id="nav-mobile-drawer">
+  <button class="nav-mobile-close" id="nav-mobile-close" aria-label="Close menu">✕</button>
+  <a href="index.html" class="nav-link ">Portfolio</a>
+  <a href="routine.html" class="nav-link ">Routine</a>
+  <a href="cf-filter.html" class="nav-link ">CF Filter</a>
+  <a href="sixty-min.html" class="nav-link ">60+ Rule</a>
+  <a href="dashboard.html" class="nav-link ">Dashboard</a>
+  <a href="resources.html" class="nav-link ">Resources</a>
+  <a href="contests.html" class="nav-link ">Contests</a>
+  <a href="notes.html" class="nav-link active">Notes</a>
+</div>
+
+
+<header class="notes-hero">
+  <div class="container" style="text-align:center">
+    <h1>Problem Notes</h1>
+    <p class="page-sub">Personal editorial journal · Tag categorization · Full-text search · In-session memory</p>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <div class="notes-layout">
+      <!-- Sidebar -->
+      <div class="notes-sidebar">
+        <div class="notes-actions">
+          <button class="btn-new-note" id="btn-new">+ New Note</button>
+        </div>
+        <div class="notes-search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" width="14" height="14"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="text" id="notes-search" placeholder="Search notes…" autocomplete="off">
+        </div>
+        <div class="tag-filters" id="tag-filters"></div>
+        <div class="notes-list" id="notes-list"></div>
+      </div>
+
+      <!-- Editor -->
+      <div id="note-editor-area"></div>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <p class="footer-copy">© 2025 Md. Mostafa Kamal · JUST CSE · Bogura, Bangladesh</p>
+    </div>
+  </div>
+</footer>
+
+<script src="navbar.js" defer></script>
+<script type="module">
+import {
+  getAllTags, getFilteredNotes, getNote, getActiveId, setActiveId,
+  setSearch, setActiveTag, saveNote, deleteNote, newNote
+} from './pages/notes/notes-engine.js';
+
+function renderAll() {
+  renderTagFilters();
+  renderNotesList();
+  renderEditor();
+}
+
+function renderTagFilters() {
+  const tags = getAllTags();
+  const container = document.getElementById('tag-filters');
+  container.innerHTML = `
+    <button class="tag-filter-btn ${!window._activeTag ? 'active' : ''}" data-tag="">All</button>
+    ${tags.map(t => `<button class="tag-filter-btn ${window._activeTag === t ? 'active' : ''}" data-tag="${t}">${t}</button>`).join('')}
+  `;
+  container.querySelectorAll('.tag-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      window._activeTag = btn.dataset.tag || null;
+      setActiveTag(window._activeTag);
+      renderAll();
+    });
+  });
+}
+
+function renderNotesList() {
+  const filtered = getFilteredNotes();
+  const container = document.getElementById('notes-list');
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="notes-empty">No notes found.</div>';
+    return;
+  }
+  container.innerHTML = filtered.map(n => `
+    <div class="note-item ${getActiveId() === n.id ? 'active' : ''}" data-id="${n.id}">
+      <div class="ni-title">${n.title}</div>
+      <div class="ni-preview">${n.content.slice(0,80).replace(/\n/g,' ')}…</div>
+      <div class="ni-tags">${n.tags.map(t => `<span class="ni-tag">${t}</span>`).join('')}</div>
+      <div class="ni-date">${n.date}</div>
+    </div>
+  `).join('');
+  container.querySelectorAll('.note-item').forEach(item => {
+    item.addEventListener('click', () => {
+      setActiveId(parseInt(item.dataset.id));
+      renderAll();
+    });
+  });
+}
+
+function renderEditor() {
+  const area = document.getElementById('note-editor-area');
+  const id = getActiveId();
+  if (!id) {
+    area.innerHTML = `
+      <div class="note-placeholder">
+        <div class="note-placeholder-icon">📝</div>
+        <div>Select a note or create a new one</div>
+        <button class="btn-new-note" onclick="document.getElementById('btn-new').click()" style="width:auto;padding:0.5rem 1.25rem">+ New Note</button>
+      </div>
+    `;
+    return;
+  }
+  const note = getNote(id);
+  if (!note) { area.innerHTML = ''; return; }
+  area.innerHTML = `
+    <div class="note-editor">
+      <div class="editor-toolbar">
+        <input type="text" id="note-title" value="${note.title.replace(/"/g,'&quot;')}" placeholder="Note title…">
+        <input type="text" id="note-tags" class="tag-input" value="${note.tags.join(', ')}" placeholder="Tags: dp, greedy…">
+        <button class="btn-save-note" id="btn-save">💾 Save</button>
+        <button class="btn-delete-note" id="btn-delete" title="Delete note">🗑 Delete</button>
+      </div>
+      <textarea class="note-textarea" id="note-content" spellcheck="false" placeholder="Write your editorial, approach, key insights…">${note.content}</textarea>
+      <!-- Inline delete confirm -->
+      <div class="delete-confirm" id="delete-confirm" style="display:none">
+        <span>Delete this note permanently?</span>
+        <button class="dc-yes" id="dc-yes">Yes, Delete</button>
+        <button class="dc-no"  id="dc-no">Cancel</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('btn-save').addEventListener('click', () => {
+    const title   = document.getElementById('note-title').value.trim() || 'Untitled';
+    const content = document.getElementById('note-content').value;
+    const tags    = document.getElementById('note-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+    saveNote(id, title, content, tags);
+    renderAll();
+  });
+  // Delete: show inline confirm bar instead of browser confirm()
+  document.getElementById('btn-delete').addEventListener('click', () => {
+    const bar = document.getElementById('delete-confirm');
+    if (bar) bar.style.display = 'flex';
+  });
+  document.getElementById('dc-yes').addEventListener('click', () => {
+    deleteNote(id);
+    setActiveId(null);
+    renderAll();
+  });
+  document.getElementById('dc-no').addEventListener('click', () => {
+    const bar = document.getElementById('delete-confirm');
+    if (bar) bar.style.display = 'none';
+  });
+}
+
+// New note
+document.getElementById('btn-new').addEventListener('click', () => {
+  const id = newNote();
+  setActiveId(id);
+  renderAll();
+});
+
+// Search
+let st;
+document.getElementById('notes-search').addEventListener('input', e => {
+  clearTimeout(st);
+  st = setTimeout(() => { setSearch(e.target.value); renderAll(); }, 200);
+});
+
+window._activeTag = null;
+renderAll();
+</script>
+</body>
+</html>

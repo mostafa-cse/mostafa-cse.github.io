@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CF Filter — Md. Mostafa Kamal</title>
+  <meta name="description" content="Filter 11K+ Codeforces problems by division, rating, index, and your solved status.">
+
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="navbar.css">
+  <link rel="stylesheet" href="pages/cf-filter/cf-filter.css">
+</head>
+<body>
+
+<!-- ─── Navbar ──────────────────────────────────────────────── -->
+<nav class="navbar" id="navbar">
+  <div class="nav-progress" id="nav-progress"></div>
+  <div class="nav-inner container">
+    <a href="index.html" class="nav-logo">
+      <svg viewBox="0 0 36 36" fill="none" width="36" height="36">
+        <rect x="2" y="2" width="32" height="32" rx="8" fill="url(#cfLogo)"/>
+        <text x="18" y="24" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="14" fill="#fff">&lt;/&gt;</text>
+        <defs>
+          <linearGradient id="cfLogo" x1="0" y1="0" x2="36" y2="36">
+            <stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#8b5cf6"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="nav-logo-text">Mostafa<span class="nav-logo-accent">.cp</span></span>
+    </a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html" class="nav-link">Portfolio</a></li>
+      <li><a href="routine.html" class="nav-link">Routine</a></li>
+      <li><a href="cf-filter.html" class="nav-link active">CF Filter</a></li>
+      <li><a href="sixty-min.html" class="nav-link">60+ Rule</a></li>
+      <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+      <li><a href="resources.html" class="nav-link">Resources</a></li>
+      <li><a href="contests.html" class="nav-link">Contests</a></li>
+      <li><a href="notes.html" class="nav-link">Notes</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="theme-toggle" id="theme-toggle" data-theme-toggle aria-label="Toggle theme">
+        <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+<!-- ─── Mobile Nav Drawer ─────────────────────────────────── -->
+<div class="nav-mobile-overlay" id="nav-mobile-overlay"></div>
+<div class="nav-mobile-drawer" id="nav-mobile-drawer">
+  <button class="nav-mobile-close" id="nav-mobile-close" aria-label="Close menu">✕</button>
+  <a href="index.html" class="nav-link ">Portfolio</a>
+  <a href="routine.html" class="nav-link ">Routine</a>
+  <a href="cf-filter.html" class="nav-link active">CF Filter</a>
+  <a href="sixty-min.html" class="nav-link ">60+ Rule</a>
+  <a href="dashboard.html" class="nav-link ">Dashboard</a>
+  <a href="resources.html" class="nav-link ">Resources</a>
+  <a href="contests.html" class="nav-link ">Contests</a>
+  <a href="notes.html" class="nav-link ">Notes</a>
+</div>
+
+
+<!-- ─── Page Header ─────────────────────────────────────────── -->
+<header class="page-header">
+  <div class="container">
+    <h1 class="page-title">CF Filter</h1>
+    <p class="page-sub">Browse 11,000+ Codeforces problems · Filter by division, rating &amp; index · Track your solved status</p>
+    <div id="cf-status-pill" class="status-pill loading">
+      <span class="sp-dot"></span> Loading problems…
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <div class="cfp-layout">
+
+      <!-- ─── Sidebar ──────────────────────────────────── -->
+      <aside class="cfp-sidebar" aria-label="Filters">
+
+        <!-- Division -->
+        <div class="filter-card">
+          <h3>Division</h3>
+          <div class="div-grid">
+            <button class="div-btn" data-div="div1">Div. 1</button>
+            <button class="div-btn active" data-div="div2">Div. 2</button>
+            <button class="div-btn" data-div="div3">Div. 3</button>
+            <button class="div-btn" data-div="div4">Div. 4</button>
+            <button class="div-btn" data-div="div12">Div. 1+2</button>
+            <button class="div-btn" data-div="educational">Edu.</button>
+            <button class="div-btn" data-div="global">Global</button>
+            <button class="div-btn" data-div="other">Other</button>
+          </div>
+        </div>
+
+        <!-- Problem Index -->
+        <div class="filter-card">
+          <h3>Problem Index</h3>
+          <div class="index-row">
+            <button class="idx-btn active" data-idx="A">A</button>
+            <button class="idx-btn" data-idx="B">B</button>
+            <button class="idx-btn" data-idx="C">C</button>
+            <button class="idx-btn" data-idx="D">D</button>
+            <button class="idx-btn" data-idx="E">E</button>
+            <button class="idx-btn" data-idx="F">F</button>
+            <button class="idx-btn" data-idx="G">G</button>
+            <button class="idx-btn" data-idx="H">H</button>
+            <button class="idx-btn" data-idx="I">I</button>
+          </div>
+        </div>
+
+        <!-- Rating Range -->
+        <div class="filter-card">
+          <h3>Rating Range</h3>
+          <div class="rating-row">
+            <select id="rating-min" class="rating-select">
+              <option value="800">800</option><option value="900">900</option>
+              <option value="1000">1000</option><option value="1100">1100</option>
+              <option value="1200">1200</option><option value="1300">1300</option>
+              <option value="1400">1400</option><option value="1500">1500</option>
+              <option value="1600">1600</option><option value="1700">1700</option>
+              <option value="1800">1800</option><option value="1900">1900</option>
+              <option value="2000">2000</option><option value="2100">2100</option>
+              <option value="2200">2200</option><option value="2300">2300</option>
+              <option value="2400">2400</option><option value="2600">2600</option>
+              <option value="2800">2800</option><option value="3000">3000</option>
+            </select>
+            <span>–</span>
+            <select id="rating-max" class="rating-select">
+              <option value="1200">1200</option><option value="1400">1400</option>
+              <option value="1600">1600</option><option value="1800">1800</option>
+              <option value="2000">2000</option><option value="2200">2200</option>
+              <option value="2400">2400</option><option value="2600">2600</option>
+              <option value="2800">2800</option><option value="3000">3000</option>
+              <option value="3200">3200</option><option value="3500" selected>3500</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Sort -->
+        <div class="filter-card">
+          <h3>Sort By</h3>
+          <select id="sort-select" class="sort-select">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="rating_asc">Rating: Low → High</option>
+            <option value="rating_desc">Rating: High → Low</option>
+            <option value="most_solved">Most Solved</option>
+            <option value="least_solved">Least Solved</option>
+          </select>
+        </div>
+
+        <!-- Solved toggle + Reset -->
+        <div class="filter-card">
+          <div class="solved-toggle">
+            <span>Show solved only</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="solved-toggle">
+              <span class="ts-slider"></span>
+            </label>
+          </div>
+          <div class="filter-actions" style="margin-top:0.75rem">
+            <button class="btn-reset" id="filter-reset">Reset All</button>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- ─── Main ─────────────────────────────────────── -->
+      <section class="cfp-main">
+
+        <!-- KPI Strip -->
+        <div class="kpi-strip">
+          <div class="kpi-card"><div class="kpi-val" id="kpi-total"><span class="skeleton-text"></span></div><div class="kpi-label">Total Problems</div></div>
+          <div class="kpi-card"><div class="kpi-val" id="kpi-contests"><span class="skeleton-text"></span></div><div class="kpi-label">Contests</div></div>
+          <div class="kpi-card"><div class="kpi-val" id="kpi-avg-rating"><span class="skeleton-text"></span></div><div class="kpi-label">Avg Rating</div></div>
+          <div class="kpi-card"><div class="kpi-val" id="kpi-solved"><span class="skeleton-text"></span></div><div class="kpi-label">Solved %</div></div>
+        </div>
+
+        <!-- Handle Tracker -->
+        <div class="handle-row">
+          <input type="text" id="handle-input" placeholder="Enter CF handle to track solved…" spellcheck="false" autocomplete="off">
+          <button id="handle-btn">Track</button>
+        </div>
+        <div id="handle-error"></div>
+        <div id="user-card"></div>
+
+        <!-- Search -->
+        <div class="cf-search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="text" id="cf-search" placeholder="Search problems, contests, tags… [/]" autocomplete="off">
+          <span class="search-shortcut">/</span>
+        </div>
+
+        <div class="kpi-filtered" id="kpi-filtered">Loading…</div>
+
+        <!-- Table -->
+        <div class="cf-table-wrap">
+          <table class="cf-table" aria-label="Codeforces problems">
+            <thead>
+              <tr>
+                <th class="td-num">#</th>
+                <th>Problem</th>
+                <th>Contest</th>
+                <th>✓ Solves</th>
+                <th>Rating</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody id="cf-table-body">
+              <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-faint)">Fetching problems from Codeforces…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div id="cf-pagination"></div>
+
+      </section>
+    </div>
+  </div>
+</main>
+
+<!-- ─── Footer ──────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <p class="footer-copy">© 2025 Md. Mostafa Kamal · JUST CSE · Bogura, Bangladesh</p>
+    </div>
+  </div>
+</footer>
+
+<script src="navbar.js" defer></script>
+<script type="module">
+import { fetchProblems, fetchContests, buildContestMap } from './pages/cf-filter/cf-api.js';
+import { subscribe, updateFilter, toggleSetItem, resetFilters, applyFilters, getSolvedSet } from './pages/cf-filter/filters.js';
+import { renderKPI, renderTable, showSkeletons, PAGE_SIZE } from './pages/cf-filter/table.js';
+import { initHandle } from './pages/cf-filter/handle.js';
+
+let allProblems = [], allContests = [], contestMap = {}, filteredProblems = [];
+let currentPage = 1;
+
+showSkeletons();
+initHandle();
+
+// Keyboard shortcut: / to focus search
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== document.getElementById('cf-search')) {
+    e.preventDefault();
+    document.getElementById('cf-search').focus();
+  }
+});
+
+// Load data
+async function loadData() {
+  try {
+    [allProblems, allContests] = await Promise.all([fetchProblems(), fetchContests()]);
+    contestMap = buildContestMap(allContests);
+    setStatus('ready', `${allProblems.length.toLocaleString()} problems loaded`);
+    applyAndRender(1);
+  } catch (err) {
+    setStatus('error', 'Failed to load — CF API may be down');
+    document.getElementById('cf-table-body').innerHTML =
+      `<tr><td colspan="6" class="table-empty">⚠ Could not fetch problems: ${err.message}</td></tr>`;
+  }
+}
+
+function applyAndRender(page = 1) {
+  currentPage = page;
+  filteredProblems = applyFilters(allProblems, contestMap);
+  const solved = getSolvedSet();
+  renderTable(filteredProblems, contestMap, page);
+  renderKPI(
+    allProblems.length,
+    Object.keys(contestMap).length || allContests.length,
+    filteredProblems.length,
+    solved.size
+  );
+  const kpiFiltered = document.getElementById('kpi-filtered');
+  if (kpiFiltered) {
+    kpiFiltered.textContent =
+      `Showing ${Math.min(filteredProblems.length, PAGE_SIZE).toLocaleString()} of ${filteredProblems.length.toLocaleString()} filtered (${allProblems.length.toLocaleString()} total)`;
+  }
+}
+
+// Subscribe to filter changes
+subscribe(() => applyAndRender(1));
+
+// Pagination — delegated on wrapper
+document.getElementById('cf-pagination')?.addEventListener('click', e => {
+  const btn = e.target.closest('.pg-btn');
+  if (!btn || btn.disabled || btn.hasAttribute('disabled')) return;
+  const pg = parseInt(btn.dataset.p);
+  if (!isNaN(pg) && pg >= 1) {
+    applyAndRender(pg);
+    document.querySelector('.cfp-main')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+});
+
+// Division buttons
+document.querySelectorAll('.div-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    toggleSetItem('divs', btn.dataset.div);
+    btn.classList.toggle('active');
+  });
+});
+
+// Index buttons
+document.querySelectorAll('.idx-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    toggleSetItem('indices', btn.dataset.idx);
+    btn.classList.toggle('active');
+  });
+});
+
+// Rating
+document.getElementById('rating-min')?.addEventListener('change', e => updateFilter('ratingMin', parseInt(e.target.value)));
+document.getElementById('rating-max')?.addEventListener('change', e => updateFilter('ratingMax', parseInt(e.target.value)));
+
+// Sort
+document.getElementById('sort-select')?.addEventListener('change', e => updateFilter('sort', e.target.value));
+
+// Solved toggle
+document.getElementById('solved-toggle')?.addEventListener('change', e => updateFilter('showSolved', e.target.checked));
+
+// Search (debounced)
+let searchTimer;
+document.getElementById('cf-search')?.addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => updateFilter('search', e.target.value), 300);
+});
+
+// Reset
+document.getElementById('filter-reset')?.addEventListener('click', () => {
+  resetFilters();
+  document.querySelectorAll('.div-btn').forEach(b => b.classList.add('active'));
+  document.querySelectorAll('.idx-btn').forEach(b => b.classList.add('active'));
+  document.getElementById('sort-select').value = 'newest';
+  document.getElementById('solved-toggle').checked = false;
+  document.getElementById('cf-search').value = '';
+  document.getElementById('rating-min').value = '800';
+  document.getElementById('rating-max').value = '3500';
+});
+
+function setStatus(type, msg) {
+  const pill = document.getElementById('cf-status-pill');
+  if (!pill) return;
+  pill.className = `status-pill ${type}`;
+  pill.innerHTML = `<span class="sp-dot"></span> ${msg}`;
+}
+
+loadData();
+</script>
+</body>
+</html>

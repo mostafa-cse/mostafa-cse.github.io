@@ -1,0 +1,151 @@
+/* contests.css */
+.cnt-hero { padding:2rem 0 1.5rem; background:linear-gradient(135deg,rgba(6,182,212,0.08),rgba(139,92,246,0.06)); border-bottom:1px solid var(--color-border-subtle); text-align:center; }
+.cnt-hero h1 { font-family:'Cabinet Grotesk',sans-serif; font-size:clamp(1.8rem,4vw,2.6rem); font-weight:800; background:linear-gradient(135deg,#06b6d4,#8b5cf6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin:0 0 0.4rem; }
+.cnt-hero p { color:var(--color-text-muted); font-size:0.9rem; }
+.cnt-tabs { display:flex; border-bottom:1px solid var(--glass-border); background:var(--color-surface); overflow-x:auto; }
+.cnt-tab { padding:0.85rem 1.25rem; border:none; background:none; color:var(--color-text-muted); font-weight:600; font-size:0.9rem; cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; white-space:nowrap; }
+.cnt-tab.active { color:#06b6d4; border-bottom-color:#06b6d4; }
+.cnt-tab-pane { display:none; padding:2rem 0 3rem; } .cnt-tab-pane.active { display:block; }
+.contest-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1rem; }
+.contest-card { background:var(--glass-bg); backdrop-filter:blur(12px); border:1px solid var(--glass-border); border-radius:12px; padding:1.25rem; transition:all 0.2s; }
+.contest-card:hover { border-color:rgba(245,158,11,0.3); background:var(--color-surface-2); }
+.cc-countdown { font-family:'JetBrains Mono',monospace; font-size:1.1rem; font-weight:700; color:#06b6d4; margin-bottom:1rem; }
+.cc-link { padding:0.3rem 0.75rem; border-radius:6px; background:rgba(6,182,212,0.15); border:1px solid rgba(6,182,212,0.3); color:#06b6d4; text-decoration:none; font-size:0.78rem; font-weight:600; transition:all 0.2s; }
+.cc-link:hover { background:rgba(6,182,212,0.25); }
+.platform-cf { border-top:2px solid #1890ff; } .platform-lc { border-top:2px solid #f59e0b; } .platform-ac { border-top:2px solid #8b5cf6; }
+.perf-table-wrap { overflow-x:auto; border-radius:10px; border:1px solid var(--glass-border); background:var(--color-surface); }
+.perf-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+.perf-table th { padding:0.75rem 1rem; text-align:left; color:var(--color-text-muted); font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; border-bottom:1px solid var(--color-border-subtle); background:var(--glass-bg); }
+.perf-table td { padding:0.75rem 1rem; border-bottom:1px solid var(--glass-bg-light); }
+
+/* ─── Improved Contest Card Layout ────────────────────────────────────── */
+.cc-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.cc-platform-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.platform-cf  .cc-platform-badge, .cc-platform-badge.platform-cf  { background: rgba(6,182,212,0.15); color: #06b6d4; border: 1px solid rgba(6,182,212,0.3); }
+.platform-lc  .cc-platform-badge, .cc-platform-badge.platform-lc  { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+.platform-ac  .cc-platform-badge, .cc-platform-badge.platform-ac  { background: rgba(139,92,246,0.15); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.3); }
+.platform-cc  .cc-platform-badge, .cc-platform-badge.platform-cc  { background: rgba(239,68,68,0.15);  color: #ef4444; border: 1px solid rgba(239,68,68,0.3);  }
+.platform-other .cc-platform-badge, .cc-platform-badge.platform-other { background: rgba(100,116,139,0.15); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+
+.cc-live-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(239,68,68,0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239,68,68,0.3);
+  animation: pulse-live 2s infinite;
+}
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.cc-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.cc-info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.cc-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.cc-info-item svg {
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.cc-countdown-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.6rem;
+  background: rgba(6,182,212,0.06);
+  border: 1px solid rgba(6,182,212,0.15);
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.cc-countdown-label {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cc-countdown {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.cc-link {
+  display: block;
+  text-align: center;
+  padding: 0.5rem;
+  background: var(--color-primary-dim);
+  color: var(--color-primary);
+  border: 1px solid rgba(6,182,212,0.2);
+  border-radius: 0.5rem;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.cc-link:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.cc-live-link {
+  background: rgba(239,68,68,0.12);
+  color: #ef4444;
+  border-color: rgba(239,68,68,0.3);
+}
+
+.cc-live-link:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* ─── Performance Table ────────────────────────────────────── */
+.perf-table-wrap { overflow-x: auto; }
+.perf-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.perf-table th { padding: 0.75rem 1rem; text-align: left; background: var(--color-surface-2); color: var(--color-text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--color-border); }
+.perf-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--color-border); color: var(--color-text); }
+.perf-table tbody tr:hover td { background: var(--color-surface-2); }
+.delta-pos { color: #22c55e; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.delta-neg { color: #ef4444; font-weight: 700; font-family: 'JetBrains Mono', monospace; }

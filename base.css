@@ -1,0 +1,444 @@
+/* base.css — Reset & base styles */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+  scroll-padding-top: 70px;
+}
+
+body {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.6;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: var(--text-base);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  padding-top: var(--nav-height, 64px);
+}
+
+main {
+  flex: 1;
+}
+
+img, picture, video, canvas, svg { display: block; max-width: 100%; height: auto; }
+ul[role="list"], ol[role="list"] { list-style: none; }
+input, button, textarea, select { font: inherit; color: inherit; }
+h1, h2, h3, h4, h5, h6 { text-wrap: balance; line-height: 1.2; }
+p, li, figcaption { text-wrap: pretty; }
+
+::selection {
+  background: oklch(from var(--color-primary) l c h / 0.25);
+  color: var(--color-text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+button { cursor: pointer; background: none; border: none; }
+table { border-collapse: collapse; width: 100%; }
+
+a, button, [role="button"], input, textarea, select {
+  transition: color 180ms cubic-bezier(0.16,1,0.3,1),
+              background 180ms cubic-bezier(0.16,1,0.3,1),
+              border-color 180ms cubic-bezier(0.16,1,0.3,1),
+              box-shadow 180ms cubic-bezier(0.16,1,0.3,1),
+              opacity 180ms cubic-bezier(0.16,1,0.3,1);
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
+}
+
+/* ─── Shared Page Header ─────────────────────────────────── */
+.page-header {
+  padding: 2rem 0 1.5rem;
+  background: linear-gradient(135deg, rgba(6,182,212,0.07) 0%, rgba(139,92,246,0.05) 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  text-align: center;
+}
+.page-title {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 0.4rem;
+}
+.page-sub { color: var(--color-text-faint); font-size: 0.9rem; margin-bottom: 0.75rem; }
+
+/* Status pill */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.status-pill.loading { background: rgba(255,255,255,0.06); color: var(--color-text-faint); }
+.status-pill.ready   { background: rgba(34,197,94,0.12);   color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+.status-pill.error   { background: rgba(239,68,68,0.12);   color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+.sp-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.status-pill.loading .sp-dot { animation: blink 1.2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* ─── Footer ─────────────────────────────────────────────── */
+.footer {
+  border-top: 1px solid var(--glass-border);
+  padding: 1.25rem 0;
+  background: var(--glass-bg);
+  flex-shrink: 0;
+}
+.footer-inner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.footer-copy { color: var(--color-text-faint); font-size: 0.82rem; text-align: center; }
+
+/* Toggle switch (shared) */
+.toggle-switch { position: relative; width: 36px; height: 20px; display: inline-block; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.ts-slider {
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,0.1);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.ts-slider::before {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  left: 3px; top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+.toggle-switch input:checked + .ts-slider { background: #06b6d4; }
+.toggle-switch input:checked + .ts-slider::before { transform: translateX(16px); }
+
+/* ─── Global Responsive ──────────────────────────────────── */
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+@media (max-width: 480px) {
+  .page-header { padding: 1.5rem 0 1rem; }
+  .page-title  { font-size: clamp(1.5rem, 6vw, 2rem); }
+  .page-sub    { font-size: 0.82rem; }
+}
+
+/* ─── Light Mode Overrides ──────────────────────────────────────────────────
+   Fix all hardcoded dark rgba(17,24,39,...) / rgba(13,17,23,...) values
+   that don't respect CSS vars in sub-page CSS files
+─────────────────────────────────────────────────────────────────────────── */
+
+[data-theme="light"] {
+  /* Override body/page background */
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+[data-theme="light"] .footer {
+  background: rgba(248,250,252,0.98);
+  border-top-color: rgba(0,0,0,0.08);
+}
+
+[data-theme="light"] .page-header {
+  background: linear-gradient(135deg, rgba(8,145,178,0.07) 0%, rgba(124,58,237,0.05) 100%);
+  border-bottom-color: rgba(0,0,0,0.06);
+}
+
+[data-theme="light"] .navbar.scrolled {
+  background: rgba(248,250,252,0.95);
+}
+
+/* ── Glassmorphism cards across all pages ─── */
+[data-theme="light"] .dash-card,
+[data-theme="light"] .res-card,
+[data-theme="light"] .note-card,
+[data-theme="light"] .cnt-card,
+[data-theme="light"] .contest-card,
+[data-theme="light"] .sm-card,
+[data-theme="light"] .cf-card,
+[data-theme="light"] .routine-table-wrap,
+[data-theme="light"] .shortcut-help-card,
+[data-theme="light"] .alarm-panel-drawer,
+[data-theme="light"] .nav-mobile-drawer {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+/* ── Tables ─── */
+[data-theme="light"] .routine-table th,
+[data-theme="light"] .perf-table th,
+[data-theme="light"] .cf-table th,
+[data-theme="light"] table th {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+}
+
+[data-theme="light"] .routine-table td,
+[data-theme="light"] .perf-table td,
+[data-theme="light"] .cf-table td,
+[data-theme="light"] table td {
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+[data-theme="light"] .routine-table tr:hover td,
+[data-theme="light"] table tbody tr:hover td {
+  background: var(--color-surface-2);
+}
+
+/* ── Inputs & Selects ─── */
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+[data-theme="light"] input:focus,
+[data-theme="light"] select:focus,
+[data-theme="light"] textarea:focus {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+/* ── Buttons ─── */
+[data-theme="light"] .nav-btn,
+[data-theme="light"] .theme-toggle,
+[data-theme="light"] .nav-hamburger,
+[data-theme="light"] .nav-mobile-close {
+  background: var(--color-surface-2);
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+/* ── 60+ Rule timer ─── */
+[data-theme="light"] .sm-timer-wrap,
+[data-theme="light"] .sm-problem-panel,
+[data-theme="light"] .sm-phase-info,
+[data-theme="light"] .sm-history-wrap {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+[data-theme="light"] .phase-dot {
+  background: var(--color-surface-2);
+  border-color: var(--color-border);
+}
+
+/* ── Dashboard ─── */
+[data-theme="light"] .heatmap-cell {
+  background: var(--color-surface-2);
+}
+
+/* ── Resources ─── */
+[data-theme="light"] .res-site-card,
+[data-theme="light"] .res-book-card,
+[data-theme="light"] .res-tool-card {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+/* ── CF Filter ─── */
+[data-theme="light"] .cf-filter-wrap,
+[data-theme="light"] .cf-stats-bar {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+[data-theme="light"] .tag-chip {
+  background: var(--color-surface-2);
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+[data-theme="light"] .tag-chip.selected,
+[data-theme="light"] .tag-chip.active {
+  background: var(--color-primary-dim);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ── Notes ─── */
+[data-theme="light"] .note-editor-wrap {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+/* ── Hero sections ─── */
+[data-theme="light"] .cnt-hero,
+[data-theme="light"] .rtn-hero,
+[data-theme="light"] .sm-hero,
+[data-theme="light"] .cf-hero,
+[data-theme="light"] .dash-hero,
+[data-theme="light"] .res-hero,
+[data-theme="light"] .notes-hero {
+  background: linear-gradient(135deg, rgba(8,145,178,0.06) 0%, rgba(124,58,237,0.04) 100%);
+}
+
+/* ── Nav active link indicator ─── */
+[data-theme="light"] .nav-links a:hover,
+[data-theme="light"] .nav-links a.active {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+/* ── Tab buttons ─── */
+[data-theme="light"] .cnt-tab,
+[data-theme="light"] .rtn-tab,
+[data-theme="light"] .cf-tab {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+}
+
+[data-theme="light"] .cnt-tab.active,
+[data-theme="light"] .rtn-tab.active,
+[data-theme="light"] .cf-tab.active {
+  background: var(--color-primary-dim);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* ── Toast ─── */
+[data-theme="light"] .toast {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Status pills in light mode ─── */
+[data-theme="light"] .status-pill.loading {
+  background: var(--color-surface-2);
+}
+
+/* ── Routine category rows ─── */
+[data-theme="light"] .rtn-row-prayer { background: rgba(167,139,250,0.08); }
+[data-theme="light"] .rtn-row-sleep  { background: rgba(51,65,85,0.06); }
+[data-theme="light"] .rtn-row-meal   { background: rgba(251,146,60,0.08); }
+[data-theme="light"] .rtn-row-contest{ background: rgba(239,68,68,0.08); }
+
+/* ── Text colors ─── */
+[data-theme="light"] .text-muted,
+[data-theme="light"] [style*="color:var(--color-text-faint)"],
+[data-theme="light"] [style*="color: var(--color-text-faint)"] {
+  color: var(--color-text-muted) !important;
+}
+
+/* ── Gradient hero text stays visible ─── */
+[data-theme="light"] .page-title,
+[data-theme="light"] h1.gradient-text,
+[data-theme="light"] .hero-name .gradient-text {
+  background: linear-gradient(135deg, #0891b2, #7c3aed);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Toggle switch in light ─── */
+[data-theme="light"] .ts-slider {
+  background: var(--color-surface-3);
+}
+
+/* ─── Light Mode: Fix remaining hardcoded border/background values ────── */
+[data-theme="light"] {
+  /* These are the CSS vars we replaced hardcoded values with — verify they override */
+  --glass-bg: rgba(255,255,255,0.85);
+  --glass-bg-light: rgba(0,0,0,0.03);
+  --glass-border: rgba(0,0,0,0.1);
+  --color-border-subtle: rgba(0,0,0,0.05);
+}
+
+/* Ensure all card backgrounds use the surface color in light mode */
+[data-theme="light"] .dash-card,
+[data-theme="light"] .kpi-mini,
+[data-theme="light"] .note-item,
+[data-theme="light"] .note-textarea,
+[data-theme="light"] #notes-search,
+[data-theme="light"] .editor-toolbar input[type=text],
+[data-theme="light"] .tag-input,
+[data-theme="light"] .cf-table-wrap,
+[data-theme="light"] .poll-status,
+[data-theme="light"] .sm-card,
+[data-theme="light"] .tr-card,
+[data-theme="light"] .cf-user-card {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+[data-theme="light"] .routine-table-wrap,
+[data-theme="light"] .routine-table th {
+  background: var(--color-surface-2);
+}
+[data-theme="light"] .routine-table td {
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+[data-theme="light"] .routine-table tbody tr:hover td {
+  background: var(--color-surface-2);
+}
+
+/* Fix text on glass backgrounds */
+[data-theme="light"] .phase-dot { background: var(--color-surface-2); }
+[data-theme="light"] .cb-card { background: var(--color-surface); border-color: var(--color-border); }
+
+/* Fix contest banner visibility */
+[data-theme="light"] .contest-card {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+[data-theme="light"] .contest-card:hover {
+  background: var(--color-surface-2);
+}
+
+/* Input fields across all pages */
+[data-theme="light"] input[type="text"],
+[data-theme="light"] input[type="email"],
+[data-theme="light"] input[type="number"],
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  background: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
+}

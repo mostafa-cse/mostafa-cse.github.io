@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>60+ Min Rule — Md. Mostafa Kamal</title>
+  <meta name="description" content="The 60-minute problem solving timer with phase tracking, CF auto-detection, Rule of 10 streak, and personal stats.">
+
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="navbar.css">
+  <link rel="stylesheet" href="pages/sixty-min/sixty-min.css">
+</head>
+<body>
+
+<!-- ─── Navbar ──────────────────────────────────────────────── -->
+<nav class="navbar" id="navbar">
+  <div class="nav-progress" id="nav-progress"></div>
+  <div class="nav-inner container">
+    <a href="index.html" class="nav-logo">
+      <svg viewBox="0 0 36 36" fill="none" width="36" height="36">
+        <rect x="2" y="2" width="32" height="32" rx="8" fill="url(#smLogo)"/>
+        <text x="18" y="24" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="14" fill="#fff">&lt;/&gt;</text>
+        <defs>
+          <linearGradient id="smLogo" x1="0" y1="0" x2="36" y2="36">
+            <stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#8b5cf6"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="nav-logo-text">Mostafa<span class="nav-logo-accent">.cp</span></span>
+    </a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html" class="nav-link">Portfolio</a></li>
+      <li><a href="routine.html" class="nav-link">Routine</a></li>
+      <li><a href="cf-filter.html" class="nav-link">CF Filter</a></li>
+      <li><a href="sixty-min.html" class="nav-link active">60+ Rule</a></li>
+      <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+      <li><a href="resources.html" class="nav-link">Resources</a></li>
+      <li><a href="contests.html" class="nav-link">Contests</a></li>
+      <li><a href="notes.html" class="nav-link">Notes</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="theme-toggle" id="theme-toggle" data-theme-toggle aria-label="Toggle theme">
+        <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+<!-- ─── Mobile Nav Drawer ─────────────────────────────────── -->
+<div class="nav-mobile-overlay" id="nav-mobile-overlay"></div>
+<div class="nav-mobile-drawer" id="nav-mobile-drawer">
+  <button class="nav-mobile-close" id="nav-mobile-close" aria-label="Close menu">✕</button>
+  <a href="index.html" class="nav-link ">Portfolio</a>
+  <a href="routine.html" class="nav-link ">Routine</a>
+  <a href="cf-filter.html" class="nav-link ">CF Filter</a>
+  <a href="sixty-min.html" class="nav-link active">60+ Rule</a>
+  <a href="dashboard.html" class="nav-link ">Dashboard</a>
+  <a href="resources.html" class="nav-link ">Resources</a>
+  <a href="contests.html" class="nav-link ">Contests</a>
+  <a href="notes.html" class="nav-link ">Notes</a>
+</div>
+
+
+<!-- ─── Hero ────────────────────────────────────────────────── -->
+<header class="sm-hero">
+  <div class="container">
+    <h1>The 60+ Minute Rule</h1>
+    <p>Structured problem-solving · 6 phases · CF auto-detect · Rule of 10 streak tracker</p>
+  </div>
+</header>
+
+<!-- ─── Tabs ────────────────────────────────────────────────── -->
+<div class="sm-tabs" role="tablist">
+  <button class="sm-tab active" data-tab="timer"   role="tab" aria-selected="true">⏱ Timer</button>
+  <button class="sm-tab"        data-tab="history"  role="tab">📋 History</button>
+  <button class="sm-tab"        data-tab="rule10"   role="tab">🏆 Rule of 10</button>
+  <button class="sm-tab"        data-tab="cf"       role="tab">⚡ CF</button>
+  <button class="sm-tab"        data-tab="stats"    role="tab">📊 Stats</button>
+</div>
+
+<main>
+  <div class="container">
+
+    <!-- ─── Timer Tab ──────────────────────────────────────── -->
+    <div class="tab-pane active" id="tab-timer" role="tabpanel">
+      <div class="timer-layout">
+        <div class="timer-center">
+          <!-- Phase bar -->
+          <div id="phase-dots" aria-label="Phases" role="list"></div>
+
+          <!-- Big display -->
+          <div id="timer-display" aria-live="polite" aria-atomic="true">00:00</div>
+          <div id="current-phase-name">🔍 Reconnaissance</div>
+          <div id="current-phase-desc">Read the problem carefully. Understand constraints and examples.</div>
+
+          <!-- Problem meta -->
+          <div class="problem-input-wrap">
+            <input type="text" id="problem-name-input" placeholder="Problem name (optional)" autocomplete="off">
+            <input type="number" id="problem-rating-input" placeholder="Rating" min="800" max="3500" step="100">
+          </div>
+
+          <!-- Buttons -->
+          <div class="timer-btns">
+            <button class="timer-btn start-btn" id="timer-start-btn">▶ Start</button>
+            <button class="timer-btn solve-btn-sm" id="timer-solve-btn">✋ Solved!</button>
+            <button class="timer-btn reset-btn" id="timer-reset-btn">↺ Reset</button>
+          </div>
+
+          <!-- Quote -->
+          <div id="motivational-quote"></div>
+        </div>
+
+        <!-- Right panel -->
+        <div class="timer-right">
+          <!-- CF mini panel -->
+          <div class="tr-card">
+            <h3>⚡ CF Auto-Detect</h3>
+            <div class="cf-handle-row">
+              <input type="text" id="cf-handle-sm" placeholder="CF handle…" autocomplete="off">
+              <button id="cf-load-btn">Load</button>
+            </div>
+            <div id="cf-user-mini">
+              <img src="" alt="" class="cf-mini-avatar" id="cf-mini-avatar">
+              <div>
+                <div class="cf-mini-handle" id="cf-mini-handle">—</div>
+                <div class="cf-mini-rating" id="cf-mini-rating">—</div>
+              </div>
+            </div>
+            <div class="poll-status" id="poll-status">Not polling</div>
+          </div>
+
+          <!-- Phase legend -->
+          <div class="tr-card">
+            <h3>Phase Guide</h3>
+            <div id="phase-legend-list" style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.82rem">
+              <div style="color:var(--color-text-faint)">⏱ Start timer and phases will light up as you progress through the problem.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── History Tab ────────────────────────────────────── -->
+    <div class="tab-pane" id="tab-history" role="tabpanel">
+      <h2 style="padding:1.25rem 0 0;font-size:1.3rem;font-weight:700">Last 10 Sessions</h2>
+      <div class="history-table-wrap">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Problem</th>
+              <th>Time</th>
+              <th>Phase</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody">
+            <tr><td colspan="5" class="history-empty">No sessions yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── Rule of 10 Tab ─────────────────────────────────── -->
+    <div class="tab-pane" id="tab-rule10" role="tabpanel">
+      <div style="padding:1.5rem 0">
+        <div id="mastery-banner" role="alert">🏆 Mastery Achieved! 10 consecutive solves under 45 minutes!</div>
+        <div id="rule10-container"></div>
+      </div>
+    </div>
+
+    <!-- ─── CF Tab ─────────────────────────────────────────── -->
+    <div class="tab-pane" id="tab-cf" role="tabpanel">
+      <div style="padding:1.5rem 0;max-width:480px">
+        <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:1rem">CF Integration</h2>
+        <p style="color:var(--color-text-faint);font-size:0.9rem;margin-bottom:1rem">
+          Enter your Codeforces handle to enable auto-detection. The timer polls CF every 3 seconds while running and stops automatically when an Accepted submission is detected.
+        </p>
+        <div class="cf-handle-row">
+          <input type="text" id="cf-handle-full" placeholder="Your CF handle" autocomplete="off" style="flex:1;padding:0.5rem 0.75rem;background:var(--glass-bg);border:1px solid var(--color-border);border-radius:6px;color:var(--color-text);font-size:0.9rem">
+          <button id="cf-load-full-btn" style="padding:0.5rem 1rem;border-radius:6px;border:none;background:linear-gradient(135deg,#06b6d4,#8b5cf6);color:#fff;font-weight:600;cursor:pointer">Load Profile</button>
+        </div>
+        <div id="cf-full-card" style="margin-top:1rem"></div>
+      </div>
+    </div>
+
+    <!-- ─── Stats Tab ──────────────────────────────────────── -->
+    <div class="tab-pane" id="tab-stats" role="tabpanel">
+      <div style="padding:1.5rem 0">
+        <div id="stats-container"><div class="stats-empty">Solve problems to see stats here.</div></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ─── Phase Overlay ───────────────────────────────────────── -->
+<div id="phase-overlay" role="dialog" aria-live="assertive" aria-atomic="true"></div>
+
+<!-- ─── Toast ──────────────────────────────────────────────── -->
+<div id="sm-toast" role="alert" aria-live="polite"></div>
+
+<!-- ─── Footer ──────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <p class="footer-copy">© 2025 Md. Mostafa Kamal · JUST CSE · Bogura, Bangladesh</p>
+    </div>
+  </div>
+</footer>
+
+<script src="navbar.js" defer></script>
+<script type="module">
+import { initTimer, startTimer, pauseTimer, resetTimer, manualSolve, setCurrentProblem, getHistory, isRunning, getElapsed } from './pages/sixty-min/timer.js';
+import { PHASES, fmtTime } from './pages/sixty-min/phases.js';
+import { processResult, renderRule10, showFreezeOffer } from './pages/sixty-min/rule10.js';
+import { renderStats } from './pages/sixty-min/stats.js';
+import { setHandle, startPolling, stopPolling, getHandle } from './pages/sixty-min/cf-poll.js';
+import { fetchUserInfo } from './pages/cf-filter/cf-api.js';
+
+// Init timer
+initTimer({
+  onTickCb: (elapsed, phase) => {
+    if (isRunning()) updatePollStatus();
+  },
+  onPhaseCb: (phase, idx) => {
+    // Update legend
+    const legend = document.getElementById('phase-legend-list');
+    if (legend) {
+      legend.innerHTML = PHASES.map((p, i) => `
+        <div style="display:flex;align-items:center;gap:0.5rem;opacity:${i === idx ? 1 : 0.5}">
+          <span style="color:${p.color}">${p.emoji}</span>
+          <span style="color:${i === idx ? p.color : 'var(--text-muted)'}">
+            ${p.label} (${p.from}–${p.to === Infinity ? '60+' : p.to}m)
+          </span>
+        </div>
+      `).join('');
+    }
+  },
+  onSolveCb: (entry) => {
+    stopPolling();
+    const result = processResult(entry);
+    if (result === 'offer-freeze') showFreezeOffer();
+    renderRule10();
+    renderStats();
+    // Switch to history tab
+    switchTab('history');
+  },
+  onResetCb: () => {
+    stopPolling();
+    document.getElementById('poll-status').textContent = 'Not polling';
+    document.getElementById('poll-status').className = 'poll-status';
+  },
+});
+renderRule10();
+
+// Restore polling if timer was running on page load
+(function restoreTimerState() {
+  if (isRunning()) {
+    if (getHandle()) {
+      startPolling();
+    }
+    updatePollStatus();
+  }
+})();
+
+// Button bindings
+document.getElementById('timer-start-btn').addEventListener('click', () => {
+  // Read problem
+  const name   = document.getElementById('problem-name-input')?.value.trim() || 'Unknown';
+  const rating = parseInt(document.getElementById('problem-rating-input')?.value) || null;
+  setCurrentProblem({ name, rating });
+  // Start timer and polling
+  import('./pages/sixty-min/timer.js').then(m => {
+    if (!m.isRunning() && m.getElapsed() === 0) {
+      m.startTimer();
+      if (getHandle()) {
+        startPolling();
+        updatePollStatus();
+      }
+    } else if (m.isRunning()) {
+      m.pauseTimer();
+      stopPolling();
+      updatePollStatus();
+    } else {
+      m.startTimer();
+      if (getHandle()) {
+        startPolling();
+        updatePollStatus();
+      }
+    }
+  });
+});
+
+document.getElementById('timer-solve-btn').addEventListener('click', () => manualSolve());
+document.getElementById('timer-reset-btn').addEventListener('click', () => {
+  if (confirm('Reset timer?')) resetTimer();
+});
+
+function updatePollStatus() {
+  const el = document.getElementById('poll-status');
+  if (!el) return;
+  if (getHandle()) {
+    el.textContent = `Polling for AC (${getHandle()})`;
+    el.className = 'poll-status active';
+  } else {
+    el.textContent = 'No handle set — manual mode';
+    el.className = 'poll-status';
+  }
+}
+
+// CF handle (timer panel + CF tab)
+async function loadCFHandle(handle, mini = true) {
+  if (!handle) return;
+  setHandle(handle);
+  try {
+    const user = await fetchUserInfo(handle);
+    if (mini) {
+      const avatar = document.getElementById('cf-mini-avatar');
+      if (avatar) { avatar.src = user.avatar; }
+      const h = document.getElementById('cf-mini-handle');
+      if (h) h.textContent = user.handle;
+      const r = document.getElementById('cf-mini-rating');
+      if (r) r.textContent = `Rating: ${user.rating || 'N/A'} · ${user.rank || ''}`;
+      document.getElementById('cf-user-mini')?.classList.add('show');
+      updatePollStatus();
+    }
+    const fullCard = document.getElementById('cf-full-card');
+    if (fullCard) {
+      fullCard.innerHTML = `
+        <div style="display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--color-surface-2);border:1px solid var(--glass-border);border-radius:8px">
+          <img src="${user.avatar}" style="width:52px;height:52px;border-radius:8px" onerror="this.src='https://userpic.codeforces.org/no-avatar.jpg'">
+          <div>
+            <div style="font-weight:700;font-size:1rem">${user.handle}</div>
+            <div style="font-size:0.82rem;color:var(--color-text-faint);text-transform:capitalize">${user.rank || 'Unranked'}</div>
+            <div style="font-size:0.82rem;margin-top:0.3rem">Rating: <strong>${user.rating || 'N/A'}</strong> · Max: <strong>${user.maxRating || 'N/A'}</strong></div>
+          </div>
+        </div>
+        <p style="color:var(--color-text-faint);font-size:0.82rem;margin-top:0.75rem">Auto-detect is active. Start a timer and an Accepted submission will automatically stop it.</p>
+      `;
+    }
+  } catch (err) {
+    alert('Could not load user: ' + err.message);
+  }
+}
+
+// Restore saved CF handle
+const _smls = (() => { try { return window['local'+'Storage']; } catch { return null; } })();
+const SM_HANDLE_KEY = 'sm_cf_handle';
+(function restoreSMHandle() {
+  const saved = _smls?.getItem(SM_HANDLE_KEY);
+  if (saved) {
+    const inp = document.getElementById('cf-handle-sm');
+    const fullInp = document.getElementById('cf-handle-full');
+    if (inp) inp.value = saved;
+    if (fullInp) fullInp.value = saved;
+    loadCFHandle(saved, true);
+  }
+})();
+
+document.getElementById('cf-load-btn')?.addEventListener('click', () => {
+  const h = document.getElementById('cf-handle-sm')?.value.trim();
+  if (h) { try { if (_smls) _smls.setItem(SM_HANDLE_KEY, h); } catch {} }
+  loadCFHandle(h, true);
+});
+document.getElementById('cf-handle-sm')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') loadCFHandle(e.target.value.trim(), true);
+});
+document.getElementById('cf-load-full-btn')?.addEventListener('click', () => {
+  const h = document.getElementById('cf-handle-full')?.value.trim();
+  if (h) { document.getElementById('cf-handle-sm').value = h; loadCFHandle(h, true); }
+});
+
+// Tabs
+function switchTab(id) {
+  document.querySelectorAll('.sm-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === `tab-${id}`));
+  if (id === 'stats') renderStats();
+  if (id === 'rule10') renderRule10();
+}
+document.querySelectorAll('.sm-tab').forEach(tab => {
+  tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+});
+</script>
+</body>
+</html>

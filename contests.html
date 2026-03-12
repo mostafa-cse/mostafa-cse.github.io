@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contest Tracker — Md. Mostafa Kamal</title>
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="navbar.css">
+  <link rel="stylesheet" href="pages/contests/contests.css">
+</head>
+<body>
+<nav class="navbar" id="navbar">
+  <div class="nav-progress" id="nav-progress"></div>
+  <div class="nav-inner container">
+    <a href="index.html" class="nav-logo">
+      <svg viewBox="0 0 36 36" fill="none" width="36" height="36"><rect x="2" y="2" width="32" height="32" rx="8" fill="url(#cLogo)"/><text x="18" y="24" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="14" fill="#fff">&lt;/&gt;</text><defs><linearGradient id="cLogo" x1="0" y1="0" x2="36" y2="36"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient></defs></svg>
+      <span class="nav-logo-text">Mostafa<span class="nav-logo-accent">.cp</span></span>
+    </a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html" class="nav-link">Portfolio</a></li>
+      <li><a href="routine.html" class="nav-link">Routine</a></li>
+      <li><a href="cf-filter.html" class="nav-link">CF Filter</a></li>
+      <li><a href="sixty-min.html" class="nav-link">60+ Rule</a></li>
+      <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+      <li><a href="resources.html" class="nav-link">Resources</a></li>
+      <li><a href="contests.html" class="nav-link active">Contests</a></li>
+      <li><a href="notes.html" class="nav-link">Notes</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="theme-toggle" id="theme-toggle" data-theme-toggle aria-label="Toggle theme"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+<!-- ─── Mobile Nav Drawer ─────────────────────────────────── -->
+<div class="nav-mobile-overlay" id="nav-mobile-overlay"></div>
+<div class="nav-mobile-drawer" id="nav-mobile-drawer">
+  <button class="nav-mobile-close" id="nav-mobile-close" aria-label="Close menu">✕</button>
+  <a href="index.html" class="nav-link ">Portfolio</a>
+  <a href="routine.html" class="nav-link ">Routine</a>
+  <a href="cf-filter.html" class="nav-link ">CF Filter</a>
+  <a href="sixty-min.html" class="nav-link ">60+ Rule</a>
+  <a href="dashboard.html" class="nav-link ">Dashboard</a>
+  <a href="resources.html" class="nav-link ">Resources</a>
+  <a href="contests.html" class="nav-link active">Contests</a>
+  <a href="notes.html" class="nav-link ">Notes</a>
+</div>
+
+
+<header class="cnt-hero">
+  <div class="container" style="text-align:center">
+    <h1>Contest Tracker</h1>
+    <p class="page-sub">Upcoming CF · LeetCode · AtCoder contests · Past performance log with rating deltas</p>
+  </div>
+</header>
+
+<div class="cnt-tabs">
+  <button class="cnt-tab active" data-tab="upcoming">📅 Upcoming</button>
+  <button class="cnt-tab" data-tab="past">📊 Performance Log</button>
+</div>
+
+<main>
+  <div class="container">
+    <div class="cnt-tab-pane active" id="cnt-upcoming">
+      <div id="contest-cards" class="contest-cards">
+        <div style="color:var(--color-text-faint);font-size:0.9rem;padding:2rem 0">Loading contests…</div>
+      </div>
+    </div>
+    <div class="cnt-tab-pane" id="cnt-past">
+      <div class="perf-table-wrap">
+        <table class="perf-table">
+          <thead>
+            <tr><th>Date</th><th>Contest</th><th>Rank</th><th>Solved</th><th>Δ Rating</th><th>Rating After</th></tr>
+          </thead>
+          <tbody id="perf-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <p class="footer-copy">© 2025 Md. Mostafa Kamal · JUST CSE · Bogura, Bangladesh</p>
+    </div>
+  </div>
+</footer>
+
+<script src="navbar.js" defer></script>
+<script type="module">
+import { fetchCFContests, fetchLCContests, fetchAtCoderContests, fetchAllContestsKontests, PAST_PERFORMANCE } from './pages/contests/contest-fetch.js';
+
+const countdowns = {};
+
+function platformClass(p) {
+  const l = p.toLowerCase();
+  if (l.includes('codeforces')) return 'cf';
+  if (l.includes('leet'))       return 'lc';
+  if (l.includes('atcoder'))    return 'ac';
+  if (l.includes('codechef'))   return 'cc';
+  return 'other';
+}
+
+function fmtDuration(secs) {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  return h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
+}
+
+function fmtStartTime(ts) {
+  const d = new Date(ts * 1000);
+  return d.toLocaleString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+  });
+}
+
+function renderContests(all) {
+  const container = document.getElementById('contest-cards');
+  if (!all.length) {
+    container.innerHTML = '<div style="color:var(--color-text-faint);font-size:0.9rem;padding:2rem 0;text-align:center">No upcoming contests found. Check back later.</div>';
+    return;
+  }
+  const now = Date.now() / 1000;
+  container.innerHTML = all.map(c => {
+    const isLive = c.startTimeSeconds <= now && now < c.startTimeSeconds + c.durationSeconds;
+    const pClass = platformClass(c.platform);
+    const dur = fmtDuration(c.durationSeconds);
+    const startStr = fmtStartTime(c.startTimeSeconds);
+    const safeId = c.id.replace(/[^a-zA-Z0-9_-]/g, '_');
+    return `
+      <div class="contest-card platform-${pClass}">
+        <div class="cc-top">
+          <span class="cc-platform-badge platform-${pClass}">${c.platform}</span>
+          ${isLive ? '<span class="cc-live-badge">🔴 LIVE</span>' : ''}
+        </div>
+        <div class="cc-name">${c.name}</div>
+        <div class="cc-info-row">
+          <span class="cc-info-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            ${startStr}
+          </span>
+          <span class="cc-info-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+            ${dur}
+          </span>
+        </div>
+        <div class="cc-countdown-wrap">
+          <span class="cc-countdown-label">${isLive ? 'Ends in' : 'Starts in'}</span>
+          <span class="cc-countdown" id="cd-${safeId}">${isLive ? '🔴 LIVE' : '...'}</span>
+        </div>
+        <a href="${c.link}" target="_blank" rel="noopener noreferrer" class="cc-link${isLive ? ' cc-live-link' : ''}">
+          ${isLive ? '🚀 Join Now →' : 'View Contest →'}
+        </a>
+      </div>
+    `;
+  }).join('');
+
+  all.forEach(c => {
+    const safeId = c.id.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const elId = `cd-${safeId}`;
+    if (countdowns[elId]) clearInterval(countdowns[elId]);
+    countdowns[elId] = setInterval(() => {
+      const el = document.getElementById(elId);
+      if (!el) { clearInterval(countdowns[elId]); return; }
+      const now2 = Date.now() / 1000;
+      const isNowLive = c.startTimeSeconds <= now2 && now2 < c.startTimeSeconds + c.durationSeconds;
+      if (isNowLive) {
+        const left = c.startTimeSeconds + c.durationSeconds - now2;
+        const h = Math.floor(left/3600), m = Math.floor((left%3600)/60), s = Math.floor(left%60);
+        el.textContent = `${h}h ${m}m ${s}s`;
+        el.previousElementSibling.textContent = 'Ends in';
+      } else if (now2 >= c.startTimeSeconds + c.durationSeconds) {
+        el.textContent = '✅ Ended'; el.previousElementSibling.textContent = '';
+        clearInterval(countdowns[elId]);
+      } else {
+        const diff = c.startTimeSeconds - now2;
+        const d = Math.floor(diff/86400), h = Math.floor((diff%86400)/3600),
+              m = Math.floor((diff%3600)/60), s = Math.floor(diff%60);
+        el.textContent = d>0 ? `${d}d ${h}h ${m}m` : h>0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`;
+        el.previousElementSibling.textContent = 'Starts in';
+      }
+    }, 1000);
+  });
+}
+
+async function loadContests() {
+  const container = document.getElementById('contest-cards');
+  container.innerHTML = '<div style="color:var(--color-text-faint);font-size:0.9rem;padding:2rem 0;text-align:center">⏳ Loading contests…</div>';
+  let all = [];
+  try { all = await fetchAllContestsKontests(); } catch {}
+  if (!all.length) {
+    const [cf, lc, ac] = await Promise.allSettled([fetchCFContests(), fetchLCContests(), fetchAtCoderContests()]);
+    all = [
+      ...(cf.status==='fulfilled' ? cf.value : []),
+      ...(lc.status==='fulfilled' ? lc.value : []),
+      ...(ac.status==='fulfilled' ? ac.value : []),
+    ];
+  }
+  const now = Date.now() / 1000;
+  all = all.filter(c => c.startTimeSeconds > now - 7200).sort((a,b) => a.startTimeSeconds - b.startTimeSeconds);
+  renderContests(all);
+}
+
+document.getElementById('perf-tbody').innerHTML = PAST_PERFORMANCE.map(p => `
+  <tr>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--color-text-faint)">${p.date}</td>
+    <td style="color:var(--color-text)">${p.name}</td>
+    <td style="font-family:'JetBrains Mono',monospace">${p.rank}</td>
+    <td style="font-family:'JetBrains Mono',monospace;color:#06b6d4">${p.solved}</td>
+    <td class="${p.delta.startsWith('+') ? 'delta-pos' : 'delta-neg'}">${p.delta}</td>
+    <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#06b6d4">${p.cf}</td>
+  </tr>
+`).join('');
+
+document.querySelectorAll('.cnt-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.cnt-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.cnt-tab-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('cnt-' + tab.dataset.tab)?.classList.add('active');
+  });
+});
+
+loadContests();
+</script>
+</body>
+</html>

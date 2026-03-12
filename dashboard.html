@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Progress Dashboard — Md. Mostafa Kamal</title>
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="navbar.css">
+  <link rel="stylesheet" href="pages/dashboard/dashboard.css">
+  <script src="chart.min.js"></script>
+</head>
+<body>
+<nav class="navbar" id="navbar">
+  <div class="nav-progress" id="nav-progress"></div>
+  <div class="nav-inner container">
+    <a href="index.html" class="nav-logo">
+      <svg viewBox="0 0 36 36" fill="none" width="36" height="36"><rect x="2" y="2" width="32" height="32" rx="8" fill="url(#dLogo)"/><text x="18" y="24" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="14" fill="#fff">&lt;/&gt;</text><defs><linearGradient id="dLogo" x1="0" y1="0" x2="36" y2="36"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient></defs></svg>
+      <span class="nav-logo-text">Mostafa<span class="nav-logo-accent">.cp</span></span>
+    </a>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html" class="nav-link">Portfolio</a></li>
+      <li><a href="routine.html" class="nav-link">Routine</a></li>
+      <li><a href="cf-filter.html" class="nav-link">CF Filter</a></li>
+      <li><a href="sixty-min.html" class="nav-link">60+ Rule</a></li>
+      <li><a href="dashboard.html" class="nav-link active">Dashboard</a></li>
+      <li><a href="resources.html" class="nav-link">Resources</a></li>
+      <li><a href="contests.html" class="nav-link">Contests</a></li>
+      <li><a href="notes.html" class="nav-link">Notes</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="theme-toggle" id="theme-toggle" data-theme-toggle aria-label="Toggle theme"><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+<!-- ─── Mobile Nav Drawer ──────────────────────────────── -->
+<div class="nav-mobile-overlay" id="nav-mobile-overlay"></div>
+<div class="nav-mobile-drawer" id="nav-mobile-drawer">
+  <button class="nav-mobile-close" id="nav-mobile-close" aria-label="Close menu">✕</button>
+  <a href="index.html" class="nav-link">Portfolio</a>
+  <a href="routine.html" class="nav-link">Routine</a>
+  <a href="cf-filter.html" class="nav-link">CF Filter</a>
+  <a href="sixty-min.html" class="nav-link">60+ Rule</a>
+  <a href="dashboard.html" class="nav-link active">Dashboard</a>
+  <a href="resources.html" class="nav-link">Resources</a>
+  <a href="contests.html" class="nav-link">Contests</a>
+  <a href="notes.html" class="nav-link">Notes</a>
+</div>
+
+<!-- ─── Hero ────────────────────────────────────────────── -->
+<header class="dash-hero">
+  <div class="container" style="text-align:center">
+    <h1>Progress Dashboard</h1>
+    <p class="page-sub">CF Rating trajectory · Solve heatmap · Weekly activity · Tag breakdown</p>
+
+    <!-- ─── Dynamic Handle Input ──────────────────────── -->
+    <div class="dash-handle-wrap">
+      <div class="dash-handle-input-row">
+        <div class="dh-input-wrap">
+          <svg class="dh-icon" viewBox="0 0 24 24" fill="none" width="16" height="16">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input type="text" id="dash-handle" placeholder="Enter CF handle (e.g. Mostafa-cse)" autocomplete="off" spellcheck="false">
+          <button class="dh-clear" id="dh-clear" aria-label="Clear" title="Clear">✕</button>
+        </div>
+        <button class="dh-load-btn" id="dh-load">Load Stats</button>
+      </div>
+      <div id="dh-error" class="dh-error"></div>
+    </div>
+
+    <!-- ─── User card (shown after load) ──────────────── -->
+    <div id="dash-user-card" class="dash-user-card" style="display:none"></div>
+  </div>
+</header>
+
+<main>
+  <div class="container" style="padding-bottom:3rem">
+
+    <!-- KPI Row (dynamic) -->
+    <div class="kpi-row" style="margin-top:1.75rem">
+      <div class="kpi-mini"><div class="val" id="kpi-max-rating">—</div><div class="lbl">Max Rating</div></div>
+      <div class="kpi-mini"><div class="val" id="kpi-solved">—</div><div class="lbl">Problems Solved</div></div>
+      <div class="kpi-mini"><div class="val" id="kpi-rank">—</div><div class="lbl">Current Rank</div></div>
+      <div class="kpi-mini"><div class="val" id="kpi-contests-count">—</div><div class="lbl">Contests</div></div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="dash-loading" class="dash-loading" style="display:none">
+      <div class="dl-spinner"></div>
+      <div class="dl-msg">Fetching data from Codeforces…</div>
+    </div>
+
+    <!-- Charts grid -->
+    <div class="dash-grid" id="dash-grid">
+      <!-- Rating trend -->
+      <div class="dash-card" style="grid-column:span 2">
+        <div class="dc-header">
+          <h3>CF Rating Trend</h3>
+          <span class="dc-sub" id="rating-sub">Enter your handle to load live data</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="rating-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Problems per week -->
+      <div class="dash-card">
+        <div class="dc-header">
+          <h3>Problems / Week</h3>
+          <span class="dc-sub" id="week-sub">Last 12 weeks</span>
+        </div>
+        <div class="chart-container-sm">
+          <canvas id="week-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Tag distribution -->
+      <div class="dash-card">
+        <div class="dc-header">
+          <h3>Topic Distribution</h3>
+          <span class="dc-sub" id="tag-sub">By problem tags</span>
+        </div>
+        <div class="chart-container-sm">
+          <canvas id="tag-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Heatmap -->
+      <div class="dash-card" style="grid-column:span 2">
+        <h3>Solve Heatmap <span id="hm-total" style="font-weight:400;text-transform:none;color:var(--color-text-faint);font-size:0.85rem"></span></h3>
+        <div id="heatmap-container"></div>
+      </div>
+
+      <!-- Skill bars -->
+      <div class="dash-card">
+        <h3>Topic Mastery</h3>
+        <div class="skill-bars" id="skill-bars"></div>
+      </div>
+
+      <!-- Quick stats (dynamic) -->
+      <div class="dash-card">
+        <h3>Quick Stats</h3>
+        <div id="quick-stats" style="display:flex;flex-direction:column;gap:0.7rem;font-size:0.88rem">
+          <div class="qs-row"><span>Current Rating</span><strong id="qs-rating">—</strong></div>
+          <div class="qs-row"><span>Max Rating</span><strong id="qs-max" style="color:#06b6d4">—</strong></div>
+          <div class="qs-row"><span>Rank</span><strong id="qs-rank" style="color:#8b5cf6">—</strong></div>
+          <div class="qs-row"><span>Contests</span><strong id="qs-contests">—</strong></div>
+          <div class="qs-row"><span>Contribution</span><strong id="qs-contrib">—</strong></div>
+          <div class="qs-row"><span>Friend Count</span><strong id="qs-friends" style="color:#22c55e">—</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <p class="footer-copy">© 2025 Md. Mostafa Kamal · JUST CSE · Bogura, Bangladesh</p>
+    </div>
+  </div>
+</footer>
+
+<script src="navbar.js" defer></script>
+<script type="module">
+import { renderHeatmap } from './pages/dashboard/heatmap.js';
+import { initCharts, initRatingChart, initWeekChart, initTagChart } from './pages/dashboard/charts.js';
+
+// CF API helpers
+const CF_BASE = 'https://codeforces.com/api';
+async function cfFetch(endpoint) {
+  const url = `${CF_BASE}${endpoint}`;
+  const proxies = [
+    u => u,
+    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  ];
+  for (const proxy of proxies) {
+    try {
+      const r = await fetch(proxy(url), { signal: AbortSignal.timeout(12000) });
+      if (!r.ok) continue;
+      const d = await r.json();
+      if (d.status === 'OK') return d;
+    } catch {}
+  }
+  throw new Error('Cannot reach Codeforces API');
+}
+
+// Rank → color
+const RANK_COLORS = {
+  'newbie':'#94a3b8','pupil':'#22c55e','specialist':'#06b6d4',
+  'expert':'#3b82f6','candidate master':'#a855f7','master':'#f59e0b',
+  'international master':'#f59e0b','grandmaster':'#ef4444',
+  'international grandmaster':'#ef4444','legendary grandmaster':'#ef4444',
+};
+
+// Init static charts first
+renderHeatmap('heatmap-container');
+initCharts();
+
+// Skill bars (static for now)
+const skills = [
+  { label: 'Dynamic Programming', pct: 85, color: '#06b6d4' },
+  { label: 'Graph Theory',         pct: 78, color: '#8b5cf6' },
+  { label: 'Data Structures',      pct: 82, color: '#22c55e' },
+  { label: 'Mathematics',          pct: 74, color: '#f59e0b' },
+  { label: 'Greedy',               pct: 88, color: '#ef4444' },
+  { label: 'Strings',              pct: 65, color: '#ec4899' },
+];
+document.getElementById('skill-bars').innerHTML = skills.map(s => `
+  <div class="sb-row">
+    <div class="sb-label"><span>${s.label}</span><span style="color:${s.color}">${s.pct}%</span></div>
+    <div class="sb-bar-bg"><div class="sb-bar-fg" style="width:${s.pct}%;background:${s.color}"></div></div>
+  </div>`).join('');
+
+// ─── Load handle ─────────────────────────────────────────────────────────────
+async function loadHandle(handle) {
+  if (!handle) return;
+
+  const errEl    = document.getElementById('dh-error');
+  const loading  = document.getElementById('dash-loading');
+  const userCard = document.getElementById('dash-user-card');
+  errEl.textContent = '';
+  loading.style.display = 'flex';
+  userCard.style.display = 'none';
+
+  try {
+    // Save handle on successful load
+    try { if (_dls) _dls.setItem(DASH_HANDLE_KEY, handle); } catch {}
+    // Fetch in parallel: user info + rating history + submissions
+    const [infoData, ratingData, statusData] = await Promise.all([
+      cfFetch(`/user.info?handles=${encodeURIComponent(handle)}`),
+      cfFetch(`/user.rating?handle=${encodeURIComponent(handle)}`),
+      cfFetch(`/user.status?handle=${encodeURIComponent(handle)}&from=1&count=10000`),
+    ]);
+
+    const user    = infoData.result[0];
+    const ratings = ratingData.result;
+    const subs    = statusData.result;
+
+    // ── User card ──
+    const rankColor = RANK_COLORS[user.rank?.toLowerCase()] || '#06b6d4';
+    userCard.innerHTML = `
+      <img src="${user.avatar || 'https://userpic.codeforces.org/no-avatar.jpg'}" alt="${user.handle}" class="duc-avatar" onerror="this.src='https://userpic.codeforces.org/no-avatar.jpg'">
+      <div class="duc-info">
+        <div class="duc-handle" style="color:${rankColor}">${user.handle}</div>
+        <div class="duc-rank"   style="color:${rankColor}">${user.rank || 'Unranked'}</div>
+      </div>
+      <div class="duc-stats">
+        <span>Rating <strong style="color:${rankColor}">${user.rating || 'N/A'}</strong></span>
+        <span>Max <strong>${user.maxRating || 'N/A'}</strong></span>
+        <span>Contests <strong>${ratings.length}</strong></span>
+      </div>
+    `;
+    userCard.style.display = 'flex';
+
+    // ── KPI row ──
+    document.getElementById('kpi-max-rating').textContent     = user.maxRating || 'N/A';
+    document.getElementById('kpi-rank').textContent           = capitalize(user.rank || 'N/A');
+    document.getElementById('kpi-contests-count').textContent = ratings.length;
+
+    // ── Quick stats ──
+    document.getElementById('qs-rating').textContent  = user.rating || 'N/A';
+    document.getElementById('qs-max').textContent     = user.maxRating || 'N/A';
+    document.getElementById('qs-rank').textContent    = capitalize(user.rank || 'N/A');
+    document.getElementById('qs-contests').textContent = ratings.length;
+    document.getElementById('qs-contrib').textContent  = user.contribution >= 0 ? '+' + user.contribution : user.contribution || '—';
+    document.getElementById('qs-friends').textContent  = user.friendOfCount || '—';
+
+    // ── Rating chart ──
+    initRatingChart(ratings);
+    document.getElementById('rating-sub').textContent = `${ratings.length} contests · Current: ${user.rating}`;
+
+    // ── Solved set ──
+    const solved = new Set();
+    subs.forEach(s => { if (s.verdict === 'OK') solved.add(`${s.problem.contestId}_${s.problem.index}`); });
+    document.getElementById('kpi-solved').textContent = solved.size.toLocaleString();
+
+    // ── Weekly solve chart ──
+    const weekCounts = buildWeeklyData(subs);
+    initWeekChart(weekCounts);
+    document.getElementById('week-sub').textContent = `Last 12 weeks · ${solved.size} total solved`;
+
+    // ── Tag chart ──
+    const tagCounts = buildTagData(subs);
+    initTagChart(tagCounts);
+    document.getElementById('tag-sub').textContent = 'From accepted submissions';
+
+    // ── Heatmap ──
+    const solveDates = buildHeatmapData(subs);
+    renderHeatmap('heatmap-container', solveDates);
+
+  } catch (err) {
+    errEl.textContent = '⚠ ' + (err.message || 'Failed to load data. Check the handle.');
+    // Reset KPIs
+    ['kpi-max-rating','kpi-solved','kpi-rank','kpi-contests-count'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+    });
+  } finally {
+    loading.style.display = 'none';
+  }
+}
+
+function capitalize(s) {
+  if (!s) return s;
+  return s.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+function buildWeeklyData(subs) {
+  const counts = {};
+  const now = Date.now();
+  subs.forEach(s => {
+    if (s.verdict !== 'OK') return;
+    const ms    = s.creationTimeSeconds * 1000;
+    const weeksAgo = Math.floor((now - ms) / (7 * 86400000));
+    if (weeksAgo < 12) {
+      const key = weeksAgo;
+      counts[key] = (counts[key] || 0) + 1;
+    }
+  });
+  return Array.from({length:12}, (_,i) => ({
+    label: i === 0 ? 'This week' : `${11-i}w ago`,
+    count: counts[11-i] || 0,
+  }));
+}
+
+function buildTagData(subs) {
+  const tagMap = {};
+  const seen   = new Set();
+  subs.forEach(s => {
+    if (s.verdict !== 'OK') return;
+    const key = `${s.problem.contestId}_${s.problem.index}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    (s.problem.tags || []).forEach(t => {
+      tagMap[t] = (tagMap[t] || 0) + 1;
+    });
+  });
+  return Object.entries(tagMap).map(([tag, count]) => ({ tag, count }));
+}
+
+function buildHeatmapData(subs) {
+  const dateMap = {};
+  subs.forEach(s => {
+    if (s.verdict !== 'OK') return;
+    const d = new Date(s.creationTimeSeconds * 1000).toISOString().slice(0,10);
+    dateMap[d] = (dateMap[d] || 0) + 1;
+  });
+  return dateMap;
+}
+
+// ─── Handle Persistence ─────────────────────────────────────────────────────
+const _dls = (() => { try { return window['local'+'Storage']; } catch { return null; } })();
+const DASH_HANDLE_KEY = 'dash_cf_handle';
+(function restoreDashHandle() {
+  const saved = _dls?.getItem(DASH_HANDLE_KEY);
+  if (saved) {
+    document.getElementById('dash-handle').value = saved;
+    loadHandle(saved);
+  }
+})();
+
+// ─── Events ───────────────────────────────────────────────────────────────────
+document.getElementById('dh-load').addEventListener('click', () => {
+  const h = document.getElementById('dash-handle').value.trim();
+  if (h) loadHandle(h);
+});
+document.getElementById('dash-handle').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const h = e.target.value.trim();
+    if (h) loadHandle(h);
+  }
+});
+document.getElementById('dh-clear').addEventListener('click', () => {
+  document.getElementById('dash-handle').value = '';
+  document.getElementById('dh-error').textContent = '';
+  document.getElementById('dash-user-card').style.display = 'none';
+  ['kpi-max-rating','kpi-solved','kpi-rank','kpi-contests-count'].forEach(id => {
+    document.getElementById(id).textContent = '—';
+  });
+  initCharts(); // Reset to static charts
+});
+</script>
+</body>
+</html>
