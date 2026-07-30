@@ -81,11 +81,10 @@
   if (!typingEl) return;
 
   const phrases = [
-    'Algorithm-Driven Developer',
-    'Competitive Programmer',
-    'Full-Stack Engineer',
-    'Codeforces Expert',
-    'MERN Stack Developer',
+    'Full-Stack Software Engineer',
+    'Backend Systems Developer',
+    'Frontend Engineer',
+    'Algorithm-Driven Problem Solver',
   ];
   let pi = 0, ci = 0, deleting = false, paused = false;
 
