@@ -379,7 +379,7 @@ body { overflow-x: hidden; }
   width: 14px; height: 14px;
   border-radius: 50%;
   background: var(--color-success);
-  border: 2.5px solid #0d1117;
+  border: 2.5px solid var(--color-surface);
   box-shadow: 0 0 8px var(--color-success);
 }
 
@@ -1349,10 +1349,10 @@ body { overflow-x: hidden; }
   .project-head { flex-direction: column; align-items: flex-start; }
   .project-features { grid-template-columns: 1fr; }
   .achievements-grid { grid-template-columns: 1fr 1fr; }
+  .contact-cards { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
-  .form-row { grid-template-columns: 1fr; }
   .hero-ctas .btn { width: 100%; justify-content: center; }
   .achievements-grid { grid-template-columns: 1fr; }
   .footer-inner { align-items: center; text-align: center; }
