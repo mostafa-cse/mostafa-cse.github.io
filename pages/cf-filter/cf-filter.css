@@ -21,8 +21,6 @@
 
 .filter-card {
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
@@ -206,7 +204,6 @@
   width: 100%;
   padding: 0.85rem 1rem 0.85rem 3rem;
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   color: var(--color-text);
@@ -241,7 +238,6 @@
 }
 .kpi-card {
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   padding: 1rem 1.25rem;
@@ -297,7 +293,6 @@
 #user-card {
   display: none;
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   margin-bottom: 1.5rem;
@@ -339,7 +334,6 @@
   border-radius: var(--radius-xl);
   border: 1px solid var(--glass-border);
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
   box-shadow: var(--shadow-sm);
 }
 .cf-table {
@@ -458,7 +452,6 @@
   display: inline-block;
   width: 80%;
   height: 16px;
-  background: linear-gradient(90deg, var(--color-surface-3) 25%, rgba(255,255,255,0.08) 50%, var(--color-surface-3) 75%);
   background-size: 200% 100%;
   border-radius: 4px;
   animation: shimmer 1.5s ease-in-out infinite;
