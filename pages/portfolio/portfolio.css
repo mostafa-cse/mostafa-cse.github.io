@@ -214,7 +214,7 @@ body { overflow-x: hidden; }
 }
 
 .hero-name .gradient-text {
-  background: var(--gradient-primary);
+  color: var(--color-primary);
 }
 
 /* Typing tagline */
