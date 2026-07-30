@@ -1175,105 +1175,64 @@ body { overflow-x: hidden; }
   box-shadow: 0 0 8px var(--color-primary);
 }
 
-/* ══════════════════════════════════════════════════════ */
-/* CONTACT                                               */
-/* ══════════════════════════════════════════════════════ */
-.contact-grid {
+.contact-cards {
   display: grid;
-  grid-template-columns: 1fr 1.3fr;
-  gap: var(--space-12);
-  align-items: start;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-6);
+  margin-top: var(--space-8);
 }
 
-.contact-info { display: flex; flex-direction: column; gap: var(--space-4); }
-
-.contact-info-desc {
-  font-size: var(--text-base);
-  color: var(--color-text-muted);
-  line-height: 1.7;
-  margin-bottom: var(--space-2);
-}
-
-.contact-item {
+.contact-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4);
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
   background: var(--color-surface-2);
-  border-radius: var(--radius-xl);
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
   text-decoration: none;
   transition: all var(--transition-fast);
 }
 
-.contact-item:hover {
+.contact-card:hover {
+  transform: translateY(-5px);
   border-color: var(--color-primary);
-  background: var(--color-primary-dim);
-  transform: translateX(4px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
 }
 
-.contact-item-icon {
-  width: 44px; height: 44px;
-  border-radius: var(--radius-lg);
-  background: var(--color-primary-dim);
-  border: 1px solid rgba(6,182,212,0.15);
+[data-theme="dark"] .contact-card:hover {
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+.contact-card-icon {
+  font-size: 2rem;
+  margin-bottom: var(--space-4);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
-  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  background: var(--color-primary-dim);
+  border-radius: 50%;
+  color: var(--color-primary);
 }
 
-.contact-item-label { font-size: var(--text-xs); color: var(--color-text-faint); font-family: var(--font-mono); }
-.contact-item-value { font-size: var(--text-sm); color: var(--color-text); font-weight: 600; }
-
-/* Contact form */
-.contact-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  padding: var(--space-8);
-}
-
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
-.form-group { display: flex; flex-direction: column; gap: var(--space-2); }
-
-.form-label {
-  font-size: var(--text-xs);
+.contact-card-title {
+  font-size: var(--text-lg);
+  font-family: var(--font-display);
   font-weight: 700;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-}
-
-.form-input,
-.form-textarea {
-  background: var(--color-surface);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--text-sm);
   color: var(--color-text);
-  width: 100%;
-  outline: none;
-  resize: vertical;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-  font-family: var(--font-body);
+  margin-bottom: var(--space-2);
 }
 
-.form-input:focus,
-.form-textarea:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-dim);
+.contact-card-value {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  word-break: break-all;
 }
 
-.form-textarea { min-height: 120px; }
-
-/* ══════════════════════════════════════════════════════ */
-/* FOOTER                                                */
 /* ══════════════════════════════════════════════════════ */
 .footer {
   border-top: 1px solid var(--color-border);
@@ -1377,7 +1336,7 @@ body { overflow-x: hidden; }
   .about-grid { grid-template-columns: 1fr; }
   .about-stats { position: static; grid-template-columns: repeat(4, 1fr); }
   .about-whatido { grid-template-columns: 1fr 1fr; }
-  .contact-grid { grid-template-columns: 1fr; }
+  .contact-cards { grid-template-columns: repeat(2, 1fr); }
   .footer-inner { flex-direction: column; align-items: flex-start; }
   .footer-links { flex-wrap: wrap; }
 }
