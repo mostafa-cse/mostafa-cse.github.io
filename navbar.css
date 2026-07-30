@@ -74,7 +74,7 @@
   font-family: var(--font-display);
   font-weight: 700;
   font-size: var(--text-base);
-  background: var(--gradient-primary);
+  color: var(--color-primary);
 }
 
 /* Nav links */
