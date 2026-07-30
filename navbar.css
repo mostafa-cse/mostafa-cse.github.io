@@ -6,8 +6,6 @@
   z-index: 1000;
   height: var(--nav-height);
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid var(--glass-border);
   transition: all var(--transition-base);
 }
@@ -77,9 +75,6 @@
   font-weight: 700;
   font-size: var(--text-base);
   background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 /* Nav links */
@@ -233,7 +228,6 @@
   inset: 0;
   z-index: 999;
   background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(4px);
 }
 
 .nav-mobile-drawer {
@@ -387,7 +381,6 @@
   box-shadow: var(--shadow-lg);
   pointer-events: auto;
   animation: slideInToast 0.3s ease;
-  backdrop-filter: var(--glass-blur);
 }
 
 .toast.warning { border-left: 3px solid var(--color-warning); }
@@ -416,7 +409,6 @@
   position: absolute;
   inset: 0;
   background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(4px);
 }
 
 .alarm-panel-drawer {
@@ -442,7 +434,6 @@
   align-items: center;
   justify-content: center;
   background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(8px);
 }
 
 .shortcut-help.open { display: flex; }
