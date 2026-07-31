@@ -1,6 +1,6 @@
-/* tokens.css — Classic Design System Tokens */
+/* tokens.css — Liquid-Glassmorphism Dark Theme (Premium Vibe) */
 
-:root, [data-theme="light"] {
+:root, [data-theme="light"], [data-theme="dark"] {
   /* === TYPE SCALE === */
   --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
   --text-sm:   clamp(0.875rem, 0.8rem  + 0.35vw, 1rem);
@@ -16,130 +16,99 @@
   --space-8: 2rem;    --space-10: 2.5rem; --space-12: 3rem;
   --space-16: 4rem;   --space-20: 5rem;   --space-24: 6rem;
 
-  /* === LIGHT THEME COLORS (Classic Default) === */
-  --color-bg:              #f8fafc; /* Very light slate */
-  --color-surface:         #ffffff;
-  --color-surface-2:       #f1f5f9;
-  --color-surface-3:       #e2e8f0;
-  --color-border:          #cbd5e1;
-  --color-border-subtle:   #e2e8f0;
-  --color-divider:         #cbd5e1;
+  /* === PREMIUM DARK COLORS (From Reference) === */
+  --color-bg:              #0d0d0d;
+  --color-surface:         #141414;
+  --color-surface-2:       #1a1a1a;
+  --color-surface-3:       #2a2a2a;
+  
+  --color-border:          #2a2a2a;
+  --color-border-subtle:   rgba(42, 42, 42, 0.5);
+  --color-divider:         #2a2a2a;
 
-  --color-text:            #0f172a;
-  --color-text-muted:      #475569;
-  --color-text-faint:      #64748b;
-  --color-text-inverse:    #ffffff;
+  --color-text:            #e8e4dc;
+  --color-text-muted:      #8a8580;
+  --color-text-faint:      #5a5550;
+  --color-text-inverse:    #0d0d0d;
 
-  /* Primary — Classic Navy / Blue */
-  --color-primary:         #2563eb;
-  --color-primary-hover:   #1d4ed8;
-  --color-primary-active:  #1e40af;
-  --color-primary-dim:     rgba(37, 99, 235, 0.08);
-  --color-primary-glow:    rgba(37, 99, 235, 0.15); /* Soft shadow, not neon */
+  /* Primary Accent — Gold */
+  --color-primary:         #c8a96e;
+  --color-primary-hover:   #e8c87a;
+  --color-primary-active:  #c8a96e;
+  --color-primary-dim:     rgba(200, 169, 110, 0.1);
+  --color-primary-glow:    rgba(200, 169, 110, 0.15); 
 
-  /* Secondary — Deep Indigo */
-  --color-secondary:       #4f46e5;
-  --color-secondary-hover: #4338ca;
-  --color-secondary-dim:   rgba(79, 70, 229, 0.08);
-  --color-secondary-glow:  rgba(79, 70, 229, 0.15);
+  /* Secondary */
+  --color-secondary:       #c8a96e;
+  --color-secondary-hover: #e8c87a;
+  --color-secondary-dim:   rgba(200, 169, 110, 0.08);
+  --color-secondary-glow:  rgba(200, 169, 110, 0.15);
 
-  /* Accent — Amber/Orange for highlights */
-  --color-accent:          #d97706;
-  --color-accent-hover:    #b45309;
-  --color-accent-dim:      rgba(217, 119, 6, 0.1);
+  /* Accent */
+  --color-accent:          #c8a96e;
+  --color-accent-hover:    #e8c87a;
+  --color-accent-dim:      rgba(200, 169, 110, 0.1);
 
   /* Status colors */
-  --color-success:         #059669;
-  --color-success-dim:     rgba(5, 150, 105, 0.1);
-  --color-error:           #dc2626;
-  --color-error-dim:       rgba(220, 38, 38, 0.1);
-  --color-warning:         #d97706;
-  --color-warning-dim:     rgba(217, 119, 6, 0.1);
-  --color-info:            #2563eb;
-  --color-info-dim:        rgba(37, 99, 235, 0.1);
+  --color-success:         #4ade80;
+  --color-success-dim:     rgba(74, 222, 128, 0.15);
+  --color-error:           #ef4444;
+  --color-error-dim:       rgba(239, 68, 68, 0.1);
+  --color-warning:         #eab308;
+  --color-warning-dim:     rgba(234, 179, 8, 0.1);
+  --color-info:            #3b82f6;
+  --color-info-dim:        rgba(59, 130, 246, 0.1);
 
   /* CF Category colors */
-  --color-cf-rating:   #2563eb;  /* Blue */
-  --color-usaco:       #059669;  /* Green */
-  --color-topic:       #4f46e5;  /* Indigo */
-  --color-cses:        #ea580c;  /* Orange */
-  --color-contest:     #dc2626;  /* Red */
-  --color-prayer:      #d97706;  /* Amber */
-  --color-break:       #475569;  /* Slate */
+  --color-cf-rating:   #c8a96e; 
+  --color-usaco:       #4ade80; 
+  --color-topic:       #c8a96e; 
+  --color-cses:        #eab308; 
+  --color-contest:     #ef4444; 
+  --color-prayer:      #c8a96e; 
+  --color-break:       #5a5550; 
 
-  /* === NO GRADIENTS - USING SOLID COLORS FOR CLASSIC FEEL === */
-  --gradient-primary:    #2563eb;
-  --gradient-hero:       #ffffff;
-  --gradient-card:       #ffffff;
-  --gradient-nav-accent: #2563eb;
+  /* NO GRADIENTS - Solid colors */
+  --gradient-primary:    #c8a96e;
+  --gradient-hero:       #0d0d0d;
+  --gradient-card:       #141414;
+  --gradient-nav-accent: #c8a96e;
 
-  /* === NO GLASSMORPHISM - SOLID SURFACES === */
-  --glass-bg:       #ffffff;
-  --glass-border:   #cbd5e1;
-  --glass-blur:     none;
-  --glass-bg-light: #f8fafc;
+  /* LIQUID GLASSMORPHISM */
+  --glass-bg:       rgba(13, 13, 13, 0.9);
+  --glass-border:   rgba(42, 42, 42, 0.8);
+  --glass-blur:     blur(12px);
+  --glass-bg-light: rgba(20, 20, 20, 0.8);
 
-  /* === CLASSIC MATERIAL SHADOWS === */
-  --shadow-sm:      0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md:      0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg:      0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-glow-cyan:   var(--shadow-md); /* Override glow with standard shadow */
-  --shadow-glow-purple: var(--shadow-md); /* Override glow with standard shadow */
+  /* CLASSIC MATERIAL SHADOWS */
+  --shadow-sm:      0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md:      0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg:      0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-glow-cyan:   0 0 15px rgba(200, 169, 110, 0.2); 
+  --shadow-glow-purple: 0 0 15px rgba(200, 169, 110, 0.2);
 
-  /* === RADIUS - SLIGHTLY SHARPER FOR CLASSIC LOOK === */
+  /* RADIUS */
   --radius-sm: 0.25rem;  --radius-md: 0.375rem;
   --radius-lg: 0.5rem;   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;    --radius-full: 9999px;
 
-  /* === TRANSITIONS === */
+  /* TRANSITIONS */
   --transition-fast:  150ms ease-in-out;
   --transition-base:  250ms ease-in-out;
   --transition-slow:  400ms ease-in-out;
 
-  /* === FONTS === */
-  --font-display: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-  --font-body:    'Inter', 'Helvetica Neue', Arial, sans-serif;
-  --font-mono:    'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+  /* NEW FONTS (Reference Aesthetic) */
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
 
-  /* === LAYOUT === */
+  /* LAYOUT */
   --content-narrow:  640px;
   --content-default: 960px;
-  --content-wide:    1200px;
-  --nav-height:      64px;
+  --content-wide:    1100px;
+  --nav-height:      80px;
 
-  /* === LEGACY ALIASES === */
-  --text-primary:   var(--color-text);
-  --text-secondary: var(--color-text-muted);
-  --text-muted:     var(--color-text-faint);
-}
-
-/* DARK THEME (Classic, high contrast, non-glass) */
-[data-theme="dark"] {
-  --color-bg:              #0f172a;
-  --color-surface:         #1e293b;
-  --color-surface-2:       #334155;
-  --color-surface-3:       #475569;
-  --color-border:          #334155;
-  --color-border-subtle:   #1e293b;
-  --color-divider:         #475569;
-
-  --color-text:            #f8fafc;
-  --color-text-muted:      #94a3b8;
-  --color-text-faint:      #64748b;
-  --color-text-inverse:    #0f172a;
-
-  --color-primary:         #3b82f6;
-  --color-primary-hover:   #60a5fa;
-  --color-primary-dim:     rgba(59, 130, 246, 0.15);
-  
-  --glass-bg:       #1e293b;
-  --glass-border:   #334155;
-  --glass-bg-light: #334155;
-
-  --shadow-sm:      0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md:      0 4px 6px -1px rgba(0, 0, 0, 0.4);
-  --shadow-lg:      0 10px 15px -3px rgba(0, 0, 0, 0.5);
-
+  /* LEGACY ALIASES */
   --text-primary:   var(--color-text);
   --text-secondary: var(--color-text-muted);
   --text-muted:     var(--color-text-faint);
