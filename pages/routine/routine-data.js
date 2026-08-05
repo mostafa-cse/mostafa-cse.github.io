@@ -12,18 +12,20 @@
  * No manual mode toggle — schedule is always auto-computed.
  */
 
+// Colours are tuned for the dark "obsidian & gold" surfaces: each one clears
+// 3:1 contrast on --color-surface while staying distinguishable from its neighbours.
 export const CATEGORIES = {
-  CF:      { label: 'CF Rating-wise',   color: '#06b6d4', targetHours: 8   },
-  USACO:   { label: 'USACO',            color: '#22c55e', targetHours: 4   },
-  TOPIC:   { label: 'Topic / Contest',  color: '#8b5cf6', targetHours: 4   },
-  CSES:    { label: 'CSES Revision',    color: '#f59e0b', targetHours: 2   },
-  CONTEST: { label: 'Contest',          color: '#ef4444', targetHours: null },
-  BREAK:   { label: 'Break',            color: '#64748b', targetHours: null },
-  PRAYER:  { label: 'Prayer',           color: '#a78bfa', targetHours: null },
-  MEAL:    { label: 'Meal',             color: '#fb923c', targetHours: null },
-  SLEEP:   { label: 'Sleep',            color: '#334155', targetHours: null },
-  REVIEW:  { label: 'Review / Plan',    color: '#38bdf8', targetHours: null },
-  UPSOLVE: { label: 'Upsolving',        color: '#f472b6', targetHours: null },
+  CF:      { label: 'CF Rating-wise',   color: '#c8a96e', targetHours: 8   },
+  USACO:   { label: 'USACO',            color: '#5fd08a', targetHours: 4   },
+  TOPIC:   { label: 'Topic / Contest',  color: '#a78bff', targetHours: 4   },
+  CSES:    { label: 'CSES Revision',    color: '#e9b23c', targetHours: 2   },
+  CONTEST: { label: 'Contest',          color: '#f2555a', targetHours: null },
+  BREAK:   { label: 'Break',            color: '#8b9099', targetHours: null },
+  PRAYER:  { label: 'Prayer',           color: '#4ec9b0', targetHours: null },
+  MEAL:    { label: 'Meal',             color: '#f0954e', targetHours: null },
+  SLEEP:   { label: 'Sleep',            color: '#6b7280', targetHours: null },
+  REVIEW:  { label: 'Review / Plan',    color: '#58b0f5', targetHours: null },
+  UPSOLVE: { label: 'Upsolving',        color: '#f07ab0', targetHours: null },
 };
 
 // ─── Fixed daily anchor blocks (prayer, sleep, meals) ──────────────────────

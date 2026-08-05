@@ -18,6 +18,10 @@
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 800;
   background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
   margin: 0 0 0.5rem;
 }
 .cnt-hero p { color: var(--color-text-faint); font-size: var(--text-base); font-weight: 500; }

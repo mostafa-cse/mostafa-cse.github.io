@@ -10,15 +10,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CP Routine — Md. Mostafa Kamal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <meta name="description" content="Fully automatic CP practice routine. Auto-detects Codeforces, AtCoder, LeetCode contests and rebuilds daily schedule around them.">
+  <meta name="description" content="Fully automatic CP practice routine. Auto-detects Codeforces, AtCoder, LeetCode contests and rebuilds the daily schedule around them.">
+  <meta name="theme-color" content="#0a0a0b">
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://api.fontshare.com">
-  <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800,900&f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0b'/%3E%3Crect x='1.5' y='1.5' width='61' height='61' rx='12.5' fill='none' stroke='%23c8a96e' stroke-width='3'/%3E%3Ctext x='32' y='44' font-family='Georgia,serif' font-size='32' fill='%23c8a96e' text-anchor='middle'%3EM%3C/text%3E%3C/svg%3E">
 
   <!-- Shared styles -->
   <link rel="stylesheet" href="tokens.css">
@@ -28,126 +27,196 @@
 </head>
 <body>
 
+<a class="skip-link" href="#schedule">Skip to schedule</a>
+
+<!-- ─── Icon sprite ──────────────────────────────────────────────────── -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-bell" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M18 8.5a6 6 0 10-12 0c0 6-2.5 7.5-2.5 7.5h17S18 14.5 18 8.5zM13.7 20a2 2 0 01-3.4 0"/>
+    </symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M12 7v5.2l3.2 2"/>
+    </symbol>
+    <symbol id="i-mosque" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 3s3.5 2.6 3.5 5.2c0 1.5-1.6 2.3-3.5 2.3s-3.5-.8-3.5-2.3C8.5 5.6 12 3 12 3zM4 21v-7a2 2 0 012-2h12a2 2 0 012 2v7M4 21h16M10 21v-3.5a2 2 0 114 0V21"/>
+    </symbol>
+    <symbol id="i-keyboard" viewBox="0 0 24 24">
+      <rect x="2.5" y="6" width="19" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M8 14h8"/>
+    </symbol>
+  </defs>
+</svg>
+
 <!-- ─── Navbar ──────────────────────────────────────────────────────── -->
-<nav class="navbar" id="navbar" role="navigation" aria-label="Main navigation">
-  <div class="nav-progress" id="nav-progress"></div>
-  <div class="nav-inner container">
-    <a href="index.html" class="nav-logo" aria-label="Home">
-      <svg viewBox="0 0 36 36" fill="none" aria-hidden="true" width="36" height="36">
-        <rect x="2" y="2" width="32" height="32" rx="8" fill="url(#logoGrad)"/>
-        <text x="18" y="24" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="14" fill="#fff">&lt;/&gt;</text>
-        <defs>
-          <linearGradient id="logoGrad" x1="0" y1="0" x2="36" y2="36">
-            <stop offset="0%" stop-color="#06b6d4"/>
-            <stop offset="100%" stop-color="#8b5cf6"/>
-          </linearGradient>
-        </defs>
-      </svg>
-      <span class="nav-logo-text">Mostafa<span class="nav-logo-accent">.cp</span></span>
+<nav class="navbar" id="navbar" aria-label="Main navigation">
+  <div class="nav-progress" id="nav-progress" role="progressbar" aria-label="Reading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo" aria-label="Mostafa Kamal — home">
+      <span class="nav-logo-text">Md. <span class="nav-logo-accent">Mostafa</span> <span class="nav-logo-dot">·</span> Kamal</span>
     </a>
     <ul class="nav-links" id="nav-links" role="list">
-      <li><a href="index.html"    class="nav-link">Portfolio</a></li>
-      <li><a href="routine.html"  class="nav-link active">Routine</a></li>
+      <li><a href="#now" class="nav-link">Today</a></li>
+      <li><a href="#targets" class="nav-link">Targets</a></li>
+      <li><a href="#schedule" class="nav-link">Schedule</a></li>
+      <li><a href="index.html" class="nav-link nav-cta">← Portfolio</a></li>
     </ul>
     <div class="nav-actions">
-      <button class="nav-hamburger" aria-label="Menu" aria-expanded="false">
+      <button class="nav-hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="nav-mobile-drawer">
         <span></span><span></span><span></span>
       </button>
     </div>
   </div>
 </nav>
 
-<!-- ─── Mobile Nav Drawer ────────────────────────────────────────────── -->
-<div class="nav-mobile-overlay" id="nav-mobile-overlay"></div>
-<div class="nav-mobile-drawer" id="nav-mobile-drawer">
+<!-- ─── Mobile drawer ───────────────────────────────────────────────── -->
+<div class="nav-mobile-overlay" id="nav-mobile-overlay" aria-hidden="true"></div>
+<nav class="nav-mobile-drawer" id="nav-mobile-drawer" aria-label="Mobile navigation">
   <button class="nav-mobile-close" id="nav-mobile-close" aria-label="Close menu">✕</button>
-  <a href="index.html"    class="nav-link">Portfolio</a>
-  <a href="routine.html"  class="nav-link active">Routine</a>
-</div>
+  <a href="#now">Today</a>
+  <a href="#targets">Targets</a>
+  <a href="#schedule">Schedule</a>
+  <a href="index.html">← Portfolio</a>
+</nav>
 
-<!-- ─── Hero ─────────────────────────────────────────────────────────── -->
-<section class="routine-hero">
-  <div class="container">
-    <h1>CP Practice Routine</h1>
-    <p class="routine-hero-sub">Auto-scheduled · Contest-aware · Live prayer times · Alarm system</p>
+<button class="scroll-top-btn" aria-label="Scroll to top" title="Scroll to top (T)">↑</button>
 
-    <!-- Live clock -->
-    <div class="hero-clock-wrap">
-      <div id="live-clock">--:--:-- --</div>
-      <div id="live-date">Loading...</div>
-    </div>
+<main>
 
-    <!-- Prayer pills -->
-    <div id="prayer-pills" aria-label="Prayer times"></div>
+  <!-- ─── Hero: clock, now, next ────────────────────────────────────── -->
+  <section class="rt-hero" id="now">
+    <div class="container">
+      <div class="rt-hero-head">
+        <div>
+          <p class="rt-eyebrow">CP Suite · Auto-scheduled</p>
+          <h1>CP Practice Routine</h1>
+          <p class="routine-hero-sub">Contest-aware schedule · live prayer times · alarm system</p>
+        </div>
+        <div class="rt-hero-actions">
+          <span class="day-badge day-badge-loading" id="day-mode-badge">Detecting contests…</span>
+          <button class="alarm-bell-btn" id="alarm-bell" aria-label="Open alarm settings" aria-expanded="false" title="Alarm settings (A)">
+            <svg aria-hidden="true"><use href="#i-bell"></use></svg> Alarms
+          </button>
+        </div>
+      </div>
 
-    <!-- Auto day badge + controls -->
-    <div class="hero-controls">
-      <span class="day-badge day-badge-loading" id="day-mode-badge">Detecting contests...</span>
-      <div class="hero-control-right">
-        <span class="routine-progress-summary">Today: <strong id="routine-progress-pct">0%</strong> complete</span>
-        <button class="alarm-bell-btn" id="alarm-bell" aria-label="Open alarm settings" title="Alarm Settings (A)">Alarms</button>
+      <div class="rt-hero-grid">
+        <!-- Clock + day progress -->
+        <div class="rt-card rt-clock-card">
+          <div class="rt-card-label"><svg aria-hidden="true"><use href="#i-clock"></use></svg> Local time</div>
+          <div class="hero-clock-wrap">
+            <div id="live-clock">--:--:-- --</div>
+            <div id="live-date">Loading…</div>
+          </div>
+          <div class="day-progress">
+            <div class="day-ring" id="day-ring" style="--pct:0">
+              <span id="routine-progress-pct">0%</span>
+            </div>
+            <div class="day-progress-text">
+              <strong>Today's practice</strong>
+              <span>blocks completed</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Now -->
+        <div class="rt-card rt-now-card" id="now-card" aria-live="polite">
+          <div class="rt-card-label">Right now</div>
+          <div class="nc-empty">Computing schedule…</div>
+        </div>
+
+        <!-- Next -->
+        <div class="rt-card rt-next-card" id="next-card">
+          <div class="rt-card-label">Up next</div>
+          <div class="nc-empty">—</div>
+        </div>
+      </div>
+
+      <!-- Prayer times -->
+      <div class="prayer-strip">
+        <span class="prayer-strip-label"><svg aria-hidden="true"><use href="#i-mosque"></use></svg> Prayer times</span>
+        <div id="prayer-pills" aria-label="Prayer times"></div>
+        <span class="prayer-next" id="next-prayer"></span>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ─── Multi-Platform Contest Banner ────────────────────────────────── -->
-<div id="contest-banner" class="container" role="alert" aria-live="polite"></div>
+  <!-- ─── Contest banner (populated by contest-inject.js) ───────────── -->
+  <div class="container"><div id="contest-banner" role="status" aria-live="polite"></div></div>
 
-<!-- ─── Practice Summary ──────────────────────────────────────────────── -->
-<section class="practice-summary-section">
-  <div class="container">
-    <div class="ps-header">
-      <h2 class="ps-title">Today's Practice Targets</h2>
-      <span class="ps-auto-note">Auto-adjusted based on contest schedule</span>
+  <!-- ─── Practice targets ──────────────────────────────────────────── -->
+  <section class="practice-summary-section" id="targets">
+    <div class="container">
+      <div class="ps-header">
+        <h2 class="ps-title">Today's practice targets</h2>
+        <span class="ps-auto-note">Auto-adjusted around detected contests</span>
+      </div>
+      <div class="practice-summary" id="practice-summary">
+        <div class="ps-loading">Computing schedule…</div>
+      </div>
     </div>
-    <div class="practice-summary" id="practice-summary">
-      <!-- Populated by routine-engine.js -->
-      <div class="ps-loading">Computing schedule...</div>
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- ─── Schedule Table ────────────────────────────────────────────────── -->
-<main>
-  <section class="routine-section">
+  <!-- ─── Schedule ──────────────────────────────────────────────────── -->
+  <section class="routine-section" id="schedule">
     <div class="container">
       <div class="routine-table-header">
-        <h2 class="section-label">Today's Schedule</h2>
-        <span class="table-note">Updates automatically when contests are detected</span>
+        <h2 class="section-label">Today's schedule</h2>
+        <span class="table-note">Rebuilds automatically when a contest is detected</span>
       </div>
       <div class="routine-table-wrap">
-        <table class="routine-table" aria-label="Practice Schedule">
+        <table class="routine-table" aria-label="Practice schedule">
           <thead>
             <tr>
-              <th>Time</th>
-              <th>Category</th>
-              <th>Activity</th>
-              <th>Duration</th>
-              <th>Status</th>
-              <th class="rt-progress-col">Progress</th>
+              <th scope="col">Time</th>
+              <th scope="col">Category</th>
+              <th scope="col">Activity</th>
+              <th scope="col">Duration</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="rt-progress-col">Progress</th>
             </tr>
           </thead>
           <tbody id="routine-tbody">
-            <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--color-text-faint)">Loading schedule...</td></tr>
+            <tr><td colspan="6" class="rt-loading">Loading schedule…</td></tr>
           </tbody>
         </table>
       </div>
+      <p class="rt-legend">
+        <kbd>A</kbd> alarms · <kbd>R</kbd> refresh prayer times · <kbd>T</kbd> back to top · <kbd>?</kbd> shortcuts
+      </p>
     </div>
   </section>
 </main>
 
-<!-- ─── Alarm Panel ───────────────────────────────────────────────────── -->
-<aside id="alarm-panel" role="dialog" aria-label="Alarm Settings" aria-modal="true">
+<!-- ─── Alarm sheet ───────────────────────────────────────────────────── -->
+<div id="alarm-backdrop" hidden></div>
+<aside id="alarm-panel" role="dialog" aria-label="Alarm settings" aria-modal="true" hidden>
   <!-- Populated by alarm.js -->
 </aside>
 
-<!-- ─── Prayer Widget (bottom right popup) ───────────────────────────── -->
+<!-- ─── Shortcuts dialog ──────────────────────────────────────────────── -->
+<div id="shortcuts-backdrop" hidden></div>
+<aside id="shortcuts-panel" role="dialog" aria-label="Keyboard shortcuts" aria-modal="true" hidden>
+  <div class="ap-header">
+    <span><svg aria-hidden="true" width="18" height="18"><use href="#i-keyboard"></use></svg> Keyboard shortcuts</span>
+    <button class="ap-close" id="shortcuts-close" aria-label="Close">✕</button>
+  </div>
+  <dl class="sc-list">
+    <div><dt><kbd>A</kbd></dt><dd>Open alarm settings</dd></div>
+    <div><dt><kbd>R</kbd></dt><dd>Refresh prayer times</dd></div>
+    <div><dt><kbd>T</kbd></dt><dd>Scroll back to top</dd></div>
+    <div><dt><kbd>Esc</kbd></dt><dd>Close any panel</dd></div>
+    <div><dt><kbd>?</kbd></dt><dd>Show this list</dd></div>
+  </dl>
+</aside>
+
+<!-- ─── Prayer alert (appears when a prayer block starts) ─────────────── -->
 <div id="prayer-widget" role="status" aria-live="polite">
-  <div class="pw-icon">🕌</div>
+  <div class="pw-icon"><svg aria-hidden="true"><use href="#i-mosque"></use></svg></div>
   <div>
     <div class="pw-name">Next Prayer</div>
-    <div class="pw-sub">Loading...</div>
+    <div class="pw-sub">Loading…</div>
   </div>
 </div>
 
@@ -158,15 +227,36 @@
 <footer class="footer">
   <div class="container">
     <div class="footer-inner">
-      <p class="footer-copy">© 2025 Md. Mostafa Kamal · JUST CSE · Bogura, Bangladesh</p>
+      <p class="footer-copy">© 2026 <strong>Md. Mostafa Kamal</strong> · JUST CSE · Bogura, Bangladesh</p>
+      <div class="footer-links">
+        <a href="index.html" class="footer-link">Portfolio</a>
+        <a href="#schedule" class="footer-link">Schedule</a>
+      </div>
     </div>
   </div>
 </footer>
 
-<script src="navbar.js" defer></script>
+<script src="navbar.js?v=3" defer></script>
 <script type="module">
   import { initRoutine } from './pages/routine/routine-engine.js';
   document.addEventListener('DOMContentLoaded', () => initRoutine());
+</script>
+<script>
+// Scroll-to-top affordance (shared behaviour with the portfolio page)
+(function () {
+  const btn = document.querySelector('.scroll-top-btn');
+  if (!btn) return;
+  let ticking = false;
+  const update = () => {
+    btn.classList.toggle('visible', window.scrollY > window.innerHeight * 0.6);
+    ticking = false;
+  };
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  update();
+  btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+})();
 </script>
 </body>
 </html>
