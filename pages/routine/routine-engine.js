@@ -60,7 +60,9 @@ export async function initRoutine() {
 
   // Keyboard shortcuts
   document.addEventListener('keydown', handleKey);
-  document.getElementById('alarm-bell')?.addEventListener('click', toggleAlarmPanel);
+  // Wrapped: passing the listener directly would hand the click event to
+  // toggleAlarmPanel() as its "open" argument, so the sheet could never close.
+  document.getElementById('alarm-bell')?.addEventListener('click', () => openAlarms());
 
   // Contest-detected event (from contest-inject)
   document.addEventListener('contests-detected', () => {
@@ -137,21 +139,22 @@ function renderTable() {
     const isContest = block.type === 'contest';
     const urlAttr   = block.url ? `data-url="${block.url}"` : '';
 
+    // data-label drives the stacked-card layout used on narrow screens
     return `
       <tr class="routine-row${isContest ? ' contest-row' : ''}" data-id="${block.id}" data-type="${block.type}" ${urlAttr}>
-        <td class="rt-time">${block.start} – ${block.end}</td>
-        <td class="rt-cat">
+        <td class="rt-time" data-label="Time">${block.start} – ${block.end}</td>
+        <td class="rt-cat" data-label="Category">
           <span class="cat-badge" style="--cat-color:${cat.color}">${cat.label}</span>
         </td>
-        <td class="rt-activity">
+        <td class="rt-activity" data-label="Activity">
           <span class="block-name">${block.activity}</span>
           ${isContest && block.url ? `<a href="${block.url}" target="_blank" rel="noopener" class="contest-link">Open ↗</a>` : ''}
         </td>
-        <td class="rt-dur">${fmtDuration(dur)}</td>
-        <td class="rt-status">
+        <td class="rt-dur" data-label="Duration">${fmtDuration(dur)}</td>
+        <td class="rt-status" data-label="Status">
           <span class="status-badge status-upcoming">○ Upcoming</span>
         </td>
-        <td class="rt-progress-cell">
+        <td class="rt-progress-cell" data-label="Progress">
           <div class="mini-progress"><div class="mini-bar" style="width:0%"></div></div>
         </td>
       </tr>
@@ -177,12 +180,12 @@ function renderPracticeSummary() {
     const catMeta = CATEGORIES[cat];
     const pct     = Math.min(100, Math.round((actual / targetMins) * 100));
     return `
-      <div class="ps-item">
+      <div class="ps-item" style="--cat-color:${catMeta.color}">
         <span class="ps-label" style="color:${catMeta.color}">${catMeta.label}</span>
+        <span class="ps-val">${fmtDuration(actual)} <span class="ps-target">/ ${fmtDuration(targetMins)} · ${pct}%</span></span>
         <div class="ps-bar-wrap">
           <div class="ps-bar" style="width:${pct}%;background:${catMeta.color}"></div>
         </div>
-        <span class="ps-val">${fmtDuration(actual)} <span class="ps-target">/ ${fmtDuration(targetMins)}</span></span>
       </div>`;
   }).join('');
 
@@ -202,6 +205,8 @@ function tick() {
 
   let completedCount = 0;
   let practiceCount  = 0;
+  let activeBlock    = null;
+  let activeInfo     = null;
 
   for (const block of schedule) {
     let startM = block.startM;
@@ -227,6 +232,8 @@ function tick() {
       const minsLeft = total - elapsed;
 
       const nextBlock = schedule[schedule.indexOf(block) + 1] || null;
+      activeBlock = block;
+      activeInfo  = { pct, minsLeft, elapsed, total };
 
       row.classList.add('active-block');
       row.classList.remove('completed-block');
@@ -236,11 +243,8 @@ function tick() {
 
       checkAlarms(block, nextBlock, minsLeft);
 
-      // Auto-scroll once
-      if (!row.dataset.scrolled) {
-        row.dataset.scrolled = '1';
-        setTimeout(() => row.scrollIntoView({ behavior: 'smooth', block: 'center' }), 800);
-      }
+      // No auto-scroll: the "Right now" hero card already answers
+      // "what should I be doing?" without hijacking the reader's position.
 
     } else if (isDone) {
       row.classList.remove('active-block');
@@ -262,12 +266,73 @@ function tick() {
     if (block.type === 'practice') practiceCount++;
   }
 
-  // Update overall progress
+  // Update overall progress (label + ring)
   const pct = practiceCount > 0 ? Math.round((completedCount / practiceCount) * 100) : 0;
   const el  = document.getElementById('routine-progress-pct');
   if (el) el.textContent = pct + '%';
+  document.getElementById('day-ring')?.style.setProperty('--pct', pct);
 
+  renderNowNext(activeBlock, activeInfo, nowM);
   updateDayBadge();
+}
+
+// ─── "Right now" / "Up next" hero cards ──────────────────────────────────────
+function renderNowNext(activeBlock, info, nowM) {
+  const nowEl  = document.getElementById('now-card');
+  const nextEl = document.getElementById('next-card');
+  if (!nowEl || !nextEl) return;
+
+  const catOf = b => CATEGORIES[b.category] || { label: b.category, color: '#94a3b8' };
+  const badge = b => `<span class="cat-badge" style="--cat-color:${catOf(b).color}">${catOf(b).label}</span>`;
+
+  // ── Right now
+  if (activeBlock && info) {
+    nowEl.innerHTML = `
+      <div class="rt-card-label">Right now</div>
+      <div class="nc-body">
+        ${badge(activeBlock)}
+        <div class="nc-activity">${activeBlock.activity}</div>
+        <div class="nc-meta">
+          <span>${activeBlock.start} – ${activeBlock.end}</span>
+          <span class="nc-dot"></span>
+          <span>${fmtDuration(info.total)} block</span>
+        </div>
+        ${activeBlock.url ? `<a href="${activeBlock.url}" target="_blank" rel="noopener" class="nc-link">Open contest ↗</a>` : ''}
+        <div class="nc-bar"><div class="nc-bar-fill" style="width:${info.pct}%"></div></div>
+        <div class="nc-remaining"><strong>${fmtDuration(info.minsLeft)}</strong> remaining · ${info.pct}% done</div>
+      </div>`;
+  } else {
+    nowEl.innerHTML = `
+      <div class="rt-card-label">Right now</div>
+      <div class="nc-empty">Nothing scheduled at this minute — free slot.</div>`;
+  }
+
+  // ── Up next: the block after the active one, else the next one to start today
+  let next = null;
+  if (activeBlock) {
+    next = schedule[schedule.indexOf(activeBlock) + 1] || schedule[0] || null;
+  } else {
+    next = schedule.find(b => b.startM > nowM) || schedule[0] || null;
+  }
+
+  if (next) {
+    let until = next.startM - nowM;
+    if (until < 0) until += 1440;   // wraps past midnight
+    nextEl.innerHTML = `
+      <div class="rt-card-label">Up next</div>
+      <div class="nc-body">
+        ${badge(next)}
+        <div class="nc-activity">${next.activity}</div>
+        <div class="nc-meta">
+          <span>${next.start} – ${next.end}</span>
+        </div>
+        <div class="nc-remaining">starts in <strong>${fmtDuration(until)}</strong></div>
+      </div>`;
+  } else {
+    nextEl.innerHTML = `
+      <div class="rt-card-label">Up next</div>
+      <div class="nc-empty">—</div>`;
+  }
 }
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
@@ -281,12 +346,43 @@ function showToast(msg) {
 
 // ─── Keyboard shortcuts ───────────────────────────────────────────────────────
 function handleKey(e) {
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.metaKey || e.ctrlKey || e.altKey) return;
   switch (e.key) {
-    case 'a': case 'A': toggleAlarmPanel(); break;
-    case 'd': case 'D': document.dispatchEvent(new CustomEvent('toggle-theme')); break;
+    case 'a': case 'A': openAlarms(); break;
     case 'r': case 'R': initPrayer().then(() => showToast('🕌 Prayer times refreshed')); break;
     case 't': case 'T': window.scrollTo({ top: 0, behavior: 'smooth' }); break;
-    case '?': alert('Keyboard Shortcuts:\nA = Alarm Panel\nD = Dark Mode Toggle\nR = Refresh Prayer Times\nT = Scroll to Top\n? = Help'); break;
+    case '?': toggleShortcuts(true); break;
+    case 'Escape': closePanels(); break;
   }
 }
+
+// ─── Panels ───────────────────────────────────────────────────────────────────
+// Only one sheet at a time — they occupy the same corner of the screen.
+function openAlarms() {
+  toggleShortcuts(false);
+  toggleAlarmPanel();
+}
+
+function toggleShortcuts(open) {
+  const panel    = document.getElementById('shortcuts-panel');
+  const backdrop = document.getElementById('shortcuts-backdrop');
+  if (!panel) return;
+  const show = typeof open === 'boolean' ? open : panel.hidden;
+  panel.hidden = !show;
+  if (backdrop) backdrop.hidden = !show;
+  if (show) {
+    toggleAlarmPanel(false);
+    panel.querySelector('.ap-close')?.focus();
+  }
+}
+
+function closePanels() {
+  toggleShortcuts(false);
+  const alarm = document.getElementById('alarm-panel');
+  if (alarm && !alarm.hidden) toggleAlarmPanel(false);
+}
+
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'shortcuts-backdrop' || e.target.id === 'shortcuts-close') toggleShortcuts(false);
+  if (e.target.id === 'alarm-backdrop') toggleAlarmPanel(false);
+});

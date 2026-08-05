@@ -1,4 +1,4 @@
-/* tokens.css — Liquid-Glassmorphism Dark Theme (Premium Vibe) */
+/* tokens.css — Obsidian & Gold design system (premium dark theme) */
 
 :root, [data-theme="light"], [data-theme="dark"] {
   /* === TYPE SCALE === */
@@ -16,97 +16,134 @@
   --space-8: 2rem;    --space-10: 2.5rem; --space-12: 3rem;
   --space-16: 4rem;   --space-20: 5rem;   --space-24: 6rem;
 
-  /* === PREMIUM DARK COLORS (From Reference) === */
-  --color-bg:              #0d0d0d;
-  --color-surface:         #141414;
-  --color-surface-2:       #1a1a1a;
-  --color-surface-3:       #2a2a2a;
-  
-  --color-border:          #2a2a2a;
-  --color-border-subtle:   rgba(42, 42, 42, 0.5);
-  --color-divider:         #2a2a2a;
+  /* === SURFACES ===
+     Five steps of elevation. Each step is a real lightness change so cards
+     separate from the page without needing heavy borders. */
+  --color-bg:              #0a0a0b;
+  --color-bg-deep:         #060607;
+  --color-surface:         #101012;
+  --color-surface-2:       #151518;
+  --color-surface-3:       #1d1d21;
+  --color-surface-4:       #26262c;
 
-  --color-text:            #e8e4dc;
-  --color-text-muted:      #8a8580;
-  --color-text-faint:      #5a5550;
-  --color-text-inverse:    #0d0d0d;
+  --color-border:          #26262b;
+  --color-border-strong:   #34343b;
+  --color-border-subtle:   rgba(255, 255, 255, 0.06);
+  --color-divider:         rgba(255, 255, 255, 0.07);
 
-  /* Primary Accent — Gold */
-  --color-primary:         #c8a96e;
-  --color-primary-hover:   #e8c87a;
-  --color-primary-active:  #c8a96e;
-  --color-primary-dim:     rgba(200, 169, 110, 0.1);
-  --color-primary-glow:    rgba(200, 169, 110, 0.15); 
+  /* Inner top-edge highlight that gives glass its "lit" edge */
+  --edge-highlight:        inset 0 1px 0 rgba(255, 255, 255, 0.055);
+  --edge-highlight-strong: inset 0 1px 0 rgba(255, 255, 255, 0.10);
 
-  /* Secondary */
-  --color-secondary:       #c8a96e;
-  --color-secondary-hover: #e8c87a;
+  /* === TEXT === */
+  --color-text:            #ece7dd;
+  --color-text-muted:      #9d968c;
+  --color-text-faint:      #77706a;
+  --color-text-inverse:    #0a0a0b;
+
+  /* === GOLD ACCENT ===
+     A single hue family, ramped so highlights read as light hitting metal. */
+  --gold-50:               #f6ead0;
+  --gold-100:              #e8c87a;
+  --gold-200:              #d8b779;
+  --gold-300:              #c8a96e;
+  --gold-400:              #a88a52;
+  --gold-500:              #7d6539;
+
+  --color-primary:         var(--gold-300);
+  --color-primary-hover:   var(--gold-100);
+  --color-primary-active:  var(--gold-200);
+  --color-primary-dim:     rgba(200, 169, 110, 0.10);
+  --color-primary-soft:    rgba(200, 169, 110, 0.18);
+  --color-primary-line:    rgba(200, 169, 110, 0.28);
+  --color-primary-glow:    rgba(200, 169, 110, 0.15);
+  --color-on-primary:      #14100a;
+
+  /* Secondary / accent kept as aliases so every page stays on one hue */
+  --color-secondary:       var(--gold-300);
+  --color-secondary-hover: var(--gold-100);
   --color-secondary-dim:   rgba(200, 169, 110, 0.08);
   --color-secondary-glow:  rgba(200, 169, 110, 0.15);
+  --color-accent:          var(--gold-300);
+  --color-accent-hover:    var(--gold-100);
+  --color-accent-dim:      rgba(200, 169, 110, 0.10);
 
-  /* Accent */
-  --color-accent:          #c8a96e;
-  --color-accent-hover:    #e8c87a;
-  --color-accent-dim:      rgba(200, 169, 110, 0.1);
+  /* === STATUS === */
+  --color-success:         #52d98a;
+  --color-success-dim:     rgba(82, 217, 138, 0.14);
+  --color-error:           #f2555a;
+  --color-error-dim:       rgba(242, 85, 90, 0.12);
+  --color-warning:         #e9b23c;
+  --color-warning-dim:     rgba(233, 178, 60, 0.12);
+  --color-info:            #4c9dff;
+  --color-info-dim:        rgba(76, 157, 255, 0.12);
 
-  /* Status colors */
-  --color-success:         #4ade80;
-  --color-success-dim:     rgba(74, 222, 128, 0.15);
-  --color-error:           #ef4444;
-  --color-error-dim:       rgba(239, 68, 68, 0.1);
-  --color-warning:         #eab308;
-  --color-warning-dim:     rgba(234, 179, 8, 0.1);
-  --color-info:            #3b82f6;
-  --color-info-dim:        rgba(59, 130, 246, 0.1);
+  /* === PLATFORM BRAND COLORS === */
+  --brand-codeforces: #4c9dff;
+  --brand-codechef:   #d08a45;
+  --brand-leetcode:   #ffa116;
+  --brand-atcoder:    #b9b3ab;
+  --brand-vjudge:     #56c26a;
+  --brand-lightoj:    #35b6f2;
 
-  /* CF Category colors */
-  --color-cf-rating:   #c8a96e; 
-  --color-usaco:       #4ade80; 
-  --color-topic:       #c8a96e; 
-  --color-cses:        #eab308; 
-  --color-contest:     #ef4444; 
-  --color-prayer:      #c8a96e; 
-  --color-break:       #5a5550; 
+  /* CF Category colors (routine / suite pages) */
+  --color-cf-rating:   var(--gold-300);
+  --color-usaco:       var(--color-success);
+  --color-topic:       var(--gold-300);
+  --color-cses:        var(--color-warning);
+  --color-contest:     var(--color-error);
+  --color-prayer:      var(--gold-300);
+  --color-break:       var(--color-text-faint);
 
-  /* NO GRADIENTS - Solid colors */
-  --gradient-primary:    #c8a96e;
-  --gradient-hero:       #0d0d0d;
-  --gradient-card:       #141414;
-  --gradient-nav-accent: #c8a96e;
+  /* === GRADIENTS === */
+  --gradient-primary:   linear-gradient(135deg, var(--gold-100) 0%, var(--gold-300) 52%, var(--gold-400) 100%);
+  --gradient-gold-text: linear-gradient(120deg, #f6ead0 0%, #e8c87a 34%, #c8a96e 62%, #f0dcae 100%);
+  --gradient-hero:      radial-gradient(120% 90% at 78% 8%, rgba(200,169,110,0.11) 0%, transparent 58%);
+  --gradient-card:      linear-gradient(160deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.012) 42%, transparent 100%);
+  --gradient-nav-accent: var(--gradient-primary);
+  --gradient-hairline:  linear-gradient(90deg, transparent, var(--color-primary-line) 22%, var(--color-primary-soft) 50%, var(--color-primary-line) 78%, transparent);
 
-  /* LIQUID GLASSMORPHISM */
-  --glass-bg:       rgba(13, 13, 13, 0.9);
-  --glass-border:   rgba(42, 42, 42, 0.8);
-  --glass-blur:     blur(12px);
-  --glass-bg-light: rgba(20, 20, 20, 0.8);
+  /* === GLASS === */
+  --glass-bg:       rgba(16, 16, 18, 0.72);
+  --glass-bg-light: rgba(30, 30, 35, 0.62);
+  --glass-border:   rgba(255, 255, 255, 0.08);
+  --glass-blur:     blur(16px) saturate(140%);
 
-  /* CLASSIC MATERIAL SHADOWS */
-  --shadow-sm:      0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md:      0 4px 6px -1px rgba(0, 0, 0, 0.4);
-  --shadow-lg:      0 10px 15px -3px rgba(0, 0, 0, 0.5);
-  --shadow-glow-cyan:   0 0 15px rgba(200, 169, 110, 0.2); 
-  --shadow-glow-purple: 0 0 15px rgba(200, 169, 110, 0.2);
+  /* === SHADOWS ===
+     Two-layer: a tight contact shadow plus a wide ambient one. */
+  --shadow-sm:   0 1px 2px rgba(0,0,0,0.45);
+  --shadow-md:   0 2px 4px rgba(0,0,0,0.35), 0 8px 20px -6px rgba(0,0,0,0.55);
+  --shadow-lg:   0 4px 8px rgba(0,0,0,0.35), 0 20px 44px -12px rgba(0,0,0,0.65);
+  --shadow-xl:   0 8px 16px rgba(0,0,0,0.32), 0 36px 80px -20px rgba(0,0,0,0.72);
+  --shadow-gold:       0 10px 30px -10px rgba(200, 169, 110, 0.35);
+  --shadow-gold-lg:    0 18px 48px -14px rgba(200, 169, 110, 0.45);
+  --shadow-glow-cyan:   0 0 24px rgba(200, 169, 110, 0.18);
+  --shadow-glow-purple: 0 0 24px rgba(200, 169, 110, 0.18);
 
-  /* RADIUS */
-  --radius-sm: 0.25rem;  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;   --radius-xl: 0.75rem;
-  --radius-2xl: 1rem;    --radius-full: 9999px;
+  /* === RADIUS === */
+  --radius-sm: 0.375rem; --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;  --radius-full: 9999px;
 
-  /* TRANSITIONS */
-  --transition-fast:  150ms ease-in-out;
-  --transition-base:  250ms ease-in-out;
-  --transition-slow:  400ms ease-in-out;
+  /* === MOTION === */
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast:  160ms var(--ease-out);
+  --transition-base:  280ms var(--ease-out);
+  --transition-slow:  480ms var(--ease-out);
 
-  /* NEW FONTS (Reference Aesthetic) */
-  --font-display: 'Instrument Serif', Georgia, serif;
-  --font-body:    'DM Sans', system-ui, sans-serif;
-  --font-mono:    'JetBrains Mono', monospace;
+  /* === FONTS === */
+  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --font-serif:   var(--font-display);
+  --font-body:    'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 
-  /* LAYOUT */
+  /* === LAYOUT === */
   --content-narrow:  640px;
   --content-default: 960px;
-  --content-wide:    1100px;
-  --nav-height:      80px;
+  --content-wide:    1140px;
+  --nav-height:      76px;
 
   /* LEGACY ALIASES */
   --text-primary:   var(--color-text);

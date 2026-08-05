@@ -177,6 +177,10 @@ export function updateActivePrayer() {
     p.classList.toggle('active', p.dataset.prayer === next?.name);
   });
 
+  // Caption in the prayer strip
+  const note = document.getElementById('next-prayer');
+  if (note && next) note.textContent = `Next: ${next.name} · ${next.time}`;
+
   // Update the fixed prayer widget with next prayer info
   const widget = document.getElementById('prayer-widget');
   if (widget && next) {

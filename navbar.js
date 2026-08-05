@@ -12,16 +12,25 @@
                   || document.querySelector('.nav-progress-bar')
                   || document.querySelector('.nav-progress');
 
+  let ticking = false;
+
   function onScroll() {
-    const scrollY    = window.scrollY;
-    const maxScroll  = document.documentElement.scrollHeight - window.innerHeight;
-    if (navbar)     navbar.classList.toggle('scrolled', scrollY > 20);
+    const scrollY   = window.scrollY;
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    if (navbar) navbar.classList.toggle('scrolled', scrollY > 16);
     if (progressEl && maxScroll > 0) {
-      progressEl.style.width = `${Math.min(100, (scrollY / maxScroll) * 100)}%`;
+      const pct = Math.min(100, Math.max(0, (scrollY / maxScroll) * 100));
+      progressEl.style.width = `${pct}%`;
+      progressEl.setAttribute('aria-valuenow', Math.round(pct));
     }
+    ticking = false;
   }
 
-  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(onScroll); }
+  }, { passive: true });
+
+  onScroll();
 
   // ── Hamburger / Mobile Drawer ─────────────────────────────────────────
   // Support both id="nav-mobile-*" (sub-pages) and class-only (index.html)

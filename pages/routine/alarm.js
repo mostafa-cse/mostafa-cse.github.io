@@ -182,12 +182,24 @@ function bindAlarmEvents() {
   document.querySelectorAll('.ap-test').forEach(btn => {
     btn.addEventListener('click', () => playSound(btn.dataset.type));
   });
-  document.getElementById('alarm-close')?.addEventListener('click', () => {
-    document.getElementById('alarm-panel').classList.remove('open');
-  });
+  document.getElementById('alarm-close')?.addEventListener('click', () => toggleAlarmPanel(false));
 }
 
-export function toggleAlarmPanel() {
-  const panel = document.getElementById('alarm-panel');
-  if (panel) panel.classList.toggle('open');
+/**
+ * Show/hide the alarm sheet.
+ * @param {boolean} [open] force a state; omit to toggle
+ */
+export function toggleAlarmPanel(open) {
+  const panel    = document.getElementById('alarm-panel');
+  const backdrop = document.getElementById('alarm-backdrop');
+  const bell     = document.getElementById('alarm-bell');
+  if (!panel) return;
+
+  const show = typeof open === 'boolean' ? open : panel.hidden;
+  panel.hidden = !show;
+  if (backdrop) backdrop.hidden = !show;
+  bell?.setAttribute('aria-expanded', String(show));
+
+  if (show) panel.querySelector('.ap-close')?.focus();
+  else if (document.activeElement && panel.contains(document.activeElement)) bell?.focus();
 }
