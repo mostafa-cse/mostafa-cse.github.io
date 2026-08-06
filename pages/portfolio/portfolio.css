@@ -858,6 +858,353 @@ body::after {
   display: block;
 }
 
+/* ── Codeforces panel ──────────────────────────────────────────────────
+   Real API data (rating ladder, history, topics). Rank hues are decorative
+   here — every one of them sits beside its rank name in text. */
+.cf-panel {
+  --rank-color: var(--color-primary);
+  position: relative;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+  background-image: var(--gradient-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md), var(--edge-highlight);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 2.5vw, 1.75rem);
+}
+.cf-panel[hidden] { display: none; }
+
+.cf-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.cf-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.cf-monogram {
+  display: grid;
+  place-items: center;
+  width: 46px; height: 46px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--rank-color);
+  background: color-mix(in srgb, var(--rank-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rank-color) 32%, transparent);
+  box-shadow: var(--edge-highlight);
+}
+
+.cf-handle-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--rank-color);
+  text-decoration: none;
+}
+.cf-handle-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.cf-rank-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.cf-rank-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--rank-color);
+  box-shadow: 0 0 10px var(--rank-color);
+}
+.cf-sep { color: var(--color-text-faint); }
+
+.cf-updated {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+
+/* Copy button */
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface-2);
+  box-shadow: var(--edge-highlight);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+.copy-btn:hover { border-color: var(--color-primary-line); color: var(--color-primary); }
+.copy-btn.is-copied {
+  border-color: rgba(82, 217, 138, 0.5);
+  color: var(--color-success);
+}
+.copy-btn.is-copied span::after { content: 'ied'; }
+
+/* Stat tiles */
+.cf-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1px;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.cf-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-4);
+  background: var(--color-surface-2);
+}
+.cf-tile-num {
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.cf-tile-key {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--color-text-faint);
+}
+
+/* ── Rank ladder ─────────────────────────────────────────────────────── */
+.cf-ladder-wrap { display: flex; flex-direction: column; gap: var(--space-3); }
+
+.ladder-track {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 3px;
+  padding-top: 26px;
+}
+
+.ladder-step { --step-color: var(--color-surface-4); display: flex; flex-direction: column; gap: 6px; }
+
+.ladder-step-bar {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-3);
+  transition: background var(--transition-base);
+}
+.ladder-step.is-passed .ladder-step-bar,
+.ladder-step.is-current .ladder-step-bar { background: var(--step-color); }
+.ladder-step.is-current .ladder-step-bar { box-shadow: 0 0 14px -2px var(--step-color); }
+
+.ladder-step-label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+.ladder-step.is-current .ladder-step-label { color: var(--step-color); }
+.ladder-step-min {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--color-text-faint);
+  opacity: 0.6;
+}
+
+.ladder-marker {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+}
+.ladder-marker-value {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.ladder-marker-dot {
+  width: 2px;
+  height: 10px;
+  background: var(--color-text);
+  border-radius: 2px;
+}
+
+.cf-ladder-note {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+/* ── Figures: chart + topics ─────────────────────────────────────────── */
+.cf-figures {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.cf-figure {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  min-width: 0;
+}
+.cf-figure figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: var(--space-4);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+.cf-figure figcaption span {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-text-faint);
+}
+
+/* Rating chart */
+.cf-chart-host { position: relative; }
+.cf-chart-svg { width: 100%; height: auto; overflow: visible; display: block; }
+
+.cf-grid      { stroke: var(--color-divider); stroke-width: 1; }
+.cf-axis      { fill: var(--color-text-faint); font-family: var(--font-mono); font-size: 10px; }
+.cf-threshold { stroke: var(--color-border-strong); stroke-width: 1; stroke-dasharray: 3 4; }
+.cf-threshold-label {
+  fill: var(--color-text-faint);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.cf-line {
+  stroke: var(--color-primary);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.cf-peak { fill: var(--color-primary); stroke: var(--color-surface-2); stroke-width: 2; }
+.cf-peak-label {
+  fill: var(--color-primary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+.cf-crosshair { stroke: var(--color-text-faint); stroke-width: 1; stroke-dasharray: 2 3; }
+.cf-hover-dot { fill: var(--color-primary); stroke: var(--color-bg); stroke-width: 2; }
+/* The HTML `hidden` attribute has no effect inside SVG — hide it explicitly */
+.cf-hover[hidden] { display: none; }
+
+.cf-tooltip {
+  position: absolute;
+  top: 0;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 11px;
+  min-width: 150px;
+  border-radius: var(--radius-md);
+  background: var(--glass-bg-light);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: var(--shadow-lg);
+  pointer-events: none;
+  z-index: 3;
+}
+.cf-tooltip[hidden] { display: none; }
+.cf-tooltip .tt-name { font-size: 0.72rem; color: var(--color-text); line-height: 1.35; }
+.cf-tooltip .tt-row  { display: flex; align-items: baseline; gap: 8px; font-family: var(--font-mono); }
+.cf-tooltip .tt-row b { font-size: 0.95rem; color: var(--color-primary); font-weight: 500; }
+.cf-tooltip .tt-delta.up   { color: var(--color-success); font-size: 0.72rem; }
+.cf-tooltip .tt-delta.down { color: var(--color-error);   font-size: 0.72rem; }
+.cf-tooltip .tt-meta { font-family: var(--font-mono); font-size: 0.62rem; color: var(--color-text-faint); }
+
+/* Topic bars */
+.cf-tag-bars { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.tag-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 10px;
+}
+.tag-name {
+  grid-area: 1 / 1;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tag-count {
+  grid-area: 1 / 2;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.tag-track {
+  grid-area: 2 / 1 / 3 / 3;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-3);
+  overflow: hidden;
+}
+.tag-bar {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: var(--radius-full);
+  background: var(--gradient-primary);
+  transition: width 900ms var(--ease-out);
+  transition-delay: var(--delay, 0ms);
+}
+.cf-tag-bars.is-visible .tag-bar { width: var(--w); }
+
+@media (max-width: 900px) {
+  .cf-figures { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .ladder-step-min { display: none; }
+  .cf-panel-head { flex-direction: column; }
+  /* 2×2 instead of 3+1 with a dead cell */
+  .cf-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 .cp-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
