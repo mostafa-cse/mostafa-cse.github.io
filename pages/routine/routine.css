@@ -58,6 +58,146 @@ kbd {
 }
 
 /* ══════════════════════════════════════════════════════════
+   0b. PASSPHRASE GATE
+   Covers the page while `is-locked` is on <html>. The class ships in the
+   markup, so the content stays covered even if JavaScript never runs.
+   ══════════════════════════════════════════════════════════ */
+#routine-gate { display: none; }
+
+html.is-locked { overflow: hidden; }
+html.is-locked body > *:not(#routine-gate) { display: none !important; }
+html.is-locked #routine-gate {
+  display: grid;
+  place-items: center;
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  padding: var(--space-5);
+  background:
+    radial-gradient(70% 50% at 50% 0%, rgba(200, 169, 110, 0.12), transparent 62%),
+    var(--color-bg-deep);
+}
+
+.gate-card {
+  width: min(400px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: clamp(1.75rem, 5vw, 2.5rem);
+  border-radius: var(--radius-xl);
+  background-color: var(--color-surface);
+  background-image: var(--gradient-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-xl), var(--edge-highlight);
+  animation: gateIn 420ms var(--ease-out) both;
+}
+@keyframes gateIn { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+.gate-lock {
+  display: grid;
+  place-items: center;
+  width: 46px; height: 46px;
+  border-radius: var(--radius-md);
+  color: var(--color-primary);
+  background: var(--color-primary-dim);
+  border: 1px solid var(--color-primary-line);
+  box-shadow: var(--edge-highlight);
+}
+
+.gate-card h1 {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 400;
+  color: var(--color-text);
+  margin: 0;
+}
+.gate-sub {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+#gate-form { width: 100%; display: flex; flex-direction: column; gap: var(--space-3); }
+
+.gate-field {
+  display: flex;
+  gap: var(--space-2);
+}
+.gate-field input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+.gate-field button {
+  flex-shrink: 0;
+  padding: 0 1.1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background-image: var(--gradient-primary);
+  color: var(--color-on-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-gold), var(--edge-highlight-strong);
+  cursor: pointer;
+}
+.gate-field button:hover:not(:disabled) { box-shadow: var(--shadow-gold-lg), var(--edge-highlight-strong); }
+.gate-field button:disabled { opacity: 0.6; cursor: progress; }
+.gate-field button[data-busy]::after {
+  content: '…';
+  margin-left: 2px;
+}
+
+.gate-remember {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.gate-remember input { accent-color: var(--color-primary); width: 14px; height: 14px; cursor: pointer; }
+
+.gate-error {
+  min-height: 1.15em;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-error);
+}
+
+.gate-back {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-text-faint);
+  text-decoration: none;
+  margin-top: var(--space-2);
+}
+.gate-back:hover { color: var(--color-primary); }
+
+/* Wrong passphrase */
+#routine-gate.is-wrong .gate-card { animation: gateShake 420ms var(--ease-in-out); }
+@keyframes gateShake {
+  10%, 90% { transform: translateX(-3px); }
+  20%, 80% { transform: translateX(5px); }
+  30%, 50%, 70% { transform: translateX(-7px); }
+  40%, 60% { transform: translateX(7px); }
+}
+#routine-gate.is-wrong .gate-field input { border-color: var(--color-error); }
+
+/* Accepted — fade out before revealing the page */
+#routine-gate.is-open { animation: gateOut 220ms var(--ease-out) both; }
+@keyframes gateOut { to { opacity: 0; transform: scale(1.01); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .gate-card, #routine-gate.is-wrong .gate-card, #routine-gate.is-open { animation: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════
    1. HERO
    ══════════════════════════════════════════════════════════ */
 .rt-hero {

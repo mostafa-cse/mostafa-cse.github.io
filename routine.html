@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<!-- `is-locked` ships in the markup so the page stays covered even before
+     (or without) JavaScript; gate.js removes it once the passphrase checks out. -->
+<html lang="en" class="is-locked">
 <head>
 
 <meta name="generator" content="Perplexity Computer">
@@ -24,8 +26,46 @@
   <link rel="stylesheet" href="base.css">
   <link rel="stylesheet" href="navbar.css">
   <link rel="stylesheet" href="pages/routine/routine.css">
+
+  <!-- Runs before the body parses so a remembered unlock never flashes the gate -->
+  <script src="pages/routine/gate.js"></script>
 </head>
 <body>
+
+<!-- ─── Passphrase gate ──────────────────────────────────────────────────
+     Deterrent only: this page and its scripts are public on GitHub Pages.
+     See the header comment in pages/routine/gate.js. -->
+<div id="routine-gate" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+  <div class="gate-card">
+    <span class="gate-lock" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="22" height="22">
+        <path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+              d="M7 10V7a5 5 0 0110 0v3M5.5 10h13a1.5 1.5 0 011.5 1.5v8A1.5 1.5 0 0118.5 21h-13A1.5 1.5 0 014 19.5v-8A1.5 1.5 0 015.5 10zM12 15v2.5"/>
+      </svg>
+    </span>
+
+    <h1 id="gate-title">CP Routine</h1>
+    <p class="gate-sub">This practice console is passphrase-protected.</p>
+
+    <form id="gate-form" novalidate>
+      <label class="sr-only" for="gate-input">Passphrase</label>
+      <div class="gate-field">
+        <input id="gate-input" type="password" name="passphrase" autocomplete="current-password"
+               placeholder="Passphrase" spellcheck="false" aria-describedby="gate-error">
+        <button type="submit" id="gate-submit" aria-label="Unlock">Enter</button>
+      </div>
+
+      <label class="gate-remember">
+        <input type="checkbox" id="gate-remember">
+        <span>Remember this device for 30 days</span>
+      </label>
+
+      <p class="gate-error" id="gate-error" role="alert" aria-live="assertive"></p>
+    </form>
+
+    <a class="gate-back" href="index.html">← Back to portfolio</a>
+  </div>
+</div>
 
 <a class="skip-link" href="#schedule">Skip to schedule</a>
 
@@ -239,7 +279,15 @@
 <script src="navbar.js?v=3" defer></script>
 <script type="module">
   import { initRoutine } from './pages/routine/routine-engine.js';
-  document.addEventListener('DOMContentLoaded', () => initRoutine());
+
+  // Hold off on the clock, contest fetches and prayer lookups until the page
+  // is actually unlocked — no point running them behind the gate.
+  const start = () => initRoutine();
+  if (document.documentElement.classList.contains('is-locked')) {
+    document.addEventListener('routine-unlocked', start, { once: true });
+  } else {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  }
 </script>
 <script>
 // Scroll-to-top affordance (shared behaviour with the portfolio page)
