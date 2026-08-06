@@ -78,6 +78,19 @@
   --color-info:            #4c9dff;
   --color-info-dim:        rgba(76, 157, 255, 0.12);
 
+  /* === CODEFORCES RANK COLORS ===
+     Lightness-corrected for dark surfaces (the official hues sit far too dark:
+     #0000ff scores ~2:1 here). Every use is paired with the rank NAME in text —
+     these hues never carry meaning on their own, because adjacent ranks are
+     not colorblind-separable (expert↔CM measures ΔE 0.6 under deuteranopia). */
+  --rank-newbie:     #9aa0a6;
+  --rank-pupil:      #5fd08a;
+  --rank-specialist: #45c8d0;
+  --rank-expert:     #6aa8ff;
+  --rank-cm:         #b98bff;
+  --rank-master:     #f0954e;
+  --rank-gm:         #f2555a;
+
   /* === PLATFORM BRAND COLORS === */
   --brand-codeforces: #4c9dff;
   --brand-codechef:   #d08a45;

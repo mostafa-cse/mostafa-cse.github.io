@@ -5,5 +5,309 @@
   "codechef": 659,
   "vjudge": 400,
   "lightoj": 141,
-  "total": 2686
+  "total": 2686,
+  "cf": {
+    "handle": "M0stafa",
+    "rating": 1662,
+    "maxRating": 1718,
+    "rank": "expert",
+    "maxRank": "expert",
+    "contests": 33,
+    "ratingHistory": [
+      {
+        "t": 1680453300,
+        "r": 403,
+        "d": 403,
+        "name": "Codeforces Round 862 (Div. 2)",
+        "place": 8350
+      },
+      {
+        "t": 1680627000,
+        "r": 732,
+        "d": 329,
+        "name": "Codeforces Round 863 (Div. 3)",
+        "place": 5429
+      },
+      {
+        "t": 1680969900,
+        "r": 902,
+        "d": 170,
+        "name": "Codeforces Round 864 (Div. 2)",
+        "place": 7587
+      },
+      {
+        "t": 1683391800,
+        "r": 1054,
+        "d": 152,
+        "name": "Codeforces Round 871 (Div. 4)",
+        "place": 4087
+      },
+      {
+        "t": 1683554700,
+        "r": 1116,
+        "d": 62,
+        "name": "Codeforces Round 872 (Div. 2)",
+        "place": 5190
+      },
+      {
+        "t": 1683909300,
+        "r": 1156,
+        "d": 40,
+        "name": "Educational Codeforces Round 148 (Rated for Div. 2)",
+        "place": 6244
+      },
+      {
+        "t": 1684082100,
+        "r": 1158,
+        "d": 2,
+        "name": "Codeforces Round 873 (Div. 2)",
+        "place": 5012
+      },
+      {
+        "t": 1684515000,
+        "r": 1149,
+        "d": -9,
+        "name": "Codeforces Round 874 (Div. 3)",
+        "place": 5653
+      },
+      {
+        "t": 1685032500,
+        "r": 1146,
+        "d": -3,
+        "name": "Educational Codeforces Round 149 (Rated for Div. 2)",
+        "place": 6676
+      },
+      {
+        "t": 1687279800,
+        "r": 1124,
+        "d": -22,
+        "name": "Codeforces Round 881 (Div. 3)",
+        "place": 7872
+      },
+      {
+        "t": 1687626300,
+        "r": 1168,
+        "d": 44,
+        "name": "CodeTON Round 5 (Div. 1 + Div. 2, Rated, Prizes!)",
+        "place": 4719
+      },
+      {
+        "t": 1688662200,
+        "r": 1279,
+        "d": 111,
+        "name": "Codeforces Round 882 (Div. 2)",
+        "place": 2508
+      },
+      {
+        "t": 1700843700,
+        "r": 1317,
+        "d": 38,
+        "name": "Educational Codeforces Round 158 (Rated for Div. 2)",
+        "place": 3153
+      },
+      {
+        "t": 1709052600,
+        "r": 1323,
+        "d": 6,
+        "name": "Codeforces Round 929 (Div. 3)",
+        "place": 4755
+      },
+      {
+        "t": 1710520500,
+        "r": 1302,
+        "d": -21,
+        "name": "Educational Codeforces Round 163 (Rated for Div. 2)",
+        "place": 7305
+      },
+      {
+        "t": 1710843600,
+        "r": 1337,
+        "d": 35,
+        "name": "Codeforces Round 935 (Div. 3)",
+        "place": 2028
+      },
+      {
+        "t": 1711645200,
+        "r": 1393,
+        "d": 56,
+        "name": "Codeforces Round 937 (Div. 4)",
+        "place": 1530
+      },
+      {
+        "t": 1714235700,
+        "r": 1420,
+        "d": 27,
+        "name": "Codeforces Round 941 (Div. 2)",
+        "place": 2250
+      },
+      {
+        "t": 1720371000,
+        "r": 1319,
+        "d": -101,
+        "name": "Codeforces Round 956 (Div. 2) and ByteRace 2024",
+        "place": 11299
+      },
+      {
+        "t": 1721061300,
+        "r": 1336,
+        "d": 17,
+        "name": "Codeforces Round 958 (Div. 2)",
+        "place": 4844
+      },
+      {
+        "t": 1725037500,
+        "r": 1414,
+        "d": 78,
+        "name": "Codeforces Round 969 (Div. 2)",
+        "place": 2000
+      },
+      {
+        "t": 1726331700,
+        "r": 1398,
+        "d": -16,
+        "name": "Codeforces Round 972 (Div. 2)",
+        "place": 5221
+      },
+      {
+        "t": 1726938000,
+        "r": 1449,
+        "d": 51,
+        "name": "Codeforces Round 974 (Div. 3)",
+        "place": 1586
+      },
+      {
+        "t": 1727631300,
+        "r": 1472,
+        "d": 23,
+        "name": "Codeforces Round 976 (Div. 2) and Divide By Zero 9.0",
+        "place": 3029
+      },
+      {
+        "t": 1732383300,
+        "r": 1497,
+        "d": 25,
+        "name": "CodeTON Round 9 (Div. 1 + Div. 2, Rated, Prizes!)",
+        "place": 2676
+      },
+      {
+        "t": 1733157300,
+        "r": 1552,
+        "d": 55,
+        "name": "Educational Codeforces Round 172 (Rated for Div. 2)",
+        "place": 1415
+      },
+      {
+        "t": 1733214300,
+        "r": 1481,
+        "d": -71,
+        "name": "Codeforces Round 990 (Div. 2)",
+        "place": 2835
+      },
+      {
+        "t": 1739291700,
+        "r": 1499,
+        "d": 18,
+        "name": "Codeforces Round 1004 (Div. 2)",
+        "place": 2605
+      },
+      {
+        "t": 1739723700,
+        "r": 1584,
+        "d": 85,
+        "name": "Codeforces Round 1005 (Div. 2)",
+        "place": 1175
+      },
+      {
+        "t": 1739896500,
+        "r": 1565,
+        "d": -19,
+        "name": "Educational Codeforces Round 174 (Rated for Div. 2)",
+        "place": 3152
+      },
+      {
+        "t": 1740502200,
+        "r": 1672,
+        "d": 107,
+        "name": "Codeforces Round 1006 (Div. 3)",
+        "place": 253
+      },
+      {
+        "t": 1740761400,
+        "r": 1718,
+        "d": 46,
+        "name": "Codeforces Round 1007 (Div. 2)",
+        "place": 1002
+      },
+      {
+        "t": 1741626900,
+        "r": 1662,
+        "d": -56,
+        "name": "Codeforces Round 1008 (Div. 2)",
+        "place": 3177
+      }
+    ],
+    "hardest": 2400,
+    "byRating": {
+      "800": 791,
+      "900": 41,
+      "1000": 31,
+      "1100": 29,
+      "1200": 25,
+      "1300": 23,
+      "1400": 26,
+      "1500": 17,
+      "1600": 10,
+      "1700": 20,
+      "1800": 11,
+      "1900": 10,
+      "2000": 2,
+      "2100": 4,
+      "2200": 4,
+      "2300": 1,
+      "2400": 2
+    },
+    "topTags": [
+      [
+        "implementation",
+        460
+      ],
+      [
+        "math",
+        421
+      ],
+      [
+        "greedy",
+        373
+      ],
+      [
+        "brute force",
+        208
+      ],
+      [
+        "constructive algorithms",
+        193
+      ],
+      [
+        "strings",
+        120
+      ],
+      [
+        "sortings",
+        114
+      ],
+      [
+        "dp",
+        80
+      ],
+      [
+        "number theory",
+        76
+      ],
+      [
+        "bitmasks",
+        50
+      ]
+    ]
+  },
+  "updated": "2026-08-06T03:30:51Z"
 }
