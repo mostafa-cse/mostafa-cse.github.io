@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-<meta name="description" content="Portfolio of Md. Mostafa Kamal — Codeforces Expert (1718 rating), aspiring software engineer, and CP trainer with 3,500+ problems solved.">
+<meta name="description" content="Portfolio of Md. Mostafa Kamal — Codeforces Expert (peak 1718), aspiring software engineer, and CP trainer with 1,000+ Codeforces problems solved.">
 <meta name="author" content="Md. Mostafa Kamal">
 <meta name="theme-color" content="#0a0a0b">
 <meta property="og:title" content="Mostafa Kamal — Aspiring Software Engineer &amp; Competitive Programmer">
@@ -163,7 +163,7 @@
 
           <p class="hero-bio">
             I build scalable web applications on a foundation of algorithms and system design.
-            Codeforces <strong>Expert</strong> with <strong>3,500+</strong> problems solved — I bring that same
+            Codeforces <strong>Expert</strong> with <strong data-cp-total>2,600+</strong> problems solved — I bring that same
             rigour to <span class="gradient-text">beautiful, fast user experiences</span>.
           </p>
 
@@ -220,7 +220,7 @@
       <div class="about-grid">
         <div class="about-stats">
           <div class="stat-card anim-up">
-            <span class="stat-number" data-counter data-target="3500" data-suffix="+">0</span>
+            <span class="stat-number" data-counter data-stat-total data-target="2686" data-suffix="+">0</span>
             <span class="stat-label">Problems Solved</span>
           </div>
           <div class="stat-card anim-up">
@@ -243,7 +243,7 @@
             using modern technologies.
           </p>
           <p>
-            With over 3,500 algorithmic problems solved and an <span class="accent">Expert</span> rank on Codeforces,
+            With <span data-cp-total>2,600+</span> algorithmic problems solved and an <span class="accent">Expert</span> rank on Codeforces,
             I bring a rigorous, problem-solving mindset to software architecture, backend system design, and
             frontend performance optimization.
           </p>
@@ -347,9 +347,68 @@
         <p class="section-subtitle">Live problem counts, refreshed daily from each platform's API</p>
       </div>
       <div class="cp-total-badge anim-up">
-        <span class="cp-total-num" data-counter data-target="3500" data-suffix="+">0</span>
+        <span class="cp-total-num" data-counter data-target="2686" data-suffix="+">0</span>
         <span class="cp-total-label">Total problems solved across all platforms</span>
       </div>
+
+      <!-- ── Codeforces panel (rendered from data/cp_stats.json) ── -->
+      <section class="cf-panel anim-up" id="cf-panel" aria-label="Codeforces profile" hidden>
+        <header class="cf-panel-head">
+          <div class="cf-identity">
+            <span class="cf-monogram" aria-hidden="true">CF</span>
+            <div class="cf-identity-text">
+              <a class="cf-handle-link" id="cf-handle-link" href="https://codeforces.com/profile/m0stafa"
+                 target="_blank" rel="noopener noreferrer">
+                <span id="cf-handle">—</span>
+                <svg width="13" height="13" aria-hidden="true"><use href="#i-external"></use></svg>
+              </a>
+              <p class="cf-rank-line">
+                <span class="cf-rank-dot" aria-hidden="true"></span>
+                <span id="cf-rank-name">—</span>
+                <span class="cf-sep">·</span>
+                <span id="cf-rating-now">—</span> now
+                <span class="cf-sep">·</span>
+                peak <span id="cf-rating-max">—</span>
+              </p>
+            </div>
+            <button type="button" class="copy-btn" id="cf-copy-handle" data-copy="m0stafa" title="Copy handle">
+              <svg width="13" height="13" aria-hidden="true"><use href="#i-copy"></use></svg>
+              <span>Copy handle</span>
+            </button>
+          </div>
+          <span class="cf-updated" id="cf-updated"></span>
+        </header>
+
+        <div class="cf-tiles">
+          <div class="cf-tile"><span class="cf-tile-num" id="cf-stat-solved">—</span><span class="cf-tile-key">Problems solved</span></div>
+          <div class="cf-tile"><span class="cf-tile-num" id="cf-stat-contests">—</span><span class="cf-tile-key">Rated contests</span></div>
+          <div class="cf-tile"><span class="cf-tile-num" id="cf-stat-hardest">—</span><span class="cf-tile-key">Hardest solved</span></div>
+          <div class="cf-tile"><span class="cf-tile-num" id="cf-stat-peak">—</span><span class="cf-tile-key">Peak rating</span></div>
+        </div>
+
+        <div class="cf-ladder-wrap">
+          <div class="cf-ladder" id="cf-ladder"></div>
+          <p class="cf-ladder-note" id="cf-ladder-note"></p>
+        </div>
+
+        <div class="cf-figures">
+          <figure class="cf-figure cf-figure-chart">
+            <figcaption>
+              Rating history
+              <span>Every rated contest since 2023</span>
+            </figcaption>
+            <div class="cf-chart-host" id="cf-rating-chart"></div>
+          </figure>
+
+          <figure class="cf-figure cf-figure-tags">
+            <figcaption>
+              Most-solved topics
+              <span>Problems tagged on Codeforces</span>
+            </figcaption>
+            <ul class="cf-tag-bars" id="cf-tag-bars" role="list"></ul>
+          </figure>
+        </div>
+      </section>
       <div class="cp-cards">
         <a href="https://codeforces.com/profile/m0stafa" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="codeforces">
           <div class="cp-logo" aria-hidden="true">CF</div>
@@ -359,7 +418,7 @@
           </div>
           <div class="cp-stats-row">
             <div class="cp-stat"><span class="cp-stat-val">1718</span><span class="cp-stat-key">Max Rating</span></div>
-            <div class="cp-stat"><span class="cp-stat-val">1062</span><span class="cp-stat-key">Solved</span></div>
+            <div class="cp-stat"><span class="cp-stat-val" data-stat="codeforces">1096</span><span class="cp-stat-key">Solved</span></div>
           </div>
         </a>
         <a href="https://www.codechef.com/users/mostafa_kamal" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="codechef">
@@ -370,7 +429,7 @@
           </div>
           <div class="cp-stats-row">
             <div class="cp-stat"><span class="cp-stat-val">1671</span><span class="cp-stat-key">Max Rating</span></div>
-            <div class="cp-stat"><span class="cp-stat-val">659</span><span class="cp-stat-key">Solved</span></div>
+            <div class="cp-stat"><span class="cp-stat-val" data-stat="codechef">659</span><span class="cp-stat-key">Solved</span></div>
           </div>
         </a>
         <a href="https://leetcode.com/u/m0stafa_kamal/" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="leetcode">
@@ -381,7 +440,7 @@
           </div>
           <div class="cp-stats-row">
             <div class="cp-stat"><span class="cp-stat-val">1346</span><span class="cp-stat-key">Contest Rating</span></div>
-            <div class="cp-stat"><span class="cp-stat-val">299</span><span class="cp-stat-key">Solved</span></div>
+            <div class="cp-stat"><span class="cp-stat-val" data-stat="leetcode">312</span><span class="cp-stat-key">Solved</span></div>
           </div>
         </a>
         <a href="https://atcoder.jp/users/i_love_sabnaj" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="atcoder">
@@ -391,7 +450,7 @@
             <div class="cp-rank-badge">Active</div>
           </div>
           <div class="cp-stats-row">
-            <div class="cp-stat"><span class="cp-stat-val">250</span><span class="cp-stat-key">Solved</span></div>
+            <div class="cp-stat"><span class="cp-stat-val" data-stat="atcoder">78</span><span class="cp-stat-key">Solved</span></div>
             <div class="cp-stat"><span class="cp-stat-val">ABC / ARC</span><span class="cp-stat-key">Regulars</span></div>
           </div>
         </a>
@@ -402,7 +461,7 @@
             <div class="cp-rank-badge">Problem Setter</div>
           </div>
           <div class="cp-stats-row">
-            <div class="cp-stat"><span class="cp-stat-val">433</span><span class="cp-stat-key">Solved</span></div>
+            <div class="cp-stat"><span class="cp-stat-val" data-stat="vjudge">400</span><span class="cp-stat-key">Solved</span></div>
             <div class="cp-stat"><span class="cp-stat-val">JUST ACM</span><span class="cp-stat-key">Contests</span></div>
           </div>
         </a>
@@ -413,7 +472,7 @@
             <div class="cp-rank-badge">Active</div>
           </div>
           <div class="cp-stats-row">
-            <div class="cp-stat"><span class="cp-stat-val">141</span><span class="cp-stat-key">Solved</span></div>
+            <div class="cp-stat"><span class="cp-stat-val" data-stat="lightoj">141</span><span class="cp-stat-key">Solved</span></div>
             <div class="cp-stat"><span class="cp-stat-val">Classical</span><span class="cp-stat-key">Focus</span></div>
           </div>
         </a>
@@ -732,6 +791,7 @@
 <script src="./navbar.js?v=3" defer></script>
 <script src="./pages/portfolio/hero.js?v=3" defer></script>
 <script src="./pages/portfolio/scroll-animations.js?v=3" defer></script>
-<script src="./pages/portfolio/interactions.js?v=3" defer></script>
+<script src="./pages/portfolio/interactions.js?v=4" defer></script>
+<script src="./pages/portfolio/cp-stats.js?v=1" defer></script>
 </body>
 </html>

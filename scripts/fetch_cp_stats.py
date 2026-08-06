@@ -2,6 +2,7 @@ import urllib.request
 import json
 import re
 import os
+import datetime
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
 
@@ -25,14 +26,87 @@ def fetch_html(url):
         print(f"Error fetching HTML from {url}: {e}")
         return None
 
+CF_HANDLE = 'm0stafa'
+
+def load_previous():
+    """Previous run's output — used so a failed fetch keeps the last good number
+    instead of publishing a zero."""
+    try:
+        with open('data/cp_stats.json') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def build_cf_profile(status_result):
+    """Codeforces detail block that powers the portfolio's CP section:
+    rating history, solved-by-rating distribution and tag counts.
+    Everything here is derived from the official API — nothing is estimated."""
+    profile = {'handle': CF_HANDLE}
+
+    info = fetch_json(f'https://codeforces.com/api/user.info?handles={CF_HANDLE}')
+    if info and info.get('status') == 'OK' and info.get('result'):
+        u = info['result'][0]
+        profile.update({
+            'handle':    u.get('handle', CF_HANDLE),
+            'rating':    u.get('rating'),
+            'maxRating': u.get('maxRating'),
+            'rank':      u.get('rank'),
+            'maxRank':   u.get('maxRank'),
+        })
+
+    rating_res = fetch_json(f'https://codeforces.com/api/user.rating?handle={CF_HANDLE}')
+    if rating_res and rating_res.get('status') == 'OK':
+        history = rating_res.get('result', [])
+        profile['contests'] = len(history)
+        # Trimmed to what the chart draws: timestamp, new rating, contest, place
+        profile['ratingHistory'] = [{
+            't':    h.get('ratingUpdateTimeSeconds'),
+            'r':    h.get('newRating'),
+            'd':    h.get('newRating', 0) - h.get('oldRating', 0),
+            'name': h.get('contestName'),
+            'place': h.get('rank'),
+        } for h in history]
+
+    # Solved-problem analysis from the submission list we already fetched
+    if status_result:
+        solved = {}
+        for sub in status_result:
+            if sub.get('verdict') != 'OK':
+                continue
+            p = sub.get('problem', {})
+            key = (p.get('contestId'), p.get('index'), p.get('name'))
+            solved.setdefault(key, p)
+
+        by_rating, tags = {}, {}
+        hardest = 0
+        for p in solved.values():
+            r = p.get('rating')
+            if r:
+                by_rating[str(r)] = by_rating.get(str(r), 0) + 1
+                hardest = max(hardest, r)
+            for t in p.get('tags', []):
+                tags[t] = tags.get(t, 0) + 1
+
+        # NOTE: the solved count lives in the top-level 'codeforces' key so the
+        # page never shows two slightly different totals for the same thing.
+        profile['hardest']  = hardest or None
+        profile['byRating'] = dict(sorted(by_rating.items(), key=lambda kv: int(kv[0])))
+        profile['topTags']  = sorted(tags.items(), key=lambda kv: -kv[1])[:10]
+
+    return profile
+
+
 def main():
+    previous = load_previous()
     stats = {}
 
     # 1. Codeforces
-    cf_res = fetch_json('https://codeforces.com/api/user.status?handle=m0stafa')
-    if cf_res and cf_res.get('status') == 'OK':
+    cf_res = fetch_json(f'https://codeforces.com/api/user.status?handle={CF_HANDLE}')
+    cf_result = cf_res.get('result', []) if (cf_res and cf_res.get('status') == 'OK') else None
+    if cf_result is not None:
         solved = set()
-        for sub in cf_res.get('result', []):
+        for sub in cf_result:
             if sub.get('verdict') == 'OK':
                 problem = sub.get('problem', {})
                 name = problem.get('name')
@@ -40,7 +114,8 @@ def main():
                     solved.add(name)
         stats['codeforces'] = len(solved)
     else:
-        stats['codeforces'] = 0
+        # Keep the last known good value rather than publishing a 0
+        stats['codeforces'] = previous.get('codeforces', 0)
 
     # 2. LeetCode
     lc_query = {
@@ -100,7 +175,12 @@ def main():
     total = sum(stats.values())
     stats['total'] = total
 
-    print("Fetched stats:", stats)
+    # Detailed Codeforces profile for the portfolio's CP section
+    stats['cf'] = build_cf_profile(cf_result)
+    stats['updated'] = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    print("Fetched stats:", {k: v for k, v in stats.items() if k != 'cf'})
+    print("CF profile:", {k: v for k, v in stats['cf'].items() if k not in ('ratingHistory', 'byRating', 'topTags')})
 
     # Make sure data directory exists
     os.makedirs('data', exist_ok=True)

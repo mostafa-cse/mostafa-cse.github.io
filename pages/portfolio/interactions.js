@@ -96,6 +96,32 @@
     if (drawer) document.querySelector('.nav-mobile-close')?.click();
   });
 
+  // ── Copy-to-clipboard (handles, email) ──────────────────────────────────
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest && e.target.closest('[data-copy]');
+    if (!btn) return;
+    e.preventDefault();
+
+    const value = btn.dataset.copy;
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      // Clipboard API needs a secure context; fall back to a throwaway textarea
+      const ta = document.createElement('textarea');
+      ta.value = value;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:-1000px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch { /* give up quietly */ }
+      ta.remove();
+    }
+
+    btn.classList.add('is-copied');
+    setTimeout(() => btn.classList.remove('is-copied'), 1400);
+    window.showToast?.(`Copied “${value}”`, 'success', 2200);
+  });
+
   // ── Portrait parallax ───────────────────────────────────────────────────
   const portrait = document.querySelector('.hero-image-wrapper');
   if (portrait && finePointer && !reduceMotion) {
