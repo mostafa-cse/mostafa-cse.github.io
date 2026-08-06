@@ -75,20 +75,35 @@
 
   document.querySelectorAll('[data-counter]').forEach(el => counterObs.observe(el));
 
-  // ── Live CP total (refreshed daily by the GitHub Action) ────────────────
+  // ── Live CP figures (refreshed daily by the GitHub Action) ──────────────
   fetch('./data/cp_stats.json', { cache: 'no-cache' })
     .then(r => (r.ok ? r.json() : Promise.reject(r.status)))
     .then(data => {
       const total = Number(data && data.total);
-      if (!total) return;
 
-      document.querySelectorAll('.cp-total-num[data-counter], .stat-card [data-counter][data-target="3500"]')
-        .forEach(el => {
-          const previous = parseInt(el.dataset.target, 10);
-          el.dataset.target = total;
-          // The counter may already have finished — re-run it to land on the live number
-          if (el.dataset.animated === 'true' && total !== previous) animateCounter(el, total, 900);
+      if (total) {
+        // Both counters that show the cross-platform total
+        document.querySelectorAll('.cp-total-num[data-counter], [data-stat-total]')
+          .forEach(el => {
+            const previous = parseInt(el.dataset.target, 10);
+            el.dataset.target = total;
+            // The counter may already have finished — re-run it to land on the live number
+            if (el.dataset.animated === 'true' && total !== previous) animateCounter(el, total, 900);
+          });
+
+        // Prose claim: floor to the nearest hundred so it stays true as the
+        // number grows, and never overstates it.
+        const floored = Math.floor(total / 100) * 100;
+        document.querySelectorAll('[data-cp-total]').forEach(el => {
+          el.textContent = `${format(floored)}+`;
         });
+      }
+
+      // Per-platform solved counts on the profile cards
+      document.querySelectorAll('[data-stat]').forEach(el => {
+        const value = Number(data[el.dataset.stat]);
+        if (value > 0) el.textContent = format(value);
+      });
     })
     .catch(err => console.warn('CP stats unavailable:', err));
 
