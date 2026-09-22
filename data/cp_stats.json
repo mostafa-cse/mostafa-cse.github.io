@@ -1,11 +1,11 @@
 {
-  "codeforces": 1096,
+  "codeforces": 1099,
   "leetcode": 312,
   "atcoder": 78,
   "codechef": 659,
   "vjudge": 400,
   "lightoj": 152,
-  "total": 2697,
+  "total": 2700,
   "cf": {
     "handle": "M0stafa",
     "rating": 1662,
@@ -273,11 +273,11 @@
       ],
       [
         "math",
-        421
+        422
       ],
       [
         "greedy",
-        373
+        376
       ],
       [
         "brute force",
@@ -289,7 +289,7 @@
       ],
       [
         "strings",
-        120
+        121
       ],
       [
         "sortings",
@@ -309,5 +309,5 @@
       ]
     ]
   },
-  "updated": "2026-09-21T04:25:48Z"
+  "updated": "2026-09-22T04:21:31Z"
 }
