@@ -1,11 +1,11 @@
 {
   "codeforces": 1099,
-  "leetcode": 313,
+  "leetcode": 314,
   "atcoder": 78,
   "codechef": 659,
   "vjudge": 400,
   "lightoj": 177,
-  "total": 2726,
+  "total": 2727,
   "cf": {
     "handle": "M0stafa",
     "rating": 1662,
@@ -309,5 +309,5 @@
       ]
     ]
   },
-  "updated": "2026-10-24T04:08:11Z"
+  "updated": "2026-10-25T04:10:34Z"
 }
