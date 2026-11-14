@@ -6,23 +6,12 @@
 
   // ── Navbar scroll behavior ────────────────────────────────────────────
   // Support both id="navbar" (sub-pages) and class="navbar" (index.html)
-  const navbar     = document.getElementById('navbar') || document.querySelector('.navbar');
-  // Support both id="nav-progress" and class="nav-progress-bar" / class="nav-progress"
-  const progressEl = document.getElementById('nav-progress')
-                  || document.querySelector('.nav-progress-bar')
-                  || document.querySelector('.nav-progress');
+  const navbar = document.getElementById('navbar') || document.querySelector('.navbar');
 
   let ticking = false;
 
   function onScroll() {
-    const scrollY   = window.scrollY;
-    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-    if (navbar) navbar.classList.toggle('scrolled', scrollY > 16);
-    if (progressEl && maxScroll > 0) {
-      const pct = Math.min(100, Math.max(0, (scrollY / maxScroll) * 100));
-      progressEl.style.width = `${pct}%`;
-      progressEl.setAttribute('aria-valuenow', Math.round(pct));
-    }
+    if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 16);
     ticking = false;
   }
 

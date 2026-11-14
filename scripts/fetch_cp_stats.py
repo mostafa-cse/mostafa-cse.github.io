@@ -28,19 +28,18 @@ def fetch_html(url):
 def main():
     stats = {}
 
-    # 1. Codeforces
-    cf_res = fetch_json('https://codeforces.com/api/user.status?handle=m0stafa')
-    if cf_res and cf_res.get('status') == 'OK':
-        solved = set()
-        for sub in cf_res.get('result', []):
-            if sub.get('verdict') == 'OK':
-                problem = sub.get('problem', {})
-                name = problem.get('name')
-                if name:
-                    solved.add(name)
-        stats['codeforces'] = len(solved)
-    else:
-        stats['codeforces'] = 0
+    # 1. Codeforces (Main ID + Second ID deduped)
+    cf_solved = set()
+    for handle in ['m0stafa', '...-_-...']:
+        cf_res = fetch_json(f'https://codeforces.com/api/user.status?handle={handle}')
+        if cf_res and cf_res.get('status') == 'OK':
+            for sub in cf_res.get('result', []):
+                if sub.get('verdict') == 'OK':
+                    problem = sub.get('problem', {})
+                    name = problem.get('name')
+                    if name:
+                        cf_solved.add(name)
+    stats['codeforces'] = len(cf_solved) if cf_solved else 2754
 
     # 2. LeetCode
     lc_query = {
@@ -58,11 +57,11 @@ def main():
         stats['leetcode'] = 0
 
     # 3. AtCoder
-    ac_res = fetch_json('https://kenkoooo.com/atcoder/atcoder-api/v3/user/ac_rank?user=i_love_sabnaj')
+    ac_res = fetch_json('https://kenkoooo.com/atcoder/atcoder-api/v3/user/ac_rank?user=mostafa___')
     if ac_res and 'count' in ac_res:
-        stats['atcoder'] = ac_res['count']
+        stats['atcoder'] = max(ac_res['count'], 250)
     else:
-        stats['atcoder'] = 0
+        stats['atcoder'] = 250 # Resume baseline
 
     # 4. CodeChef
     cc_res = fetch_html('https://www.codechef.com/users/mostafa_kamal')
@@ -71,24 +70,30 @@ def main():
         if match:
             stats['codechef'] = int(match.group(1))
         else:
-            stats['codechef'] = 659 # Fallback
+            stats['codechef'] = 682 # Fallback / Resume baseline
     else:
-        stats['codechef'] = 659 # Fallback
+        stats['codechef'] = 682 # Fallback / Resume baseline
 
-    # 5. VJUDGE
-    vj_res = fetch_html('https://vjudge.net/user/M00stafa')
-    if vj_res:
-        match = re.search(r'title="Overall solved".*?>(\d+)<', vj_res)
-        if match:
-            stats['vjudge'] = int(match.group(1))
-        else:
-            match2 = re.search(r'Overall solved.*?(\d+)', vj_res, re.IGNORECASE | re.DOTALL)
-            if match2:
-                stats['vjudge'] = int(match2.group(1))
-            else:
-                stats['vjudge'] = 400 # Fallback
-    else:
-        stats['vjudge'] = 400 # Fallback
+    # 5. VJUDGE (M00stafa & mostafa_188)
+    vj_users = ['M00stafa', 'mostafa_188']
+    vj_total = 0
+    for u in vj_users:
+        html = fetch_html(f'https://vjudge.net/user/{u}')
+        if html:
+            m = re.search(r'<script type="application/json" id="profile-header-data">(.*?)</script>', html)
+            if m:
+                try:
+                    data = json.loads(m.group(1))
+                    ac_cnt = data.get('counts', {}).get('acAll', 0)
+                    if ac_cnt > 0:
+                        vj_total += ac_cnt
+                        continue
+                except Exception:
+                    pass
+            m2 = re.search(r'title="Overall solved".*?>(\d+)<', html)
+            if m2:
+                vj_total += int(m2.group(1))
+    stats['vjudge'] = vj_total if vj_total > 0 else 1933
 
     # 6. LightOJ
     loj_res = fetch_json('https://lightoj.com/api/v1/users/m0stafa_')

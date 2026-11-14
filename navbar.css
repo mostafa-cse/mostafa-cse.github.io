@@ -21,23 +21,6 @@
   box-shadow: 0 8px 32px -18px rgba(0, 0, 0, 0.9);
 }
 
-/* Reading progress — sits on the navbar's bottom edge */
-.nav-progress-bar,
-.nav-progress {
-  position: absolute;
-  left: 0; bottom: -1px;
-  width: 0;
-  height: 2px;
-  background: var(--gradient-primary);
-  box-shadow: 0 0 12px rgba(200, 169, 110, 0.55);
-  border-radius: 0 2px 2px 0;
-  opacity: 0;
-  transition: opacity var(--transition-base);
-  pointer-events: none;
-}
-.navbar.scrolled .nav-progress-bar,
-.navbar.scrolled .nav-progress { opacity: 1; }
-
 .nav-inner {
   width: 100%;
   max-width: var(--content-wide);
@@ -63,26 +46,27 @@
 .nav-logo-mark { display: none; }
 
 .nav-logo-text {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  letter-spacing: 0.01em;
+  font-family: var(--font-body);
+  font-size: clamp(1.15rem, 1.6vw, 1.3rem);
+  font-weight: 600;
+  letter-spacing: -0.015em;
   color: var(--color-text);
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 5px;
   white-space: nowrap;
 }
 
 .nav-logo-accent {
   color: var(--color-primary);
-  font-style: italic;
+  font-weight: 700;
 }
 
 .nav-logo-dot {
   color: var(--color-primary);
-  font-size: 1.4em;
+  font-size: 1.2em;
   line-height: 0;
-  transform: translateY(-1px);
+  margin: 0 1px;
 }
 
 /* ─── Links ──────────────────────────────────────────────── */
@@ -97,8 +81,8 @@
 .nav-links a {
   position: relative;
   text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 400;
+  font-size: 0.975rem;
+  font-weight: 500;
   color: var(--color-text-muted);
   letter-spacing: 0.01em;
   padding: 4px 0;
@@ -219,7 +203,8 @@
   position: relative;
   text-decoration: none;
   color: var(--color-text-muted);
-  font-size: 1.05rem;
+  font-size: 1.15rem;
+  font-weight: 500;
   padding: var(--space-4) var(--space-2);
   border-bottom: 1px solid var(--color-border);
   display: flex;

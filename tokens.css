@@ -85,6 +85,14 @@
   --brand-atcoder:    #b9b3ab;
   --brand-vjudge:     #56c26a;
   --brand-lightoj:    #35b6f2;
+  --brand-hackerrank: #2ec866;
+  --brand-toph:       #3b82f6;
+  --brand-spoj:       #38bdf8;
+  --brand-usaco:      #38bdf8;
+  --brand-kattis:     #60a5fa;
+  --brand-qoj:        #ef4444;
+  --brand-basecamp:   #10b981;
+  --brand-ojuz:       #a855f7;
 
   /* CF Category colors (routine / suite pages) */
   --color-cf-rating:   var(--gold-300);
