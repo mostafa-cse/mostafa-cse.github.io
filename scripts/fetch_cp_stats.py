@@ -28,6 +28,14 @@ def fetch_html(url):
 def main():
     stats = {}
 
+    existing_stats = {}
+    if os.path.exists('data/cp_stats.json'):
+        try:
+            with open('data/cp_stats.json', 'r') as f:
+                existing_stats = json.load(f)
+        except Exception:
+            pass
+
     # 1. Codeforces (Main ID + Second ID deduped)
     cf_solved = set()
     for handle in ['m0stafa', '...-_-...']:
@@ -39,7 +47,7 @@ def main():
                     name = problem.get('name')
                     if name:
                         cf_solved.add(name)
-    stats['codeforces'] = len(cf_solved) if cf_solved else 2754
+    stats['codeforces'] = max(len(cf_solved), existing_stats.get('codeforces', 2754))
 
     # 2. LeetCode
     lc_query = {
@@ -48,31 +56,29 @@ def main():
     }
     lc_data = json.dumps(lc_query).encode('utf-8')
     lc_res = fetch_json('https://leetcode.com/graphql', data=lc_data)
+    lc_solved = 0
     if lc_res and 'data' in lc_res and lc_res['data'].get('matchedUser'):
         try:
-            stats['leetcode'] = lc_res['data']['matchedUser']['submitStatsGlobal']['acSubmissionNum'][0]['count']
+            lc_solved = int(lc_res['data']['matchedUser']['submitStatsGlobal']['acSubmissionNum'][0]['count'])
         except Exception:
-            stats['leetcode'] = 0
-    else:
-        stats['leetcode'] = 0
+            lc_solved = 0
+    stats['leetcode'] = max(lc_solved, existing_stats.get('leetcode', 314))
 
     # 3. AtCoder
     ac_res = fetch_json('https://kenkoooo.com/atcoder/atcoder-api/v3/user/ac_rank?user=mostafa___')
+    ac_solved = 0
     if ac_res and 'count' in ac_res:
-        stats['atcoder'] = max(ac_res['count'], 250)
-    else:
-        stats['atcoder'] = 250 # Resume baseline
+        ac_solved = int(ac_res['count'])
+    stats['atcoder'] = max(ac_solved, existing_stats.get('atcoder', 250))
 
     # 4. CodeChef
     cc_res = fetch_html('https://www.codechef.com/users/mostafa_kamal')
+    cc_solved = 0
     if cc_res:
         match = re.search(r'Fully Solved \((\d+)\)', cc_res)
         if match:
-            stats['codechef'] = int(match.group(1))
-        else:
-            stats['codechef'] = 682 # Fallback / Resume baseline
-    else:
-        stats['codechef'] = 682 # Fallback / Resume baseline
+            cc_solved = int(match.group(1))
+    stats['codechef'] = max(cc_solved, existing_stats.get('codechef', 682))
 
     # 5. VJUDGE (M00stafa & mostafa_188)
     vj_users = ['M00stafa', 'mostafa_188']
@@ -93,14 +99,14 @@ def main():
             m2 = re.search(r'title="Overall solved".*?>(\d+)<', html)
             if m2:
                 vj_total += int(m2.group(1))
-    stats['vjudge'] = vj_total if vj_total > 0 else 1933
+    stats['vjudge'] = max(vj_total, existing_stats.get('vjudge', 1933))
 
     # 6. LightOJ
     loj_res = fetch_json('https://lightoj.com/api/v1/users/m0stafa_')
+    loj_solved = 0
     if loj_res and 'data' in loj_res and 'userStat' in loj_res['data']:
-        stats['lightoj'] = int(loj_res['data']['userStat'].get('isSolved', 141))
-    else:
-        stats['lightoj'] = 141 # Fallback
+        loj_solved = int(loj_res['data']['userStat'].get('isSolved', 0))
+    stats['lightoj'] = max(loj_solved, existing_stats.get('lightoj', 180))
 
     total = sum(stats.values())
     stats['total'] = total
