@@ -28,7 +28,7 @@
 
 <link rel="stylesheet" href="./tokens.css">
 <link rel="stylesheet" href="./base.css">
-<link rel="stylesheet" href="./navbar.css">
+<link rel="stylesheet" href="./navbar.css?v=4">
 <link rel="stylesheet" href="./pages/portfolio/portfolio.css">
 
 <!-- Opt into scroll-reveal only when JS is available, so content is never
@@ -87,10 +87,9 @@
 
 <!-- ═══════════════════════════════ NAVBAR ═══════════════════════════ -->
 <nav class="navbar" aria-label="Main navigation">
-  <div class="nav-progress-bar" role="progressbar" aria-label="Reading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
   <div class="nav-inner">
     <a href="#hero" class="nav-logo" aria-label="Mostafa Kamal — home">
-      <span class="nav-logo-text">Md. <span class="nav-logo-accent">Mostafa</span> <span class="nav-logo-dot">·</span> Kamal</span>
+      <span class="nav-logo-text">Md. <span class="nav-logo-accent">Mostafa</span> Kamal</span>
     </a>
     <ul class="nav-links" role="list">
       <li><a href="#about">About</a></li>
@@ -178,7 +177,7 @@
             <a href="mailto:mostafakamal.cse2022@gmail.com" class="hero-link">
               <svg aria-hidden="true"><use href="#i-mail"></use></svg> Email
             </a>
-            <a id="resume-btn" href="./Mostafa_Kamal_CV.pdf" target="_blank" rel="noopener noreferrer" class="hero-cta">
+            <a id="resume-btn" href="https://drive.google.com/file/d/17ehA5wpra_I01sIDmJ6nfJV86McWtv5E/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="hero-cta">
               <svg aria-hidden="true"><use href="#i-download"></use></svg> Resume / CV
             </a>
           </div>
@@ -186,6 +185,8 @@
           <div class="hero-edu">
             <span class="hero-edu-label">Education:</span>
             <span>B.Sc. in CSE @ JUST</span>
+            <span class="hero-edu-divider">|</span>
+            <span>CGPA: 3.24</span>
             <span class="hero-edu-divider">|</span>
             <span>Expected 2026</span>
           </div>
@@ -226,7 +227,7 @@
             <span class="stat-label">Max CF Rating</span>
           </div>
           <div class="stat-card anim-up">
-            <span class="stat-number" data-counter data-target="7" data-suffix="+">0</span>
+            <span class="stat-number" data-counter data-target="8" data-suffix="+">0</span>
             <span class="stat-label">IUPCs Attended</span>
           </div>
           <div class="stat-card anim-up">
@@ -285,10 +286,11 @@
           </div>
           <div class="skill-items">
             <span class="skill-item">C/C++</span>
-            <span class="skill-item">JavaScript ES6+</span>
-            <span class="skill-item">Python</span>
             <span class="skill-item">Java</span>
-            <span class="skill-item">Kotlin</span>
+            <span class="skill-item">Python</span>
+            <span class="skill-item">JavaScript</span>
+            <span class="skill-item">SQL</span>
+            <span class="skill-item">C#</span>
           </div>
         </div>
         <div class="skill-category anim-up">
@@ -299,22 +301,21 @@
           <div class="skill-items">
             <span class="skill-item">React.js</span>
             <span class="skill-item">Vite</span>
-            <span class="skill-item">Tailwind CSS</span>
             <span class="skill-item">HTML5</span>
             <span class="skill-item">CSS3</span>
+            <span class="skill-item">Tailwind CSS</span>
           </div>
         </div>
         <div class="skill-category anim-up">
           <div class="skill-cat-header">
             <div class="skill-cat-icon"><svg aria-hidden="true"><use href="#i-server"></use></svg></div>
-            <span class="skill-cat-name">Backend &amp; DB</span>
+            <span class="skill-cat-name">Backend &amp; Database</span>
           </div>
           <div class="skill-items">
             <span class="skill-item">Node.js</span>
             <span class="skill-item">Express.js</span>
-            <span class="skill-item">MongoDB</span>
+            <span class="skill-item">MongoDB (Mongoose)</span>
             <span class="skill-item">MySQL</span>
-            <span class="skill-item">Mongoose</span>
           </div>
         </div>
         <div class="skill-category anim-up">
@@ -323,11 +324,25 @@
             <span class="skill-cat-name">Tools &amp; Cloud</span>
           </div>
           <div class="skill-items">
-            <span class="skill-item">Git / GitHub</span>
-            <span class="skill-item">CI/CD (Actions)</span>
-            <span class="skill-item">Firebase</span>
-            <span class="skill-item">Linux</span>
-            <span class="skill-item">Postman</span>
+            <span class="skill-item">Git</span>
+            <span class="skill-item">GitHub</span>
+            <span class="skill-item">Firebase (Auth &amp; Hosting)</span>
+            <span class="skill-item">Vercel</span>
+            <span class="skill-item">Linux (Ubuntu)</span>
+            <span class="skill-item">macOS</span>
+          </div>
+        </div>
+        <div class="skill-category anim-up">
+          <div class="skill-cat-header">
+            <div class="skill-cat-icon"><svg aria-hidden="true"><use href="#i-bolt"></use></svg></div>
+            <span class="skill-cat-name">Core Competencies</span>
+          </div>
+          <div class="skill-items">
+            <span class="skill-item">Data Structures &amp; Algorithms (DSA)</span>
+            <span class="skill-item">Object-Oriented Programming (OOP)</span>
+            <span class="skill-item">DBMS</span>
+            <span class="skill-item">Operating Systems</span>
+            <span class="skill-item">Problem Solving</span>
           </div>
         </div>
       </div>
@@ -408,61 +423,151 @@
         </div>
       </section>
       <div class="cp-cards">
+
+        <!-- 01. Codeforces (Main ID) -->
         <a href="https://codeforces.com/profile/m0stafa" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="codeforces">
           <div class="cp-logo" aria-hidden="true">CF</div>
           <div class="cp-head">
-            <div class="cp-platform-logo">Codeforces</div>
+            <div class="cp-platform-logo">Codeforces (Main)</div>
             <div class="cp-rank-badge">Expert</div>
           </div>
           <div class="cp-stats-row">
             <div class="cp-stat"><span class="cp-stat-val">1718</span><span class="cp-stat-key">Max Rating</span></div>
-            <div class="cp-stat"><span class="cp-stat-val" data-stat="codeforces">1096</span><span class="cp-stat-key">Solved</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">1,099</span><span class="cp-stat-key">Solved</span></div>
           </div>
         </a>
-        <a href="https://www.codechef.com/users/mostafa_kamal" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="codechef">
-          <div class="cp-logo" aria-hidden="true">CC</div>
+
+        <!-- 02. Codeforces (Second ID) -->
+        <a href="https://codeforces.com/profile/...-_-..." target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="codeforces2">
+          <div class="cp-logo" aria-hidden="true">CF</div>
           <div class="cp-head">
-            <div class="cp-platform-logo">CodeChef</div>
-            <div class="cp-rank-badge">★★★ 3 Star</div>
+            <div class="cp-platform-logo">Codeforces (2nd ID)</div>
+            <div class="cp-rank-badge">Specialist</div>
           </div>
           <div class="cp-stats-row">
-            <div class="cp-stat"><span class="cp-stat-val">1671</span><span class="cp-stat-key">Max Rating</span></div>
-            <div class="cp-stat"><span class="cp-stat-val" data-stat="codechef">659</span><span class="cp-stat-key">Solved</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">1453</span><span class="cp-stat-key">Max Rating</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">2,094</span><span class="cp-stat-key">Solved</span></div>
           </div>
         </a>
-        <a href="https://leetcode.com/u/m0stafa_kamal/" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="leetcode">
-          <div class="cp-logo" aria-hidden="true">LC</div>
-          <div class="cp-head">
-            <div class="cp-platform-logo">LeetCode</div>
-            <div class="cp-rank-badge">Active</div>
-          </div>
-          <div class="cp-stats-row">
-            <div class="cp-stat"><span class="cp-stat-val">1346</span><span class="cp-stat-key">Contest Rating</span></div>
-            <div class="cp-stat"><span class="cp-stat-val" data-stat="leetcode">312</span><span class="cp-stat-key">Solved</span></div>
-          </div>
-        </a>
-        <a href="https://atcoder.jp/users/i_love_sabnaj" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="atcoder">
+
+        <!-- 03. AtCoder -->
+        <a href="https://atcoder.jp/users/mostafa___" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="atcoder">
           <div class="cp-logo" aria-hidden="true">AC</div>
           <div class="cp-head">
             <div class="cp-platform-logo">AtCoder</div>
             <div class="cp-rank-badge">Active</div>
           </div>
           <div class="cp-stats-row">
-            <div class="cp-stat"><span class="cp-stat-val" data-stat="atcoder">78</span><span class="cp-stat-key">Solved</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">~250</span><span class="cp-stat-key">Solved</span></div>
             <div class="cp-stat"><span class="cp-stat-val">ABC / ARC</span><span class="cp-stat-key">Regulars</span></div>
           </div>
         </a>
+
+        <!-- 04. CodeChef -->
+        <a href="https://www.codechef.com/users/mostafa_kamal" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="codechef">
+          <div class="cp-logo" aria-hidden="true">CC</div>
+          <div class="cp-head">
+            <div class="cp-platform-logo">CodeChef</div>
+            <div class="cp-rank-badge">Active</div>
+          </div>
+          <div class="cp-stats-row">
+            <div class="cp-stat"><span class="cp-stat-val">1544</span><span class="cp-stat-key">Max Rating</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">682</span><span class="cp-stat-key">Solved</span></div>
+          </div>
+        </a>
+
+        <!-- 05. LeetCode -->
+        <a href="https://leetcode.com/m0stafa_kamal" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="leetcode">
+          <div class="cp-logo" aria-hidden="true">LC</div>
+          <div class="cp-head">
+            <div class="cp-platform-logo">LeetCode</div>
+            <div class="cp-rank-badge">Active</div>
+          </div>
+          <div class="cp-stats-row">
+            <div class="cp-stat"><span class="cp-stat-val">314</span><span class="cp-stat-key">Solved</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">DSA</span><span class="cp-stat-key">Focus</span></div>
+          </div>
+        </a>
+
+        <!-- 06. HackerRank -->
+        <a href="https://www.hackerrank.com/profile/mostafakamal_cs1" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="hackerrank">
+          <div class="cp-logo" aria-hidden="true">HR</div>
+          <div class="cp-head">
+            <div class="cp-platform-logo">HackerRank</div>
+            <div class="cp-rank-badge">Active</div>
+          </div>
+          <div class="cp-stats-row">
+            <div class="cp-stat"><span class="cp-stat-val">Problem</span><span class="cp-stat-key">Solving</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">Core</span><span class="cp-stat-key">Algorithms</span></div>
+          </div>
+        </a>
+
+        <!-- 07. Toph -->
+        <a href="https://toph.co/u/M0stafa" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="toph">
+          <div class="cp-logo" aria-hidden="true">TP</div>
+          <div class="cp-head">
+            <div class="cp-platform-logo">Toph</div>
+            <div class="cp-rank-badge">Active</div>
+          </div>
+          <div class="cp-stats-row">
+            <div class="cp-stat"><span class="cp-stat-val">National</span><span class="cp-stat-key">Platform</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">BD Arena</span><span class="cp-stat-key">Contests</span></div>
+          </div>
+        </a>
+
+        <!-- 08. VJudge (Main) -->
         <a href="https://vjudge.net/user/M00stafa" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="vjudge">
           <div class="cp-logo" aria-hidden="true">VJ</div>
           <div class="cp-head">
-            <div class="cp-platform-logo">VJudge</div>
+            <div class="cp-platform-logo">VJudge (M00stafa)</div>
+            <div class="cp-rank-badge">Rank 129</div>
+          </div>
+          <div class="cp-stats-row">
+            <div class="cp-stat"><span class="cp-stat-val">1,511</span><span class="cp-stat-key">Solved</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">Global</span><span class="cp-stat-key">Top 150</span></div>
+          </div>
+        </a>
+
+        <!-- 09. VJudge (2nd ID) -->
+        <a href="https://vjudge.net/user/mostafa_188" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="vjudge2">
+          <div class="cp-logo" aria-hidden="true">VJ</div>
+          <div class="cp-head">
+            <div class="cp-platform-logo">VJudge (mostafa_188)</div>
             <div class="cp-rank-badge">Problem Setter</div>
           </div>
           <div class="cp-stats-row">
-            <div class="cp-stat"><span class="cp-stat-val" data-stat="vjudge">400</span><span class="cp-stat-key">Solved</span></div>
-            <div class="cp-stat"><span class="cp-stat-val">JUST ACM</span><span class="cp-stat-key">Contests</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">422</span><span class="cp-stat-key">Solved</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">Trainer</span><span class="cp-stat-key">ACM Lab</span></div>
           </div>
         </a>
+
+        <!-- 10. USACO -->
+        <a href="https://usaco.guide/" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="usaco">
+          <div class="cp-logo" aria-hidden="true">US</div>
+          <div class="cp-head">
+            <div class="cp-platform-logo">USACO</div>
+            <div class="cp-rank-badge">Gold/Platinum</div>
+          </div>
+          <div class="cp-stats-row">
+            <div class="cp-stat"><span class="cp-stat-val">Guide</span><span class="cp-stat-key">Track</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">Gold/Platinum</span><span class="cp-stat-key">Division</span></div>
+          </div>
+        </a>
+
+        <!-- 11. SPOJ -->
+        <a href="https://www.spoj.com/users/mostafa_188/" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="spoj">
+          <div class="cp-logo" aria-hidden="true">SP</div>
+          <div class="cp-head">
+            <div class="cp-platform-logo">SPOJ</div>
+            <div class="cp-rank-badge">Active</div>
+          </div>
+          <div class="cp-stats-row">
+            <div class="cp-stat"><span class="cp-stat-val">Sphere OJ</span><span class="cp-stat-key">Archive</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">Classical</span><span class="cp-stat-key">DSA</span></div>
+          </div>
+        </a>
+
+        <!-- 12. LightOJ -->
         <a href="https://lightoj.com/user/m0stafa_" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="lightoj">
           <div class="cp-logo" aria-hidden="true">OJ</div>
           <div class="cp-head">
@@ -470,10 +575,63 @@
             <div class="cp-rank-badge">Active</div>
           </div>
           <div class="cp-stats-row">
-            <div class="cp-stat"><span class="cp-stat-val" data-stat="lightoj">141</span><span class="cp-stat-key">Solved</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">180+</span><span class="cp-stat-key">Solved</span></div>
             <div class="cp-stat"><span class="cp-stat-val">Classical</span><span class="cp-stat-key">Focus</span></div>
           </div>
         </a>
+
+        <!-- 13. Kattis -->
+        <a href="https://open.kattis.com/users/mostafa-kamal" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="kattis">
+          <div class="cp-logo" aria-hidden="true">KT</div>
+          <div class="cp-head">
+            <div class="cp-platform-logo">Kattis</div>
+            <div class="cp-rank-badge">Active</div>
+          </div>
+          <div class="cp-stats-row">
+            <div class="cp-stat"><span class="cp-stat-val">Open</span><span class="cp-stat-key">Kattis</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">ICPC</span><span class="cp-stat-key">Archive</span></div>
+          </div>
+        </a>
+
+        <!-- 14. QOJ -->
+        <a href="https://qoj.ac/user/profile/M0stafa" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="qoj">
+          <div class="cp-logo" aria-hidden="true">QO</div>
+          <div class="cp-head">
+            <div class="cp-platform-logo">QOJ</div>
+            <div class="cp-rank-badge">Active</div>
+          </div>
+          <div class="cp-stats-row">
+            <div class="cp-stat"><span class="cp-stat-val">High-Diff</span><span class="cp-stat-key">Contests</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">Global</span><span class="cp-stat-key">Arena</span></div>
+          </div>
+        </a>
+
+        <!-- 15. BaseCamp (Eolymp) -->
+        <a href="https://basecamp.eolymp.com/en/users/M0stafa" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="basecamp">
+          <div class="cp-logo" aria-hidden="true">BC</div>
+          <div class="cp-head">
+            <div class="cp-platform-logo">BaseCamp</div>
+            <div class="cp-rank-badge">Active</div>
+          </div>
+          <div class="cp-stats-row">
+            <div class="cp-stat"><span class="cp-stat-val">Eolymp</span><span class="cp-stat-key">BaseCamp</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">Roadmap</span><span class="cp-stat-key">Tracks</span></div>
+          </div>
+        </a>
+
+        <!-- 16. OJ.UZ -->
+        <a href="https://oj.uz/profile/M0stafa" target="_blank" rel="noopener noreferrer" class="cp-card anim-up" data-platform="ojuz">
+          <div class="cp-logo" aria-hidden="true">UZ</div>
+          <div class="cp-head">
+            <div class="cp-platform-logo">OJ.UZ</div>
+            <div class="cp-rank-badge">Active</div>
+          </div>
+          <div class="cp-stats-row">
+            <div class="cp-stat"><span class="cp-stat-val">IOI / CEOI</span><span class="cp-stat-key">Archive</span></div>
+            <div class="cp-stat"><span class="cp-stat-val">Olympiad</span><span class="cp-stat-key">Focus</span></div>
+          </div>
+        </a>
+
       </div>
     </div>
   </section>
@@ -489,16 +647,40 @@
         <p class="section-subtitle">Inter-University Programming Contest placements</p>
       </div>
       <div class="achievements-grid">
+        <div class="achievement-card anim-up" data-rank="11">
+          <span class="ach-emoji">🥇</span>
+          <span class="ach-rank">#11</span>
+          <div class="ach-contest">NWU CSE Fest IUPC</div>
+          <span class="ach-year">2025</span>
+        </div>
+        <div class="achievement-card anim-up" data-rank="16">
+          <span class="ach-emoji">🥈</span>
+          <span class="ach-rank">#16</span>
+          <div class="ach-contest">Khulna Regional IUPC</div>
+          <span class="ach-year">2024</span>
+        </div>
+        <div class="achievement-card anim-up" data-rank="16">
+          <span class="ach-emoji">🥈</span>
+          <span class="ach-rank">#16</span>
+          <div class="ach-contest">PSTU IUPC (South Zone)</div>
+          <span class="ach-year">2026</span>
+        </div>
+        <div class="achievement-card anim-up" data-rank="54">
+          <span class="ach-emoji">🏅</span>
+          <span class="ach-rank">#54</span>
+          <div class="ach-contest">DUET IUPC</div>
+          <span class="ach-year">2025</span>
+        </div>
         <div class="achievement-card anim-up" data-rank="61">
           <span class="ach-emoji">🏅</span>
           <span class="ach-rank">#61</span>
-          <div class="ach-contest">IUT IUPC</div>
+          <div class="ach-contest">IUT 12th ICT Fest IUPC</div>
           <span class="ach-year">2026</span>
         </div>
         <div class="achievement-card anim-up" data-rank="78">
           <span class="ach-emoji">🏅</span>
           <span class="ach-rank">#78</span>
-          <div class="ach-contest">SUST IUPC</div>
+          <div class="ach-contest">SUST CSE Carnival IUPC</div>
           <span class="ach-year">2026</span>
         </div>
         <div class="achievement-card anim-up" data-rank="83">
@@ -507,28 +689,10 @@
           <div class="ach-contest">DUET IUPC</div>
           <span class="ach-year">2026</span>
         </div>
-        <div class="achievement-card anim-up" data-rank="11">
-          <span class="ach-emoji">🥇</span>
-          <span class="ach-rank">#11</span>
-          <div class="ach-contest">NWU CSE Inter-University Programming Contest</div>
-          <span class="ach-year">2025</span>
-        </div>
-        <div class="achievement-card anim-up" data-rank="16">
-          <span class="ach-emoji">🥈</span>
-          <span class="ach-rank">#16</span>
-          <div class="ach-contest">KU CSE Carnival IUPC</div>
-          <span class="ach-year">2024</span>
-        </div>
-        <div class="achievement-card anim-up" data-rank="54">
-          <span class="ach-emoji">🏅</span>
-          <span class="ach-rank">#54</span>
-          <div class="ach-contest">DUET CSE IUPC</div>
-          <span class="ach-year">2025</span>
-        </div>
         <div class="achievement-card anim-up" data-rank="87">
           <span class="ach-emoji">🏅</span>
           <span class="ach-rank">#87</span>
-          <div class="ach-contest">MU CSE IUPC</div>
+          <div class="ach-contest">MU IUPC</div>
           <span class="ach-year">2025</span>
         </div>
         <div class="achievement-card anim-up" data-rank="162">
@@ -553,9 +717,77 @@
       </div>
       <div class="projects-grid">
 
-        <!-- Project 01 -->
+        <!-- Project 01: EduGrid Smart Learning Platform -->
         <article class="project-card anim-up">
           <span class="project-num" aria-hidden="true">01</span>
+          <div class="project-content">
+            <div class="project-head">
+              <h3 class="project-title">EduGrid Smart Learning Platform</h3>
+              <div class="project-category">Full-Stack Web Application</div>
+            </div>
+            <p class="project-desc">A full-stack e-learning platform facilitating online education between students and instructors. Features a responsive React/Vite client, secure Firebase Auth, and a Node.js/Express REST API deployed to Firebase Hosting &amp; Vercel.</p>
+            <div class="project-tech">
+              <span class="tech-badge">React.js</span>
+              <span class="tech-badge">Node.js</span>
+              <span class="tech-badge">Express.js</span>
+              <span class="tech-badge">MongoDB</span>
+              <span class="tech-badge">Firebase</span>
+              <span class="tech-badge">Vercel</span>
+            </div>
+            <div class="project-actions">
+              <a href="https://edugrid-smart-learning.web.app/" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+                <svg width="14" height="14" aria-hidden="true"><use href="#i-external"></use></svg> Live Demo
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Project 02: Codeforces Problem Filter -->
+        <article class="project-card anim-up">
+          <span class="project-num" aria-hidden="true">02</span>
+          <div class="project-content">
+            <div class="project-head">
+              <h3 class="project-title">Codeforces Problem Filter (CF-Filter)</h3>
+              <div class="project-category">Web Application</div>
+            </div>
+            <p class="project-desc">A lightweight web utility leveraging the Codeforces API to fetch, filter, and sort algorithmic problems by difficulty rating and topic tags, helping competitive programmers curate targeted problem sets.</p>
+            <div class="project-tech">
+              <span class="tech-badge">React</span>
+              <span class="tech-badge">Codeforces API</span>
+              <span class="tech-badge">Tailwind CSS</span>
+            </div>
+            <div class="project-actions">
+              <a href="https://cf-filter.netlify.app/" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+                <svg width="14" height="14" aria-hidden="true"><use href="#i-external"></use></svg> Live Demo
+              </a>
+              <a href="https://github.com/mostafa-cse/Codeforces-Filter" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+                <svg width="14" height="14" aria-hidden="true"><use href="#i-github"></use></svg> View Code
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Project 03: Academy Exam Management System -->
+        <article class="project-card anim-up">
+          <span class="project-num" aria-hidden="true">03</span>
+          <div class="project-content">
+            <div class="project-head">
+              <h3 class="project-title">Academy Exam Management System</h3>
+              <div class="project-category">Desktop System</div>
+            </div>
+            <p class="project-desc">A desktop examination management system for academic institutions. Features an intuitive Java Swing GUI for student registration and test scheduling, with MySQL backend logic automating grading workflows and report generation.</p>
+            <div class="project-tech">
+              <span class="tech-badge">Java</span>
+              <span class="tech-badge">Java Swing</span>
+              <span class="tech-badge">MySQL</span>
+              <span class="tech-badge">Desktop UI</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Project 04: The 60-Minute Rule -->
+        <article class="project-card anim-up">
+          <span class="project-num" aria-hidden="true">04</span>
           <div class="project-content">
             <div class="project-head">
               <h3 class="project-title">The 60-Minute Rule</h3>
@@ -575,37 +807,12 @@
           </div>
         </article>
 
-        <!-- Project 02 -->
+        <!-- Project 05: Coordinate Visualizer -->
         <article class="project-card anim-up">
-          <span class="project-num" aria-hidden="true">02</span>
+          <span class="project-num" aria-hidden="true">05</span>
           <div class="project-content">
             <div class="project-head">
-              <h3 class="project-title">Codeforces Filter</h3>
-              <div class="project-category">Web Application</div>
-            </div>
-            <p class="project-desc">A web application to efficiently filter and discover Codeforces problems based on tags, ratings, and problem types.</p>
-            <div class="project-tech">
-              <span class="tech-badge">React</span>
-              <span class="tech-badge">Codeforces API</span>
-              <span class="tech-badge">Tailwind CSS</span>
-            </div>
-            <div class="project-actions">
-              <a href="https://cf-filter.netlify.app/" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
-                <svg width="14" height="14" aria-hidden="true"><use href="#i-external"></use></svg> Live Demo
-              </a>
-              <a href="https://github.com/mostafa-cse/Codeforces-Filter" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
-                <svg width="14" height="14" aria-hidden="true"><use href="#i-github"></use></svg> View Code
-              </a>
-            </div>
-          </div>
-        </article>
-
-        <!-- Project 03 -->
-        <article class="project-card anim-up">
-          <span class="project-num" aria-hidden="true">03</span>
-          <div class="project-content">
-            <div class="project-head">
-              <h3 class="project-title">Coordinate Visualizer</h3>
+              <h3 class="project-title">Coordinate Visualizer (PointVis)</h3>
               <div class="project-category">Data Visualization Tool</div>
             </div>
             <p class="project-desc">An interactive tool to visualize geometry and coordinate points, helpful for debugging computational geometry problems.</p>
@@ -619,31 +826,6 @@
                 <svg width="14" height="14" aria-hidden="true"><use href="#i-external"></use></svg> Live Demo
               </a>
               <a href="https://github.com/mostafa-cse/PointVis" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
-                <svg width="14" height="14" aria-hidden="true"><use href="#i-github"></use></svg> View Code
-              </a>
-            </div>
-          </div>
-        </article>
-
-        <!-- Project 04 -->
-        <article class="project-card anim-up">
-          <span class="project-num" aria-hidden="true">04</span>
-          <div class="project-content">
-            <div class="project-head">
-              <h3 class="project-title">Graph Visualization</h3>
-              <div class="project-category">Algorithm Visualization</div>
-            </div>
-            <p class="project-desc">A graphical tool for rendering nodes and edges, useful for tracing and debugging graph algorithms.</p>
-            <div class="project-tech">
-              <span class="tech-badge">JavaScript</span>
-              <span class="tech-badge">Canvas API</span>
-              <span class="tech-badge">Algorithms</span>
-            </div>
-            <div class="project-actions">
-              <a href="https://graphcp.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
-                <svg width="14" height="14" aria-hidden="true"><use href="#i-external"></use></svg> Live Demo
-              </a>
-              <a href="https://github.com/mostafa-cse/Graph-visualization" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
                 <svg width="14" height="14" aria-hidden="true"><use href="#i-github"></use></svg> View Code
               </a>
             </div>
@@ -712,8 +894,8 @@
         <div class="edu-inst">Jashore University of Science and Technology (JUST)</div>
         <div class="edu-meta">
           <span class="edu-meta-item">Jan 2021 — Expected Dec 2026</span>
+          <span class="edu-meta-item">Current CGPA: 3.24 / 4.00</span>
           <span class="edu-meta-item">Jashore, Bangladesh</span>
-          <span class="edu-meta-item">Final Year</span>
         </div>
       </div>
     </div>
@@ -785,7 +967,7 @@
   </div>
 </footer>
 
-<script src="./navbar.js?v=3" defer></script>
+<script src="./navbar.js?v=4" defer></script>
 <script src="./pages/portfolio/hero.js?v=3" defer></script>
 <script src="./pages/portfolio/scroll-animations.js?v=3" defer></script>
 <script src="./pages/portfolio/interactions.js?v=4" defer></script>

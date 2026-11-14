@@ -1227,12 +1227,22 @@ body::after {
 .cp-card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--brand) 45%, transparent); }
 .cp-card::before { background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--brand) 12%, transparent), transparent 62%); }
 
-.cp-card[data-platform="codeforces"] { --brand: var(--brand-codeforces); }
-.cp-card[data-platform="codechef"]   { --brand: var(--brand-codechef); }
-.cp-card[data-platform="leetcode"]   { --brand: var(--brand-leetcode); }
-.cp-card[data-platform="atcoder"]    { --brand: var(--brand-atcoder); }
-.cp-card[data-platform="vjudge"]     { --brand: var(--brand-vjudge); }
-.cp-card[data-platform="lightoj"]    { --brand: var(--brand-lightoj); }
+.cp-card[data-platform="codeforces"]  { --brand: var(--brand-codeforces); }
+.cp-card[data-platform="codeforces2"] { --brand: var(--brand-codeforces); }
+.cp-card[data-platform="codechef"]    { --brand: var(--brand-codechef); }
+.cp-card[data-platform="leetcode"]    { --brand: var(--brand-leetcode); }
+.cp-card[data-platform="atcoder"]     { --brand: var(--brand-atcoder); }
+.cp-card[data-platform="vjudge"]      { --brand: var(--brand-vjudge); }
+.cp-card[data-platform="vjudge2"]     { --brand: var(--brand-vjudge); }
+.cp-card[data-platform="lightoj"]     { --brand: var(--brand-lightoj); }
+.cp-card[data-platform="hackerrank"]  { --brand: var(--brand-hackerrank); }
+.cp-card[data-platform="toph"]        { --brand: var(--brand-toph); }
+.cp-card[data-platform="spoj"]        { --brand: var(--brand-spoj); }
+.cp-card[data-platform="usaco"]       { --brand: var(--brand-usaco); }
+.cp-card[data-platform="kattis"]      { --brand: var(--brand-kattis); }
+.cp-card[data-platform="qoj"]         { --brand: var(--brand-qoj); }
+.cp-card[data-platform="basecamp"]    { --brand: var(--brand-basecamp); }
+.cp-card[data-platform="ojuz"]        { --brand: var(--brand-ojuz); }
 
 .cp-logo {
   grid-area: logo;
