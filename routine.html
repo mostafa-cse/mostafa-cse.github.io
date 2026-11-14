@@ -24,7 +24,7 @@
   <!-- Shared styles -->
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="base.css">
-  <link rel="stylesheet" href="navbar.css">
+  <link rel="stylesheet" href="navbar.css?v=4">
   <link rel="stylesheet" href="pages/routine/routine.css">
 
   <!-- Runs before the body parses so a remembered unlock never flashes the gate -->
@@ -91,10 +91,9 @@
 
 <!-- ─── Navbar ──────────────────────────────────────────────────────── -->
 <nav class="navbar" id="navbar" aria-label="Main navigation">
-  <div class="nav-progress" id="nav-progress" role="progressbar" aria-label="Reading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
   <div class="nav-inner">
     <a href="index.html" class="nav-logo" aria-label="Mostafa Kamal — home">
-      <span class="nav-logo-text">Md. <span class="nav-logo-accent">Mostafa</span> <span class="nav-logo-dot">·</span> Kamal</span>
+      <span class="nav-logo-text">Md. <span class="nav-logo-accent">Mostafa</span> Kamal</span>
     </a>
     <ul class="nav-links" id="nav-links" role="list">
       <li><a href="#now" class="nav-link">Today</a></li>
@@ -276,7 +275,7 @@
   </div>
 </footer>
 
-<script src="navbar.js?v=3" defer></script>
+<script src="navbar.js?v=4" defer></script>
 <script type="module">
   import { initRoutine } from './pages/routine/routine-engine.js';
 
